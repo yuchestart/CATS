@@ -3,4 +3,6 @@ A WebGL Library to make webgl easier
 
 please help :(
 
-This is after the development reset.
+The legacy version was too unstable so we had to reset.
+
+Don't use the legacy version.
