@@ -1,0 +1,2 @@
+The positions of the vertices in the vertex shader are stored in gl_Position.
+The fragment color/sampler in the fragment shader is stored in gl_FragColor
