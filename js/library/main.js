@@ -7,7 +7,7 @@
  * 
  * WebGL Library Build 1.0.102
  */
-//-----------OTHER CODE-----------
+//-----------MISC-----------
 //#region 
 function print(m){
     console.log(m)
@@ -15,6 +15,7 @@ function print(m){
 //#endregion
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
+
 //#region 
 class Renderer{
     //The actual rendering code, scene code will follow this.
@@ -66,8 +67,7 @@ class Renderer{
     drawProgram(program,buffers,uniforms,vertices){
         //Enable the buffers
         for(var i=0; i<buffers.length;i++){
-            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],
-                )
+            buffers.buffers[i].enableForProgram(buffers.bufferNames[i] )
         }
         this.gl.useProgram(program.program);
         for(var i=0; i<uniforms.length;i++){
@@ -80,7 +80,10 @@ class Renderer{
 //#endregion
 //-----------SCENE-----------
 //Scene code will be developed after basic rendering functions have been finished
+
 //#region
+
+//The scene code is what the user will interact with for most of the time.
 class Scene{
     /**
      * Create a new scene
@@ -109,8 +112,9 @@ class SceneObject{
     }
 }
 //#endregion
-//-----------SHADERS AND BUFFERS-----------
+//-----------SHADERS-----------
 //Part of the basic rendering code
+
 //#region
 class VertexShader{
     /**
@@ -196,6 +200,14 @@ class ShaderProgram{
         this.fragmentShaderAttributes = fragmentShader.attributeData;
     }
 }
+//#endregion
+//-----------BUFFERS-----------
+//Also part of the basic rendering code
+//Note: Color buffer for some reason fails
+
+//#region
+
+//Ugh, buffers are so annoying.
 class Buffer{
     /**
      * 
@@ -234,9 +246,9 @@ class Buffer{
                 this.programData[1],
                 this.programData[2],
                 this.programData[3],
-                this.programData[4]
+                this.programData[4],
             )
-            this.render.gl.enableVertexAttribArray(attribute);
+            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(this.program.program,attribute));
         }
     }
 }

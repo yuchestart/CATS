@@ -10,27 +10,32 @@ function $(name,parent){
     }
 }
 var render;
-let vertexShader,fragmentShader,shaderProgramInfo,gl,positionBuffer,bufferList;
+let vertexShader,fragmentShader,shaderProgramInfo,gl,positionBuffer,bufferList,colorBuffer;
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
 function main(){
+    //Too many lines. but at least less than 100.
     render = new Renderer($("emotionalDamage").id);
     render.clear(0.0,0.0,0.0,1.0);
     gl = render.gl;
     vertexShader = new VertexShader(`
         attribute vec4 aVertexPosition;
+        attribute vec4 aVertexColor;
         uniform mat4 uViewMatrix;
         uniform mat4 uProjectionMatrix;
-        void main(){
+        varying lowp vec4 vColor;
+        void main(void){
             gl_Position = uProjectionMatrix * uViewMatrix * aVertexPosition;
+            vColor = aVertexColor;
         }
     `,{
-        attributes:["aVertexPosition"],
+        attributes:["aVertexPosition","aVertexColor"],
         uniforms:["uViewMatrix","uProjectionMatrix"]
     });
     fragmentShader = new FragmentShader(`
-    void main(){
-        gl_FragColor = vec4(1.0,1.0,1.0,0.5);
+    varying lowp vec4 vColor;
+    void main(void){
+        gl_FragColor = vColor;
     }
     `,{});
     shaderProgramInfo = new ShaderProgram(render,vertexShader,fragmentShader);
@@ -42,7 +47,14 @@ function main(){
             0,
             0
         ]);
-    bufferList = new BufferList(["aVertexPosition"],[positionBuffer]);
+    colorBuffer = new Buffer(shaderProgramInfo,render,[1.0,1.0,1.0,1.0, 1.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,1.0,],gl.STATIC_DRAW,glDictionary.ATTRIBUTE,[
+        4,
+        render.gl.FLOAT,
+        false,
+        0,
+        0,
+    ])
+    bufferList = new BufferList(["aVertexPosition","aVertexColor"],[positionBuffer,colorBuffer]);
     const projectionMatrix = create();
     perspective(projectionMatrix,(45*Math.PI)/180,render.canvas.clientWidth/render.canvas.clientHeight,0.1,100.0);
     const viewMatrix = create();
