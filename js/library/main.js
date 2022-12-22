@@ -52,8 +52,8 @@ class Renderer{
     clear(r,g,b,a){
         //Clear rendering surface
         this.gl.clearColor(r,g,b,a);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
         this.gl.clearDepth(1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
     }
     /**
      * 
@@ -63,10 +63,17 @@ class Renderer{
      * @param {*} viewMatrix 
      * @param {*} worldMatrix 
      */
-    drawProgram(program,buffers,projectionMatrix,viewMatrix,worldMatrix){
+    drawProgram(program,buffers,uniforms,vertices){
+        //Enable the buffers
         for(var i=0; i<buffers.length;i++){
-            buffers.buffers[i].enableForProgram(buffers.bufferNames[i])
+            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],
+                )
         }
+        this.gl.useProgram(program.program);
+        for(var i=0; i<uniforms.length;i++){
+            uniforms.uniforms[i].enableForProgram()
+        }
+        this.gl.drawArrays(gl.TRIANGLE_STRIP,0,vertices);
     }
     //Development reset :(
 }
@@ -114,7 +121,7 @@ class VertexShader{
     constructor(source,attributeData){
         this.source = source.replaceAll(/\n|\r|\t/gi," ");
         this.attributeData = attributeData;
-        this.usage = usage;
+        //this.usage = usage;
     }
     compile(renderer){
         const gl = renderer.gl
@@ -139,7 +146,7 @@ class FragmentShader{
     constructor(source,attributeData){
         this.source = source.replaceAll(/\n|\r|\t/gi," ");
         this.attributeData = attributeData;
-        this.usage = usage;
+        //this.usage = usage;
     }
     compile(renderer){
         const gl = renderer.gl
@@ -175,7 +182,7 @@ class ShaderProgram{
             return null;
         }
         this.program = program;
-        this.vertexShaderAttributes = vertexShader.attributeData;
+        this.vertexShaderAttributes = vshader.attributeData;
         var newthing = {}
         for(var i=0; i<this.vertexShaderAttributes.attributes.length;i++){
             newthing[this.vertexShaderAttributes.attributes[i]] = gl.getAttribLocation(program,this.vertexShaderAttributes.attributes[i]);
@@ -197,7 +204,7 @@ class Buffer{
      * @param {Number} usage 
      * @param {Number} type
      */
-    constructor(render,data,usage,type){
+    constructor(program,render,data,usage,type,programData){
         this.render = render;
         this.data = data;
         this.usage = usage;
@@ -207,6 +214,8 @@ class Buffer{
         gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),usage?usage:gl.STATIC_DRAW);
         this.buffer = newBuffer;
         this.type = type;
+        this.program = program;
+        this.programData = programData;
     }
     /**
      * 
@@ -216,20 +225,18 @@ class Buffer{
      * @param {Number} stride 
      * @param {Number} offset 
      */
-    enableForProgram(attribute,numComponentsPerIteration,type,normalize,stride,offset){
+    enableForProgram(attribute){
         if(this.type == glDictionary.ATTRIBUTE){
             this.render.gl.bindBuffer(this.render.gl.ARRAY_BUFFER,this.buffer);
             this.render.gl.vertexAttribPointer(
-                attribute,
-                numComponentsPerIteration,
-                type,
-                normalize,
-                stride,
-                offset
+                this.render.gl.getAttribLocation(this.program.program,attribute),
+                this.programData[0],
+                this.programData[1],
+                this.programData[2],
+                this.programData[3],
+                this.programData[4]
             )
             this.render.gl.enableVertexAttribArray(attribute);
-        } else {
-            
         }
     }
 }
@@ -244,6 +251,31 @@ class BufferList{
         this.bufferNames = bufferNames;
         this.buffers = buffers;
         this.length = buffers.length;
+    }
+}
+//Apparently, matrixes aren't buffers so I have to include them here.
+class UniformMAT4Matrix{
+    constructor(render,matrix,attribute,program){
+        this.matrix = matrix;
+        this.attribute = attribute;
+        this.program = program;
+        this.render = render;
+    }
+    enableForProgram(){
+        this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(this.program.program,this.attribute),
+        false,
+        this.matrix)
+    }
+}
+//This part is also useless but kinda useful...
+class UniformList{
+    /**
+     * 
+     * @param {Array<UniformMAT4Matrix>} uniforms 
+     */
+    constructor(uniforms){
+        this.uniforms = uniforms;
+        this.length = uniforms.length;
     }
 }
 //#endregion
