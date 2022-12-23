@@ -55,13 +55,13 @@ function main(){
         0,
     ])
     bufferList = new BufferList(["aVertexPosition","aVertexColor"],[positionBuffer,colorBuffer]);
-    const projectionMatrix = create();
-    perspective(projectionMatrix,(45*Math.PI)/180,render.canvas.clientWidth/render.canvas.clientHeight,0.1,100.0);
+    const projectionMatrix = new Mat4();
+    projectionMatrix.perspective(45,render.canvas.clientWidth/render.canvas.clientHeight,0.01,100) 
     const viewMatrix = create();
     translate(viewMatrix,viewMatrix,[-0.0,0.0,-6.0])
     const uniformList = new UniformList([new UniformMAT4Matrix(
         render,
-        projectionMatrix,
+        projectionMatrix.data,
         "uProjectionMatrix",
         shaderProgramInfo
     ),new UniformMAT4Matrix(

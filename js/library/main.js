@@ -3,9 +3,12 @@
 /**
  * 
  * EXTERNAL DEPENDENCIES:
- * glmatrix/mat4.js
+ * glmatrix/mat4.js - to be replaced with WebGLLibrary/mat4.js
  * 
- * WebGL Library Build 1.0.102
+ * WebGL Library
+ * 
+ * (C) 2022-2023 Che Yu
+ * This code is open sourced and free to use so do anything you like.
  */
 //-----------MISC-----------
 //#region 
