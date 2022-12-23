@@ -231,5 +231,12 @@ class Mat4{
         r.data[7] = t23 * cos - t13 * sin;
         this.multiply(this,r)
     }
+    scale(vector){
+        var s = new Mat4()
+        s[0] = vector[0];
+        s[5] = vector[1];
+        s[10] = vector[2];
+        this.multiply(this,s);
+    }
 }
 //#endregion
