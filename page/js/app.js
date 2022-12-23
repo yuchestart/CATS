@@ -17,6 +17,10 @@ function main(){
     //Too many lines. but at least less than 100.
     render = new Renderer($("emotionalDamage").id);
     render.clear(0.0,0.0,0.0,1.0);
+    drawSomething(0.0,0.0,-6.0);
+    drawSomething(1.0,0.0,-7.0);//Yep my brain is too big.
+}
+function drawSomething(a,b,c){
     gl = render.gl;
     vertexShader = new VertexShader(`
         attribute vec4 aVertexPosition;
@@ -57,8 +61,8 @@ function main(){
     bufferList = new BufferList(["aVertexPosition","aVertexColor"],[positionBuffer,colorBuffer]);
     const projectionMatrix = new Mat4();
     projectionMatrix.perspective(45,render.canvas.clientWidth/render.canvas.clientHeight,0.01,100) 
-    const viewMatrix = create();
-    translate(viewMatrix,viewMatrix,[-0.0,0.0,-6.0])
+    const viewMatrix = new Mat4();
+    viewMatrix.translate([a,b,c])
     const uniformList = new UniformList([new UniformMAT4Matrix(
         render,
         projectionMatrix.data,
@@ -66,7 +70,7 @@ function main(){
         shaderProgramInfo
     ),new UniformMAT4Matrix(
         render,
-        viewMatrix,
+        viewMatrix.data,
         "uViewMatrix",
         shaderProgramInfo
     )]);

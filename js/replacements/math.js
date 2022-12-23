@@ -22,22 +22,34 @@ const glMath = {
 class Mat4{
     constructor(){
         this.data = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
-        
+        this.length = 16;
     }
+    /**
+     * 
+     * @param {Mat4} a 
+     * @param {Mat4} b 
+     */
     multiply(a,b){
         if(a instanceof Mat4 && b instanceof Mat4){
+            var newMat4 = new Mat4();
             //There are 4 dot products when multiplying two Mat4
             for(var i=0; i<4; i++){
                 //Calculate each dot product
                 for(var j=0; j<4; j++){
-                    this.data[i][j] = 0;
+                    newMat4.data[i*4+j] = 0;
                     for (var k=0; k<4; k++){
-                        this.data[i][j]+=a[i][k]*b[k][j]
+                        newMat4.data[i*4+j]+=a.data[i*4+k]*b.data[k*4+j]
                     }
                 }
             }
+            this.set(newMat4);
         }
     }
+    /**
+     * 
+     * @param {Mat4} a 
+     * @param {Mat4} b 
+     */
     add(a,b){
         out = this.data;
         out[0] = a[0]+b[0]
@@ -57,7 +69,27 @@ class Mat4{
         out[14] = a[14]+b[14]
         out[15] = a[15]+b[15]
     }
+    /**
+     * 
+     * @param {Number|Mat4} a0 
+     * @param {Number} a1 
+     * @param {Number} a2 
+     * @param {Number} a3 
+     * @param {Number} b0 
+     * @param {Number} b1 
+     * @param {Number} b2 
+     * @param {Number} b3 
+     * @param {Number} c0 
+     * @param {Number} c1 
+     * @param {Number} c2 
+     * @param {Number} c3 
+     * @param {Number} d0 
+     * @param {Number} d1 
+     * @param {Number} d2 
+     * @param {Number} d3 
+     */
     set(a0,a1,a2,a3,b0,b1,b2,b3,c0,c1,c2,c3,d0,d1,d2,d3){
+        if(!a0 instanceof Mat4){
         this.data[0] = a0
         this.data[1] = a1
         this.data[2] = a2
@@ -74,7 +106,20 @@ class Mat4{
         this.data[13] = d1
         this.data[14] = d2
         this.data[15] = d3
+        }else{
+            for(var i=0; i<16; i++){
+                this.data[i] = a0.data[i]
+            }
+        }
     }
+    /**
+     * 
+     * @param {Number} fovy 
+     * @param {Number} aspect 
+     * @param {Number} near 
+     * @param {Number} far 
+     * Got me lost too many braincells.
+     */
     perspective(fovy,aspect,near,far){
         var top,bottom,left,right;
         top = near*Math.tan(glMath.degreesToRadians(fovy)/2)
@@ -98,17 +143,86 @@ class Mat4{
         this.data[14] = -((2*far*near)/(far-near))
         this.data[15] = 0
     }
-}
-//#endregion
-//----------VEC4 code----------
-//#region 
-/**
- * A 4 value vector for WebGL.
- * Calling the constructor will create an empty vector
- */
-class Vec4{
-    constructor(){
-        this.data=[0,0,0,0]
+    /**
+     * Too many functions
+     * @param {Array} vector 
+     */
+    translate(vector){
+        var translationMatrix = new Mat4()
+        translationMatrix.data[12] = vector[0]
+        translationMatrix.data[13] = vector[1]
+        translationMatrix.data[14] = vector[2]
+        this.multiply(this,translationMatrix);
+    }
+    //I might've lost 2 braincells because of this section
+    /**
+     * 
+     * @param {Number} degrees 
+     * @param {Array} origin 
+     */
+    rotateX(degrees,origin){
+        let rads = glMath.degreesToRadians(degrees);
+        let sin=Math.sin(rads),cos = Math.cos(rads);
+        var rotationMatrix = new Mat4()
+        rotationMatrix[12] = origin[0]
+        rotationMatrix[13] = origin[1]
+        rotationMatrix[14] = origin[2]
+        rotationMatrix[0] = 1
+        rotationMatrix[1] = 0
+        rotationMatrix[2] = 0
+        rotationMatrix[4] = 0
+        rotationMatrix[5] = cos
+        rotationMatrix[6] = sin
+        rotationMatrix[8] = 0
+        rotationMatrix[9] = -sin
+        rotationMatrix[10] = cos
+        this.multiply(this,rotationMatrix);
+    }
+    /**
+     * 
+     * @param {Number} degrees 
+     * @param {Array} origin 
+     */
+    rotateY(degrees,origin){
+        let rads = glMath.degreesToRadians(degrees);
+        let sin=Math.sin(rads),cos = Math.cos(rads);
+        var rotationMatrix = new Mat4()
+        rotationMatrix[12] = origin[0]
+        rotationMatrix[13] = origin[1]
+        rotationMatrix[14] = origin[2]
+        rotationMatrix[0] = cos
+        rotationMatrix[1] = 0
+        rotationMatrix[2] = -sin
+        rotationMatrix[4] = 0
+        rotationMatrix[5] = 1
+        rotationMatrix[6] = 0
+        rotationMatrix[8] = sin
+        rotationMatrix[9] = 0
+        rotationMatrix[10] = cos
+        this.multiply(this,rotationMatrix);
+    }
+    /**
+     * 
+     * @param {Number} degrees 
+     * @param {Array} origin 
+     */
+    rotateZ(degrees,origin){
+        let rads = glMath.degreesToRadians(degrees);
+        let sin=Math.sin(rads),cos = Math.cos(rads);
+        var rotationMatrix = new Mat4()
+        rotationMatrix[12] = origin[0]
+        rotationMatrix[13] = origin[1]
+        rotationMatrix[14] = origin[2]
+        rotationMatrix[0] = cos
+        rotationMatrix[1] = sin
+        rotationMatrix[2] = 0
+        rotationMatrix[4] = -sin
+        rotationMatrix[5] = cos
+        rotationMatrix[6] = 0
+        rotationMatrix[8] = 0
+        rotationMatrix[9] = 0
+        rotationMatrix[10] = 1
+        this.multiply(this,rotationMatrix);
     }
 }
 //#endregion
