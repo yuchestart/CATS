@@ -155,74 +155,81 @@ class Mat4{
         this.multiply(this,translationMatrix);
     }
     //I might've lost 2 braincells because of this section
+    //But 2 braincells is not a lot
+    //SHUT UP! Shhhhh...
     /**
      * 
      * @param {Number} degrees 
      * @param {Array} origin 
      */
-    rotateX(degrees,origin){
+    rotateX(degrees){
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
-        var rotationMatrix = new Mat4()
-        rotationMatrix[12] = origin[0]
-        rotationMatrix[13] = origin[1]
-        rotationMatrix[14] = origin[2]
-        rotationMatrix[0] = 1
-        rotationMatrix[1] = 0
-        rotationMatrix[2] = 0
-        rotationMatrix[4] = 0
-        rotationMatrix[5] = cos
-        rotationMatrix[6] = sin
-        rotationMatrix[8] = 0
-        rotationMatrix[9] = -sin
-        rotationMatrix[10] = cos
-        this.multiply(this,rotationMatrix);
+        var r = new Mat4()
+        t = this.data;
+        let t10 = t[4];
+        let t11 = t[5];
+        let t12 = t[6];
+        let t13 = t[7];
+        let t20 = t[8];
+        let t21 = t[9];
+        let t22 = t[10];
+        let t23 = t[11];
+        r.data[4] = t10 * cos + t20 * sin;
+        r.data[5] = t11 * cos + t21 * sin;
+        r.data[6] = t12 * cos + t22 * sin;
+        r.data[7] = t13 * cos + t23 * sin;
+        r.data[8] = t20 * cos - t10 * sin;
+        r.data[9] = t21 * cos - t11 * sin;
+        r.data[10] = t22 * cos - t12 * sin;
+        r.data[11] = t23 * cos - t13 * sin;
+        his.multiply(this,r)
     }
-    /**
-     * 
-     * @param {Number} degrees 
-     * @param {Array} origin 
-     */
-    rotateY(degrees,origin){
+    rotateY(degrees){
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
-        var rotationMatrix = new Mat4()
-        rotationMatrix[12] = origin[0]
-        rotationMatrix[13] = origin[1]
-        rotationMatrix[14] = origin[2]
-        rotationMatrix[0] = cos
-        rotationMatrix[1] = 0
-        rotationMatrix[2] = -sin
-        rotationMatrix[4] = 0
-        rotationMatrix[5] = 1
-        rotationMatrix[6] = 0
-        rotationMatrix[8] = sin
-        rotationMatrix[9] = 0
-        rotationMatrix[10] = cos
-        this.multiply(this,rotationMatrix);
+        var r = new Mat4()
+        t = this.data;
+        let t10 = t[0];
+        let t11 = t[1];
+        let t12 = t[2];
+        let t13 = t[3];
+        let t20 = t[8];
+        let t21 = t[9];
+        let t22 = t[10];
+        let t23 = t[11];
+        r.data[0] = t10 * cos - t20 * sin;
+        r.data[1] = t11 * cos - t21 * sin;
+        r.data[2] = t12 * cos - t22 * sin;
+        r.data[3] = t13 * cos - t23 * sin;
+        r.data[8] = t20 * cos + t10 * sin;
+        r.data[9] = t21 * cos + t11 * sin;
+        r.data[10] = t22 * cos + t12 * sin;
+        r.data[11] = t23 * cos + t13 * sin;
+        his.multiply(this,r)
     }
-    /**
-     * 
-     * @param {Number} degrees 
-     * @param {Array} origin 
-     */
-    rotateZ(degrees,origin){
+    rotateZ(degrees){
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
-        var rotationMatrix = new Mat4()
-        rotationMatrix[12] = origin[0]
-        rotationMatrix[13] = origin[1]
-        rotationMatrix[14] = origin[2]
-        rotationMatrix[0] = cos
-        rotationMatrix[1] = sin
-        rotationMatrix[2] = 0
-        rotationMatrix[4] = -sin
-        rotationMatrix[5] = cos
-        rotationMatrix[6] = 0
-        rotationMatrix[8] = 0
-        rotationMatrix[9] = 0
-        rotationMatrix[10] = 1
-        this.multiply(this,rotationMatrix);
+        var r = new Mat4()
+        t = this.data;
+        let t10 = t[0];
+        let t11 = t[1];
+        let t12 = t[2];
+        let t13 = t[3];
+        let t20 = t[4];
+        let t21 = t[5];
+        let t22 = t[6];
+        let t23 = t[7];
+        r.data[0] = t10 * cos + t20 * sin;
+        r.data[1] = t11 * cos + t21 * sin;
+        r.data[2] = t12 * cos + t22 * sin;
+        r.data[3] = t13 * cos + t23 * sin;
+        r.data[4] = t20 * cos - t10 * sin;
+        r.data[5] = t21 * cos - t11 * sin;
+        r.data[6] = t22 * cos - t12 * sin;
+        r.data[7] = t23 * cos - t13 * sin;
+        this.multiply(this,r)
     }
 }
 //#endregion
