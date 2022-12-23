@@ -1,8 +1,7 @@
 # WebGLLibrary
 A WebGL Library to make webgl easier
 
-please help :(
+Currently in development.
 
-The legacy version was too unstable so we had to reset.
-
-Don't use the legacy version.
+Legacy too unstable
+This is the more stable version
