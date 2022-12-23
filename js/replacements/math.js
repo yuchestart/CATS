@@ -51,23 +51,40 @@ class Mat4{
      * @param {Mat4} b 
      */
     add(a,b){
-        out = this.data;
-        out[0] = a[0]+b[0]
-        out[1] = a[1]+b[1]
-        out[2] = a[2]+b[2]
-        out[3] = a[3]+b[3]
-        out[4] = a[4]+b[4]
-        out[5] = a[5]+b[5]
-        out[6] = a[6]+b[6]
-        out[7] = a[7]+b[7]
-        out[8] = a[8]+b[8]
-        out[9] = a[9]+b[9]
-        out[10] = a[10]+b[10]
-        out[11] = a[11]+b[11]
-        out[12] = a[12]+b[12]
-        out[13] = a[13]+b[13]
-        out[14] = a[14]+b[14]
-        out[15] = a[15]+b[15]
+        this.data[0] = a[0]+b[0]
+        this.data[1] = a[1]+b[1]
+        this.data[2] = a[2]+b[2]
+        this.data[3] = a[3]+b[3]
+        this.data[4] = a[4]+b[4]
+        this.data[5] = a[5]+b[5]
+        this.data[6] = a[6]+b[6]
+        this.data[7] = a[7]+b[7]
+        this.data[8] = a[8]+b[8]
+        this.data[9] = a[9]+b[9]
+        this.data[10] = a[10]+b[10]
+        this.data[11] = a[11]+b[11]
+        this.data[12] = a[12]+b[12]
+        this.data[13] = a[13]+b[13]
+        this.data[14] = a[14]+b[14]
+        this.data[15] = a[15]+b[15]
+    }
+    subtract(a,b){
+        this.data[0] = a[0]-b[0]
+        this.data[1] = a[1]-b[1]
+        this.data[2] = a[2]-b[2]
+        this.data[3] = a[3]-b[3]
+        this.data[4] = a[4]-b[4]
+        this.data[5] = a[5]-b[5]
+        this.data[6] = a[6]-b[6]
+        this.data[7] = a[7]-b[7]
+        this.data[8] = a[8]-b[8]
+        this.data[9] = a[9]-b[9]
+        this.data[10] = a[10]-b[10]
+        this.data[11] = a[11]-b[11]
+        this.data[12] = a[12]-b[12]
+        this.data[13] = a[13]-b[13]
+        this.data[14] = a[14]-b[14]
+        this.data[15] = a[15]-b[15]
     }
     /**
      * 
@@ -237,6 +254,28 @@ class Mat4{
         s[5] = vector[1];
         s[10] = vector[2];
         this.multiply(this,s);
+    }
+    pointTo(position,target,up){
+        
+    }
+}
+//#endregion
+//----------VEC3 code----------
+//#region 
+const Vec3 = {
+    normalize:function(vector){
+        thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
+        if(!thing){
+            return [0,0,0]
+        } else {
+            return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
+        }
+    },
+    add:function(a,b){
+        return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]
+    },
+    subtract:function(a,b){
+        return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
     }
 }
 //#endregion

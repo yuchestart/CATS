@@ -62,8 +62,7 @@ function drawSomething(a,b,c){
     const projectionMatrix = new Mat4();
     projectionMatrix.perspective(45,render.canvas.clientWidth/render.canvas.clientHeight,0.01,100) 
     const viewMatrix = new Mat4();
-    viewMatrix.translate([a,b,c]);
-    viewMatrix.rotateX(5);
+    viewMatrix.pointTo([0,0,-1.0],[0,0,1.0],[0,1.0,0]);
     const uniformList = new UniformList([new UniformMAT4Matrix(
         render,
         projectionMatrix.data,
