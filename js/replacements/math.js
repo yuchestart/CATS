@@ -166,7 +166,7 @@ class Mat4{
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
         var r = new Mat4()
-        t = this.data;
+        var t = this.data;
         let t10 = t[4];
         let t11 = t[5];
         let t12 = t[6];
@@ -183,13 +183,13 @@ class Mat4{
         r.data[9] = t21 * cos - t11 * sin;
         r.data[10] = t22 * cos - t12 * sin;
         r.data[11] = t23 * cos - t13 * sin;
-        his.multiply(this,r)
+        this.multiply(this,r)
     }
     rotateY(degrees){
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
         var r = new Mat4()
-        t = this.data;
+        var t = this.data;
         let t10 = t[0];
         let t11 = t[1];
         let t12 = t[2];
@@ -206,13 +206,13 @@ class Mat4{
         r.data[9] = t21 * cos + t11 * sin;
         r.data[10] = t22 * cos + t12 * sin;
         r.data[11] = t23 * cos + t13 * sin;
-        his.multiply(this,r)
+        this.multiply(this,r)
     }
     rotateZ(degrees){
         let rads = glMath.degreesToRadians(degrees);
         let sin=Math.sin(rads),cos = Math.cos(rads);
         var r = new Mat4()
-        t = this.data;
+        var t = this.data;
         let t10 = t[0];
         let t11 = t[1];
         let t12 = t[2];
