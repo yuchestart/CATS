@@ -10,70 +10,42 @@ function $(name,parent){
     }
 }
 var render;
-let vertexShader,fragmentShader,shaderProgramInfo,gl,positionBuffer,bufferList,colorBuffer;
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
 function main(){
     //Too many lines. but at least less than 100.
     render = new Renderer($("emotionalDamage").id);
-    render.clear(0.0,0.0,0.0,1.0);
-    drawSomething(0.0,0.0,-6.0);
-    drawSomething(1.0,0.0,-7.0);//Yep my brain is too big.
-}
-function drawSomething(a,b,c){
-    gl = render.gl;
-    vertexShader = new VertexShader(`
-        attribute vec4 aVertexPosition;
-        attribute vec4 aVertexColor;
-        uniform mat4 uViewMatrix;
-        uniform mat4 uProjectionMatrix;
-        varying lowp vec4 vColor;
-        void main(void){
-            gl_Position = uProjectionMatrix * uViewMatrix * aVertexPosition;
-            vColor = aVertexColor;
-        }
-    `,{
-        attributes:["aVertexPosition","aVertexColor"],
-        uniforms:["uViewMatrix","uProjectionMatrix"]
-    });
-    fragmentShader = new FragmentShader(`
-    varying lowp vec4 vColor;
-    void main(void){
-        gl_FragColor = vColor;
+    r = 0
+    function mainloop(){
+        r+=1
+        render.clear(0.0,0.0,0.0,1.0);
+    drawSomething(0.0,0.0,-6.0,r);
+    drawSomething(1.0,0.0,-7.0,r);//Yep my brain is too big.
+        requestAnimationFrame(mainloop);
     }
-    `,{});
-    shaderProgramInfo = new ShaderProgram(render,vertexShader,fragmentShader);
-    positionBuffer = new Buffer(shaderProgramInfo,render,[1.0,1.0,-1.0,1.0,1.0,-1.0,-1.0,-1.0],gl.STATIC_DRAW,glDictionary.ATTRIBUTE,
-        [
-            2,
-            render.gl.FLOAT,
-            false,
-            0,
-            0
-        ]);
-    colorBuffer = new Buffer(shaderProgramInfo,render,[1.0,1.0,1.0,1.0, 1.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,1.0,],gl.STATIC_DRAW,glDictionary.ATTRIBUTE,[
-        4,
-        render.gl.FLOAT,
-        false,
-        0,
-        0,
-    ])
-    bufferList = new BufferList(["aVertexPosition","aVertexColor"],[positionBuffer,colorBuffer]);
-    const projectionMatrix = new Mat4();
-    projectionMatrix.perspective(45,render.canvas.clientWidth/render.canvas.clientHeight,0.01,100) 
-    const viewMatrix = new Mat4();
-    viewMatrix.pointTo([0,0,-1.0],[0,0,1.0],[0,1.0,0]);
-    const uniformList = new UniformList([new UniformMAT4Matrix(
-        render,
-        projectionMatrix.data,
-        "uProjectionMatrix",
-        shaderProgramInfo
-    ),new UniformMAT4Matrix(
-        render,
-        viewMatrix.data,
-        "uViewMatrix",
-        shaderProgramInfo
-    )]);
-    render.drawProgram(shaderProgramInfo,bufferList,uniformList,4)
+    mainloop()
+}
+function drawSomething(a,b,c,d){
+    const gl = render.gl;
+    const vertexShader = new VertexShader(`
+        attribute vec3 vertexPosition;
+        void main(void){
+            gl_Position = vec4(vertexPosition,1.0);
+        }
+    `);
+    const fragmetnShader = new FragmentShader(`
+        void main(void){
+            gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+        }
+    `);
+    const mesh = new Mesh([
+        -0.5,-0.5,-0.5,
+        0.5,-0.5,-0.5,
+        0.5,0.5,-0.5,
+        -0.5,0.5,-0.5,
+        -0.5,-0.5,0.5,
+        0.5,-0.5,0.5,
+        0.5,0.5,0.5,
+        -0.5,0.5,0.5,])
 }
 window.onload = main;

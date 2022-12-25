@@ -33,10 +33,10 @@ class Renderer{
             console.warn("WebGL2 Not supported, falling back to WebGL1");
             this.gl = canvas.getContext("webgl")
             if(this.gl===null){
-                console.warn("WebGL Not supported, falling back to experimental WebGL");
+                console.warn("WebGL1 Not supported, falling back to experimental WebGL");
                 this.gl = canvas.getcontext("experimental-webgl")
                 if(this.gl===null){
-                    console.error("Experimental WebGL not supported.");
+                    console.error("WebGL at a whole is not supported");
                     return;
                 }
             }
@@ -67,8 +67,14 @@ class Renderer{
      * @param {*} viewMatrix 
      * @param {*} worldMatrix 
      */
-    drawProgram(program,buffers,uniforms,vertices){
+    drawProgram(program,buffers,uniforms,vertices,type,renderType,otherParameters){
         //Enable the buffers
+        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
+        if(!renderType){
+            renderType = this.gl.TRIANGLES
+        } else {
+            renderType = renderTypes[renderType]
+        }
         for(var i=0; i<buffers.length;i++){
             buffers.buffers[i].enableForProgram(buffers.bufferNames[i] )
         }
@@ -76,9 +82,44 @@ class Renderer{
         for(var i=0; i<uniforms.length;i++){
             uniforms.uniforms[i].enableForProgram()
         }
-        this.gl.drawArrays(gl.TRIANGLE_STRIP,0,vertices);
+        if(type==glDictionary.ELEMENTS){
+            this.gl.drawElements(renderType,vertices,this.gl.UNSIGNED_SHORT,otherParameters.offset)
+        } else if(type == glDictionary.ARRAYS){
+            this.gl.drawArrays(renderType,0,vertices);
+        }
     }
-    //Development reset :(
+    /**
+     * 
+     * @param {RenderablePackage} package 
+     */
+    drawPackage(renderPackage,renderType){
+        this.gl.useProgram(renderPackage.program);
+        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
+        if(!renderType){
+            renderType = this.gl.TRIANGLES;
+        } else {
+            renderType = renderTypes[renderType]
+        }
+        if(renderPackage.uniformList){
+            var uniforms = renderPackage.uniformList
+            for(var i=0; i<uniforms.length;i++){
+                uniforms.uniforms[i].enableForProgram(renderPackage.program)
+            }
+        }
+        var buffers = renderPackage.bufferList
+        for(var i=0; i<buffers.length;i++){
+            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],renderPackage.program)
+        }
+        
+        switch(renderPackage.renderType){
+            case glDictionary.ELEMENTS:
+                this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
+                break;
+            case glDictionary.ARRAYS:
+                this.gl.drawArrays(renderType,0,renderPackage.vertices)
+                break;
+        }
+    }
 }
 //#endregion
 //-----------SCENE-----------
@@ -91,27 +132,68 @@ class Scene{
     /**
      * Create a new scene
      * @param {Renderer} renderer 
-     * 
+     * @param {String} bgcolor
      */
-    constructor(renderer){
+    constructor(renderer,bgcolor){
         this.renderer = renderer;
         this.gl = renderer.gl;
         this.sceneObjects = [];
+        this.bgcolor = bgcolor;
+        if(this.bgcolor.startsWith("#")){
+            var newcolor = [0,0,0]
+            this.bgcolor.replace("#","")
+            newcolor[0] = parseInt(this.bgcolor.slice(0,2),16)*(1/255);
+            newcolor[1] = parseInt(this.bgcolor.slice(2,4),16)*(1/255);
+            newcolor[2] = parseInt(this.bgcolor.slice(4,6),16)*(1/255);
+        } else if(this.bgcolor.startsWith("rgba")){
+            var newcolor
+        }
     }
+    /**
+     * 
+     * @param {Mesh} object 
+     */
     addObjectToScene(object){
         this.sceneObjects.push(object);
     }
-    renderScene(){
+    renderScene(dontclear){
+        if(!dontclear){
+            render.clear(...this.bgcolor)
+        }
+        for(var i=0; i<this.sceneObjects.length; i++){
 
+        }
     }
 }
 //SCENE OBJECTS
 
-class SceneObject{
-    constructor(type,hidden,vertexData){
-        this.type = type;
-        this.hidden = hidden;
+class Mesh{
+    constructor(vertexData,indexData,vertexShader,fragmentShader,transformationMatrix){
         this.vertexData = vertexData;
+        this.indexData = indexData;
+        this.vertexShader = vertexShader;
+        this.fragmentShader = fragmentShader;
+        this.transformationMatrix = transformationMatrix;
+        this.visible = true;
+    }
+    hide(){
+        this.visible = false;
+    }
+    show(){
+        this.visible = true;
+    }
+    /**
+     * 
+     * @param {Renderer} renderer 
+     */
+    package(renderer){
+        const gl = renderer.gl;
+        var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
+        var positionBuffer = new Buffer(renderer,this.vertexData,null,glDictionary.ATTRIBUTE,[3,gl.FLOAT,false,0,0]);
+        var indexBuffer = new Buffer(renderer,this.indexData,null,glDictionary.NONATTRIBUTE,[],gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        var bufferList = new BufferList(this.vertexShader.attributes,[positionBuffer,indexBuffer]);
+        var package = new RenderablePackage(shaderProgram,bufferList,vertexData.length/3,glDictionary.ELEMENTS,[],0,true,indexData.length())
+        return package;
     }
 }
 //#endregion
@@ -219,17 +301,20 @@ class Buffer{
      * @param {Number} usage 
      * @param {Number} type
      */
-    constructor(program,render,data,usage,type,programData){
+    constructor(render,data,usage,type,programData,usageType,dataType){
+        if(!usageType){
+            usageType = render.gl.ARRAY_BUFFER
+        }
         this.render = render;
         this.data = data;
         this.usage = usage;
+        this.usageType = usageType;
         const gl = render.gl;
         const newBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,newBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),usage?usage:gl.STATIC_DRAW);
+        gl.bindBuffer(usageType,newBuffer);
+        gl.bufferData(usageType,dataType?new dataType(data):new Float32Array(data),usage?usage:gl.STATIC_DRAW);
         this.buffer = newBuffer;
         this.type = type;
-        this.program = program;
         this.programData = programData;
     }
     /**
@@ -240,18 +325,20 @@ class Buffer{
      * @param {Number} stride 
      * @param {Number} offset 
      */
-    enableForProgram(attribute){
+    enableForProgram(attribute,program){
         if(this.type == glDictionary.ATTRIBUTE){
-            this.render.gl.bindBuffer(this.render.gl.ARRAY_BUFFER,this.buffer);
+            this.render.gl.bindBuffer(this.usageType,this.buffer);
             this.render.gl.vertexAttribPointer(
-                this.render.gl.getAttribLocation(this.program.program,attribute),
+                this.render.gl.getAttribLocation(program,attribute),
                 this.programData[0],
                 this.programData[1],
                 this.programData[2],
                 this.programData[3],
                 this.programData[4],
             )
-            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(this.program.program,attribute));
+            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(program,attribute));
+        } else if(this.type == glDictionary.NONATTRIBUTE){
+            this.render.gl.bindBuffer(this.usageType,this.buffer)
         }
     }
 }
@@ -270,14 +357,13 @@ class BufferList{
 }
 //Apparently, matrixes aren't buffers so I have to include them here.
 class UniformMAT4Matrix{
-    constructor(render,matrix,attribute,program){
+    constructor(render,matrix,attribute){
         this.matrix = matrix;
         this.attribute = attribute;
-        this.program = program;
         this.render = render;
     }
-    enableForProgram(){
-        this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(this.program.program,this.attribute),
+    enableForProgram(program){
+        this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
         false,
         this.matrix)
     }
@@ -291,6 +377,23 @@ class UniformList{
     constructor(uniforms){
         this.uniforms = uniforms;
         this.length = uniforms.length;
+    }
+}
+//#endregion
+//-----------PROGRAMS-----------
+//Just compacts everything together for renderer to process.
+//#region 
+class RenderablePackage{
+    constructor(shaderProgram,bufferList,vertices,renderType,uniformList,offset,usesIndexBuffer,indexAmount){
+        this.shaderProgram = shaderProgram;
+        this.program = shaderProgram.program;
+        this.bufferList = bufferList;
+        this.uniformList = uniformList;
+        this.vertices = vertices;
+        this.renderType = renderType;
+        this.offset = offset;
+        this.usesIndexBuffer = usesIndexBuffer;
+        this.indexAmount = indexAmount;
     }
 }
 //#endregion

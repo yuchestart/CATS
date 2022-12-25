@@ -1694,9 +1694,9 @@
   let centerz = center[2];
 
   if (
-    Math.abs(eyex - centerx) < glMatrix.EPSILON &&
-    Math.abs(eyey - centery) < glMatrix.EPSILON &&
-    Math.abs(eyez - centerz) < glMatrix.EPSILON
+    Math.abs(eyex - centerx) < 0.0001&&
+    Math.abs(eyey - centery) < 0.0001 &&
+    Math.abs(eyez - centerz) < 0.0001
   ) {
     return identity(out);
   }

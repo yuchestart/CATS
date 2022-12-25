@@ -11,6 +11,7 @@ const glMath = {
     degreesToRadians:function(degrees){
         return degrees*(Math.PI/180)
     },
+    EPSILON:1e-4
 }
 //#endregion
 //----------MAT4 code----------
@@ -179,75 +180,49 @@ class Mat4{
      * @param {Number} degrees 
      * @param {Array} origin 
      */
-    rotateX(degrees){
+    rotate(degrees,axis){
         let rads = glMath.degreesToRadians(degrees);
-        let sin=Math.sin(rads),cos = Math.cos(rads);
+        let s=Math.sin(rads),c = Math.cos(rads),t=1-c;
         var r = new Mat4()
-        var t = this.data;
-        let t10 = t[4];
-        let t11 = t[5];
-        let t12 = t[6];
-        let t13 = t[7];
-        let t20 = t[8];
-        let t21 = t[9];
-        let t22 = t[10];
-        let t23 = t[11];
-        r.data[4] = t10 * cos + t20 * sin;
-        r.data[5] = t11 * cos + t21 * sin;
-        r.data[6] = t12 * cos + t22 * sin;
-        r.data[7] = t13 * cos + t23 * sin;
-        r.data[8] = t20 * cos - t10 * sin;
-        r.data[9] = t21 * cos - t11 * sin;
-        r.data[10] = t22 * cos - t12 * sin;
-        r.data[11] = t23 * cos - t13 * sin;
+        let x = axis[0],y=axis[1],z=axis[2]
+        let len = Math.sqrt(x*x+y*y+z*z);
+        let a = this.data;
+        let a00=a[0],a01=a[1],a02=a[2],a03=a[3],a10=a[4],a11=a[5],a12=a[6],a13=a[7],a20=a[8],a21=a[9],a22=a[10],a23=a[11],
+        b00 = x*x*t+c,
+        b01 = y*x*t+z*s,
+        b02 = z*x*t-y*s,
+        b10 = x*y*t-z*s,
+        b11 = y*y*t+x*s,
+        b12 = z*y*t+y*s,
+        b20 = x*z*t+y*s,
+        b21 = y*z*t-x*s,
+        b22 = z*z*t+c;
+        if(len < glMath.EPSILON){
+            this.set(r);
+            return;
+        }
+        len = 1/len;
+        x*=len;
+        y*=len;
+        z*=len;
+        r[0] = a00 * b00 + a10 * b01 + a20 * b02;
+        r[1] = a01 * b00 + a11 * b01 + a21 * b02;
+        r[2] = a02 * b00 + a12 * b01 + a22 * b02;
+        r[3] = a03 * b00 + a13 * b01 + a23 * b02;
+        r[4] = a00 * b10 + a10 * b11 + a20 * b12;
+        r[5] = a01 * b10 + a11 * b11 + a21 * b12;
+        r[6] = a02 * b10 + a12 * b11 + a22 * b12;
+        r[7] = a03 * b10 + a13 * b11 + a23 * b12;
+        r[8] = a00 * b20 + a10 * b21 + a20 * b22;
+        r[9] = a01 * b20 + a11 * b21 + a21 * b22;
+        r[10] = a02 * b20 + a12 * b21 + a22 * b22;
+        r[11] = a03 * b20 + a13 * b21 + a23 * b22;
         this.multiply(this,r)
     }
-    rotateY(degrees){
-        let rads = glMath.degreesToRadians(degrees);
-        let sin=Math.sin(rads),cos = Math.cos(rads);
-        var r = new Mat4()
-        var t = this.data;
-        let t10 = t[0];
-        let t11 = t[1];
-        let t12 = t[2];
-        let t13 = t[3];
-        let t20 = t[8];
-        let t21 = t[9];
-        let t22 = t[10];
-        let t23 = t[11];
-        r.data[0] = t10 * cos - t20 * sin;
-        r.data[1] = t11 * cos - t21 * sin;
-        r.data[2] = t12 * cos - t22 * sin;
-        r.data[3] = t13 * cos - t23 * sin;
-        r.data[8] = t20 * cos + t10 * sin;
-        r.data[9] = t21 * cos + t11 * sin;
-        r.data[10] = t22 * cos + t12 * sin;
-        r.data[11] = t23 * cos + t13 * sin;
-        this.multiply(this,r)
-    }
-    rotateZ(degrees){
-        let rads = glMath.degreesToRadians(degrees);
-        let sin=Math.sin(rads),cos = Math.cos(rads);
-        var r = new Mat4()
-        var t = this.data;
-        let t10 = t[0];
-        let t11 = t[1];
-        let t12 = t[2];
-        let t13 = t[3];
-        let t20 = t[4];
-        let t21 = t[5];
-        let t22 = t[6];
-        let t23 = t[7];
-        r.data[0] = t10 * cos + t20 * sin;
-        r.data[1] = t11 * cos + t21 * sin;
-        r.data[2] = t12 * cos + t22 * sin;
-        r.data[3] = t13 * cos + t23 * sin;
-        r.data[4] = t20 * cos - t10 * sin;
-        r.data[5] = t21 * cos - t11 * sin;
-        r.data[6] = t22 * cos - t12 * sin;
-        r.data[7] = t23 * cos - t13 * sin;
-        this.multiply(this,r)
-    }
+    /**
+     * 
+     * @param {Array} vector 
+     */
     scale(vector){
         var s = new Mat4()
         s[0] = vector[0];
@@ -255,14 +230,51 @@ class Mat4{
         s[10] = vector[2];
         this.multiply(this,s);
     }
+    /**
+     * 
+     * @param {Array} position 
+     * @param {Array} target 
+     * @param {Array} up 
+     */
     pointTo(position,target,up){
-        
+        var forward = vec3.normalize(vec3.subtract(position,target))
+        var right = vec3.cross(up,forward)
+        var newup = vec3.cross(forward,right)
+        var output = new Mat4()
+        output[0] = right[0]
+        output[1] = right[1]
+        output[2] = right[2]
+        output[3] = 0
+        output[4] = newup[0]
+        output[5] = newup[1]
+        output[6] = newup[2]
+        output[7] = 0;
+        output[8] = forward[0]
+        output[9] = forward[1]
+        output[10] = forward[2]
+        output[11] = 0
+        output[12] = position[0]
+        output[13] = position[1]
+        output[14] = position[2]
+        output[15] = 1;
+        this.multiply(this,output)
+    }
+    /**
+     * 
+     * @param {Renderer} render 
+     * @param {String} attribute 
+     * @param {ShaderProgram} program 
+     * @returns 
+     */
+    convertToUniform(render,attribute,program){
+        var newUniform = new UniformMAT4Matrix(render,this.data,attribute,program.program);
+        return newUniform;
     }
 }
 //#endregion
 //----------VEC3 code----------
 //#region 
-const Vec3 = {
+const vec3 = {
     normalize:function(vector){
         thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
         if(!thing){
@@ -276,6 +288,13 @@ const Vec3 = {
     },
     subtract:function(a,b){
         return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
+    },
+    cross:function(a,b){
+        return [
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0]
+        ]
     }
 }
 //#endregion
