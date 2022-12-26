@@ -174,9 +174,13 @@ class Scene{
         } else if(this.bgcolor.startsWith("rgba")){
             var newcolor = [0,0,0,0]
             this.bgcolor.replace("rgba(","")
-            this.bgcolor.replace("(","");
+            this.bgcolor.replace(")","");
             this.bgcolor = this.bgcolor.split(",");
-            
+            for(var i=0; i<3; i++){
+                newcolor[i] = parseInt(this.bgcolor[i])*(1/255);
+            }
+            newcolor[3] = parseFloat(this.bgcolor[i])
+            this.bgcolor = newcolor;
         }
         this.camera = camera;
     }
@@ -200,7 +204,10 @@ class Scene{
         this.camera.pos = vec3.add(this.camera.pos,v);
     }
     rotateCamera(v){
-        this.camera.facingDirection = 
+        var rotationMatrix = new Mat4();
+        rotationMatrix.rotate(v[0],[0,0,1]);
+        rotationMatrix.rotate(v[1],[0,1,0]);
+        rotationMatrix.rotate(v[2],[1,0,0]);
     }
 }
 //SCENE OBJECTS

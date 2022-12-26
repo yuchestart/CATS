@@ -44,8 +44,15 @@ class Mat4{
                 }
             }
             this.set(newMat4);
-        } else{
-            
+        } else if(a instanceof Array ^ b instanceof Array){
+            var v = a instanceof Array ? a : b;
+            var m = a instanceof Array ? b : a;
+            return [
+                v[0]*m[0]+v[1]*m[4]+v[2]*m[8]+v[3]*m[12],
+                v[0]*m[1]+v[1]*m[5]+v[2]*m[9]+v[3]*m[13],
+                v[0]*m[2]+v[1]*m[6]+v[2]*m[10]+v[3]*m[14],
+                v[0]*m[3]+v[1]*m[7]+v[2]*m[11]+v[3]*m[15],
+            ];
         }
     }
     /**
@@ -207,18 +214,18 @@ class Mat4{
         x*=len;
         y*=len;
         z*=len;
-        r[0] = a00 * b00 + a10 * b01 + a20 * b02;
-        r[1] = a01 * b00 + a11 * b01 + a21 * b02;
-        r[2] = a02 * b00 + a12 * b01 + a22 * b02;
-        r[3] = a03 * b00 + a13 * b01 + a23 * b02;
-        r[4] = a00 * b10 + a10 * b11 + a20 * b12;
-        r[5] = a01 * b10 + a11 * b11 + a21 * b12;
-        r[6] = a02 * b10 + a12 * b11 + a22 * b12;
-        r[7] = a03 * b10 + a13 * b11 + a23 * b12;
-        r[8] = a00 * b20 + a10 * b21 + a20 * b22;
-        r[9] = a01 * b20 + a11 * b21 + a21 * b22;
-        r[10] = a02 * b20 + a12 * b21 + a22 * b22;
-        r[11] = a03 * b20 + a13 * b21 + a23 * b22;
+        r.data[0] = a00 * b00 + a10 * b01 + a20 * b02;
+        r.data[1] = a01 * b00 + a11 * b01 + a21 * b02;
+        r.data[2] = a02 * b00 + a12 * b01 + a22 * b02;
+        r.data[3] = a03 * b00 + a13 * b01 + a23 * b02;
+        r.data[4] = a00 * b10 + a10 * b11 + a20 * b12;
+        r.data[5] = a01 * b10 + a11 * b11 + a21 * b12;
+        r.data[6] = a02 * b10 + a12 * b11 + a22 * b12;
+        r.data[7] = a03 * b10 + a13 * b11 + a23 * b12;
+        r.data[8] = a00 * b20 + a10 * b21 + a20 * b22;
+        r.data[9] = a01 * b20 + a11 * b21 + a21 * b22;
+        r.data[10] = a02 * b20 + a12 * b21 + a22 * b22;
+        r.data[11] = a03 * b20 + a13 * b21 + a23 * b22;
         this.multiply(this,r)
     }
     /**
@@ -227,9 +234,9 @@ class Mat4{
      */
     scale(vector){
         var s = new Mat4()
-        s[0] = vector[0];
-        s[5] = vector[1];
-        s[10] = vector[2];
+        s.data[0] = vector[0];
+        s.data[5] = vector[1];
+        s.data[10] = vector[2];
         this.multiply(this,s);
     }
     /**
@@ -243,22 +250,22 @@ class Mat4{
         var right = vec3.normalize(vec3.cross(up,forward))
         var newup = vec3.cross(forward,right)
         var output = new Mat4()
-        output[0] = right[0]
-        output[1] = right[1]
-        output[2] = right[2]
-        output[3] = 0
-        output[4] = newup[0]
-        output[5] = newup[1]
-        output[6] = newup[2]
-        output[7] = 0;
-        output[8] = forward[0]
-        output[9] = forward[1]
-        output[10] = forward[2]
-        output[11] = 0
-        output[12] = position[0]
-        output[13] = position[1]
-        output[14] = position[2]
-        output[15] = 1;
+        output.data[0] = right[0]
+        output.data[1] = right[1]
+        output.data[2] = right[2]
+        output.data[3] = 0
+        output.data[4] = newup[0]
+        output.data[5] = newup[1]
+        output.data[6] = newup[2]
+        output.data[7] = 0;
+        output.data[8] = forward[0]
+        output.data[9] = forward[1]
+        output.data[10] = forward[2]
+        output.data[11] = 0
+        output.data[12] = position[0]
+        output.data[13] = position[1]
+        output.data[14] = position[2]
+        output.data[15] = 1;
         this.multiply(this,output)
     }
     /**
@@ -297,6 +304,9 @@ const vec3 = {
             a[2] * b[0] - a[0] * b[2],
             a[0] * b[1] - a[1] * b[0]
         ]
+    },
+    dot:function(a,b){
+
     }
 }
 //#endregion
