@@ -1,7 +1,6 @@
 # WebGLLibrary
-A WebGL Library to make webgl easier
+Well, uh, this library doesn't have a name yet so please don't mind.
+<hr>
+So, this WebGL Library's goal is to make WebGL, the technology to enable hardware accelerated graphics on the web, more user friendly and easier to use.
 
-Currently in development.
-
-Legacy too unstable
-This is the more stable version
+Yeah not much else.
