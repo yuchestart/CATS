@@ -1,6 +1,5 @@
 /**
- * DICTIONARY FOR WEBGL
- * bruh just abunch of keywords
+ *  Just a bunch of keywords to let the library know what it's doing. Not much else.
  */
 const glDictionary = {
     TRIANGLE_STRIP:0,

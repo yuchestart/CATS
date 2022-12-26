@@ -18,7 +18,7 @@ function print(m){
 //#endregion
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
-
+//The user won't interact with this much
 //#region 
 class Renderer{
     //The actual rendering code, scene code will follow this.
@@ -60,7 +60,10 @@ class Renderer{
         this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
     }
     /**
+     * Draws a shader program object.
      * 
+     * NOTE:
+     * drawProgram is deprecated. Use drawPackage instead.
      * @param {ShaderProgram} program 
      * @param {BufferList} buffers 
      * @param {*} projectionMatrix 
@@ -89,7 +92,7 @@ class Renderer{
         }
     }
     /**
-     * 
+     * Draws a renderable data package.
      * @param {RenderablePackage} package 
      */
     drawPackage(renderPackage,renderType){
@@ -128,26 +131,54 @@ class Renderer{
 //#region
 
 //The scene code is what the user will interact with for most of the time.
+class Camera{
+    constructor(pos,facingDirection,fov,near,far){
+        this.pos = pos;
+        //Contains XYZ rotations
+        this.facingDirection = facingDirection?facingDirection:[0,0,1];
+        this.fov = fov;
+        this.near = near;
+        this.far = far;
+    }
+    project(aspect){
+        var projectionMatrix = new Mat4();
+        var viewMatrix = new Mat4();
+        projectionMatrix.perspective(this.fov,aspect,this.near,this.far);
+        viewMatrix.lookAt(this.pos,this.facingDirection,[0,1,0]);
+        return {
+            prj:projectionMatrix,
+            v:viewMatrix,
+        }
+    }
+
+}
 class Scene{
     /**
      * Create a new scene
      * @param {Renderer} renderer 
      * @param {String} bgcolor
+     * @param {Camera} camera
      */
-    constructor(renderer,bgcolor){
+    constructor(renderer,camera,bgcolor){
         this.renderer = renderer;
         this.gl = renderer.gl;
         this.sceneObjects = [];
         this.bgcolor = bgcolor;
         if(this.bgcolor.startsWith("#")){
-            var newcolor = [0,0,0]
+            var newcolor = [0,0,0,1.0]
             this.bgcolor.replace("#","")
             newcolor[0] = parseInt(this.bgcolor.slice(0,2),16)*(1/255);
             newcolor[1] = parseInt(this.bgcolor.slice(2,4),16)*(1/255);
             newcolor[2] = parseInt(this.bgcolor.slice(4,6),16)*(1/255);
+            this.bgcolor = newcolor;
         } else if(this.bgcolor.startsWith("rgba")){
-            var newcolor
+            var newcolor = [0,0,0,0]
+            this.bgcolor.replace("rgba(","")
+            this.bgcolor.replace("(","");
+            this.bgcolor = this.bgcolor.split(",");
+            
         }
+        this.camera = camera;
     }
     /**
      * 
@@ -156,25 +187,40 @@ class Scene{
     addObjectToScene(object){
         this.sceneObjects.push(object);
     }
-    renderScene(dontclear){
+    render(dontclear){
         if(!dontclear){
             render.clear(...this.bgcolor)
         }
         for(var i=0; i<this.sceneObjects.length; i++){
-
+            var renderpackage = this.sceneObjects[i].package();
+            renderpackage.uniformList.push()
         }
+    }
+    translateCamera(v){
+        this.camera.pos = vec3.add(this.camera.pos,v);
+    }
+    rotateCamera(v){
+        this.camera.facingDirection = 
     }
 }
 //SCENE OBJECTS
 
 class Mesh{
-    constructor(vertexData,indexData,vertexShader,fragmentShader,transformationMatrix){
+    /**
+     * 
+     * @param {Array} vertexData 
+     * @param {Array} indexData 
+     * @param {*} material 
+     * @param {*} meshData 
+     */
+    constructor(vertexData,indexData,material,meshData){
         this.vertexData = vertexData;
         this.indexData = indexData;
-        this.vertexShader = vertexShader;
-        this.fragmentShader = fragmentShader;
-        this.transformationMatrix = transformationMatrix;
+        this.material = material;
+        this.meshData = meshData;
         this.visible = true;
+        this.transformationMatrix = new Mat4();
+        this.position = [0,0,0]
     }
     hide(){
         this.visible = false;
@@ -186,14 +232,66 @@ class Mesh{
      * 
      * @param {Renderer} renderer 
      */
-    package(renderer){
+    
+    translate(x,y,z){
+        //There is no need to store the transformations, as all of them will be a sum.
+        this.position = vec3.add(this.position,[x,y,z]);
+    }
+    package(renderer,camera){
+        this.transformationMatrix = new Mat4();
         const gl = renderer.gl;
+        this.transformationMatrix.translate(this.position);
+        var compiledMaterial = this.material.compile(renderer,this.vertexData,this.indexData);
+        var transformationMatrix = this.transformationMatrix.convertToUniform(renderer,"tM",compiledMaterial.program)
+
+        var renderpackage = new RenderablePackage(compiledMaterial.program,compiledMaterial.bufferList,vertexData.length/3,glDictionary.ELEMENTS,[transformationMatrix],0,true,indexData.length())
+        return renderpackage;
+    }
+}
+
+//Materials
+
+class BasicColorMaterial{
+    constructor(color,haslighting){
+        //Tries to conserve as much space as possible
+        this.vertexShader = new VertexShader(`
+attribute vec3 vP;
+attribute vec4 vC;
+uniform mat4 pM;
+uniform mat4 cM;
+uniform mat4 tM;
+varying lowp vec4 fC;
+void main(void){
+gl_Position = tM*cM*pM*vec4(vP);
+fC = vC;
+}
+`,{
+    attributes:["vP","vC"],
+    uniforms:["pM","cM","tM"]
+});
+    this.fragmentShader = new FragmentShader(`
+varying lowp vec4 fC;
+void main(void){
+    gl_FragColor = fC;
+}
+`);
+    this.colorBufferData = color;
+    this.haslighting = haslighting;
+    }
+    compile(renderer,vertexData,indexData){
         var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
-        var positionBuffer = new Buffer(renderer,this.vertexData,null,glDictionary.ATTRIBUTE,[3,gl.FLOAT,false,0,0]);
-        var indexBuffer = new Buffer(renderer,this.indexData,null,glDictionary.NONATTRIBUTE,[],gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
-        var bufferList = new BufferList(this.vertexShader.attributes,[positionBuffer,indexBuffer]);
-        var package = new RenderablePackage(shaderProgram,bufferList,vertexData.length/3,glDictionary.ELEMENTS,[],0,true,indexData.length())
-        return package;
+        var positionBuffer = new Buffer(renderer,vertexData,null,glDictionary.ATTRIBUTE,[3,gl.FLOAT,false,0,0]);
+        var indexBuffer = new Buffer(renderer,indexData,null,glDictionary.NONATTRIBUTE,[],gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        if(this.haslighting){
+            //Lighting will be implemented after milestone 2! 
+        } else {
+            var colorBuffer = new Buffer(renderer)
+            var bufferList = new BufferList(["vP","idx","vC"],[positionBuffer,indexBuffer,colorBuffer]);
+        }
+        return {
+            program:shaderProgram,
+            buffers:bufferList
+        };
     }
 }
 //#endregion
@@ -279,7 +377,7 @@ class ShaderProgram{
         this.vertexShaderAttributes.attributes = newthing;
         var newthing = {}
         for(var i=0; i<this.vertexShaderAttributes.uniforms.length;i++){
-            newthing[this.vertexShaderAttributes.uniforms[i]] = gl.getAttribLocation(program,this.vertexShaderAttributes.uniforms[i]);
+            newthing[this.vertexShaderAttributes.uniforms[i]] = gl.getUniformLocation(program,this.vertexShaderAttributes.uniforms[i]);
         }
         this.vertexShaderAttributes.uniforms = newthing;
         this.fragmentShaderAttributes = fragmentShader.attributeData;
