@@ -9,7 +9,7 @@ function $(name,parent){
         class:document.getElementsByClassName(name)
     }
 }
-var render,scene,camera;
+var render,scene,camera,mymesh;
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
 function main(){
@@ -17,14 +17,9 @@ function main(){
     render = new Renderer($("emotionalDamage").id);
     camera = new Camera([0,0,-2],[0,0,1],45,glMath.EPSILON,100)
     scene = new Scene(render,camera,"#000000");
-    mymesh = 
-    r = 0
-    function mainloop(){
-        r+=1
-        
-
-        requestAnimationFrame(mainloop);
-    }
-    mainloop()
+    mymesh = new Mesh([0.5,0.5,0.5,-0.5,-0.5,-0.5],[0,1,2],new BasicColorMaterial([1,0,0,1],false))
+    scene.addObjectToScene(mymesh);
+    scene.render();
+    
 }
 window.onload = main;

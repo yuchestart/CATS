@@ -36,14 +36,13 @@ class Renderer{
                 console.warn("WebGL1 Not supported, falling back to experimental WebGL");
                 this.gl = canvas.getcontext("experimental-webgl")
                 if(this.gl===null){
-                    console.error("WebGL at a whole is not supported");
-                    return;
+                    throw new Error("WebGL at a whole is not supported");
                 }
             }
         }
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.enable(this.gl.CULL_FACE);
-        this.gl.depthFunc(this.gl.LEQUAL)
+        this.gl.depthFunc(this.gl.LEQUAL);
         this.aspect = canvas.clientWidth/canvas.clientHeight;
     }
     /**
@@ -58,38 +57,6 @@ class Renderer{
         this.gl.clearColor(r,g,b,a);
         this.gl.clearDepth(1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
-    }
-    /**
-     * Draws a shader program object.
-     * 
-     * NOTE:
-     * drawProgram is deprecated. Use drawPackage instead.
-     * @param {ShaderProgram} program 
-     * @param {BufferList} buffers 
-     * @param {*} projectionMatrix 
-     * @param {*} viewMatrix 
-     * @param {*} worldMatrix 
-     */
-    drawProgram(program,buffers,uniforms,vertices,type,renderType,otherParameters){
-        //Enable the buffers
-        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
-        if(!renderType){
-            renderType = this.gl.TRIANGLES
-        } else {
-            renderType = renderTypes[renderType]
-        }
-        for(var i=0; i<buffers.length;i++){
-            buffers.buffers[i].enableForProgram(buffers.bufferNames[i] )
-        }
-        this.gl.useProgram(program.program);
-        for(var i=0; i<uniforms.length;i++){
-            uniforms.uniforms[i].enableForProgram()
-        }
-        if(type==glDictionary.ELEMENTS){
-            this.gl.drawElements(renderType,vertices,this.gl.UNSIGNED_SHORT,otherParameters.offset)
-        } else if(type == glDictionary.ARRAYS){
-            this.gl.drawArrays(renderType,0,vertices);
-        }
     }
     /**
      * Draws a renderable data package.
@@ -113,7 +80,6 @@ class Renderer{
         for(var i=0; i<buffers.length;i++){
             buffers.buffers[i].enableForProgram(buffers.bufferNames[i],renderPackage.program)
         }
-        
         switch(renderPackage.renderType){
             case glDictionary.ELEMENTS:
                 this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
@@ -135,7 +101,7 @@ class Camera{
     constructor(pos,facingDirection,fov,near,far){
         this.pos = pos;
         //Contains XYZ rotations
-        this.facingDirection = facingDirection?facingDirection:[0,0,1];
+        this.facingDirection = facingDirection?facingDirection:[0,0,0];
         this.fov = fov;
         this.near = near;
         this.far = far;
@@ -143,12 +109,18 @@ class Camera{
     project(aspect){
         var projectionMatrix = new Mat4();
         var viewMatrix = new Mat4();
+        var rotationMatrix = new Mat4();
+        rotationMatrix.rotate(this.facingDirection[0],[0,0,1]);
+        rotationMatrix.rotate(this.facingDirection[1],[0,1,0]);
+        rotationMatrix.rotate(this.facingDirection[2],[1,0,0]);
         projectionMatrix.perspective(this.fov,aspect,this.near,this.far);
         viewMatrix.lookAt(this.pos,this.facingDirection,[0,1,0]);
+        
         return {
             prj:projectionMatrix,
             v:viewMatrix,
         }
+        
     }
 
 }
@@ -196,7 +168,8 @@ class Scene{
             render.clear(...this.bgcolor)
         }
         for(var i=0; i<this.sceneObjects.length; i++){
-            var renderpackage = this.sceneObjects[i].package();
+            var renderpackage = this.sceneObjects[i].package(this.renderer);
+            var cameraMatrixes = this.camera.project(this.renderer.aspect);
             renderpackage.uniformList.push()
         }
     }
@@ -204,10 +177,7 @@ class Scene{
         this.camera.pos = vec3.add(this.camera.pos,v);
     }
     rotateCamera(v){
-        var rotationMatrix = new Mat4();
-        rotationMatrix.rotate(v[0],[0,0,1]);
-        rotationMatrix.rotate(v[1],[0,1,0]);
-        rotationMatrix.rotate(v[2],[1,0,0]);
+        
     }
 }
 //SCENE OBJECTS
@@ -227,7 +197,9 @@ class Mesh{
         this.meshData = meshData;
         this.visible = true;
         this.transformationMatrix = new Mat4();
-        this.position = [0,0,0]
+        this.position = [0,0,0];
+        this.rotation = [0,0,0];
+        this.scale = [1,1,1];
     }
     hide(){
         this.visible = false;
@@ -244,14 +216,28 @@ class Mesh{
         //There is no need to store the transformations, as all of them will be a sum.
         this.position = vec3.add(this.position,[x,y,z]);
     }
-    package(renderer,camera){
+    rotate(x,y,z){
+        this.rotation = vec3.add(this.rotation,[x,y,z]);
+    }
+    scale(x,y,z){
+        this.scale = vec3.add(this.scale,[x,y,z]);
+    }
+    resetTransform(){
+        this.rotation = [0,0,0];
+        this.position = [0,0,0];
+        this.scale = [1,1,1];
+    }
+    package(renderer){
         this.transformationMatrix = new Mat4();
         const gl = renderer.gl;
+        this.transformationMatrix.scale(this.scale);
+        this.transformationMatrix.rotate(this.rotation[0],[0,0,1]);
+        this.transformationMatrix.rotate(this.rotation[1],[0,1,0]);
+        this.transformationMatrix.rotate(this.rotation[2],[1,0,0]);
         this.transformationMatrix.translate(this.position);
         var compiledMaterial = this.material.compile(renderer,this.vertexData,this.indexData);
         var transformationMatrix = this.transformationMatrix.convertToUniform(renderer,"tM",compiledMaterial.program)
-
-        var renderpackage = new RenderablePackage(compiledMaterial.program,compiledMaterial.bufferList,vertexData.length/3,glDictionary.ELEMENTS,[transformationMatrix],0,true,indexData.length())
+        var renderpackage = new RenderablePackage(compiledMaterial.program,compiledMaterial.bufferList,this.vertexData.length/3,glDictionary.ELEMENTS,[transformationMatrix],0,true,this.indexData.length)
         return renderpackage;
     }
 }
@@ -267,25 +253,23 @@ attribute vec4 vC;
 uniform mat4 pM;
 uniform mat4 cM;
 uniform mat4 tM;
-varying lowp vec4 fC;
 void main(void){
-gl_Position = tM*cM*pM*vec4(vP);
-fC = vC;
+gl_Position = tM*cM*pM*vec4(vP,1.0);
 }
 `,{
     attributes:["vP","vC"],
     uniforms:["pM","cM","tM"]
 });
     this.fragmentShader = new FragmentShader(`
-varying lowp vec4 fC;
 void main(void){
-    gl_FragColor = fC;
+    gl_FragColor = vec4(${color.toString()});
 }
 `);
     this.colorBufferData = color;
     this.haslighting = haslighting;
     }
     compile(renderer,vertexData,indexData){
+        const gl = renderer.gl
         var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
         var positionBuffer = new Buffer(renderer,vertexData,null,glDictionary.ATTRIBUTE,[3,gl.FLOAT,false,0,0]);
         var indexBuffer = new Buffer(renderer,indexData,null,glDictionary.NONATTRIBUTE,[],gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
@@ -327,6 +311,7 @@ class VertexShader{
             gl.deleteShader(shader);
             return null;
         }
+        console.log(shader);
         return shader;
     }
 }

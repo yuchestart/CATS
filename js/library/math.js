@@ -11,7 +11,14 @@ const glMath = {
     degreesToRadians:function(degrees){
         return degrees*(Math.PI/180)
     },
-    EPSILON:1e-4
+    EPSILON:1e-4,
+    printAsMatrix:function(matrix){
+        var m = matrix.data;
+        console.log(m[0],m[4],m[8],m[12])
+        console.log(m[1],m[5],m[9],m[13])
+        console.log(m[2],m[6],m[10],m[14])
+        console.log(m[3],m[7],m[11],m[15])
+    }
 }
 //#endregion
 //----------MAT4 code----------
@@ -45,8 +52,9 @@ class Mat4{
             }
             this.set(newMat4);
         } else if(a instanceof Array ^ b instanceof Array){
+            console.log("hooray!")
             var v = a instanceof Array ? a : b;
-            var m = a instanceof Array ? b : a;
+            var m = a instanceof Array ? b.data : a.data;
             return [
                 v[0]*m[0]+v[1]*m[4]+v[2]*m[8]+v[3]*m[12],
                 v[0]*m[1]+v[1]*m[5]+v[2]*m[9]+v[3]*m[13],
@@ -245,7 +253,7 @@ class Mat4{
      * @param {Array} target 
      * @param {Array} up 
      */
-    pointTo(position,target,up){
+    lookAt(position,target,up){
         var forward = vec3.normalize(vec3.subtract(position,target))
         var right = vec3.normalize(vec3.cross(up,forward))
         var newup = vec3.cross(forward,right)
@@ -306,7 +314,7 @@ const vec3 = {
         ]
     },
     dot:function(a,b){
-
+        return a[1]*b[1]+a[2]*b[2]+a[3]*b[3]
     }
 }
 //#endregion
