@@ -7,6 +7,6 @@ Yeah not much else.
 
 Before downloading, please read LISCENSES.md.
 <hr>
-ATTENTION CREATORS OF THREE.JS AND GLMATRIX.JS,<br>
+ATTENTION CREATORS OF THREE.JS,<br>
 This software doesn't contain any of your code so please don't sue me.<br>
 <hr>
