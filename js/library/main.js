@@ -22,6 +22,7 @@ function log(m){
 //The object that the user will initiate at the start
 //The user won't interact with this much
 //#region 
+
 class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
@@ -32,14 +33,14 @@ class Renderer{
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2")
         if(this.gl===null){
-            console.warn("WebGL2 Not supported, falling back to WebGL1");
+            console.warn("WebGL2 Not supported, falling back to WebGL1.\nSome features may break.");
             this.gl = canvas.getContext("webgl")
             if(this.gl===null){
-                console.warn("WebGL1 Not supported, falling back to experimental WebGL");
+                console.warn("WebGL1 Not supported, falling back to experimental WebGL.\nSome features may break. We recommend using an up-to-date browser.");
                 this.gl = canvas.getcontext("experimental-webgl")
-                if(this.gl===null){
-                    throw new Error("WebGL at a whole is not supported");
-                }
+                //if(this.gl===null){
+                //    throw new Error("WebGL at a whole is not supported. Please use a different browser.");
+                //}
             }
         }
         this.gl.enable(this.gl.DEPTH_TEST);
@@ -66,6 +67,7 @@ class Renderer{
      */
     drawPackage(renderPackage,renderType){
         this.gl.useProgram(renderPackage.program);
+        log(renderPackage)
         var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
         if(!renderType){
             renderType = this.gl.TRIANGLES;
@@ -75,7 +77,7 @@ class Renderer{
         if(renderPackage.uniformList){
             var uniforms = renderPackage.uniformList
             for(var i=0; i<uniforms.length;i++){
-                uniforms.uniforms[i].enableForProgram(renderPackage.program)
+                uniforms[i].enableForProgram(renderPackage.program)
             }
         }
         var buffers = renderPackage.bufferList
@@ -140,7 +142,7 @@ class Scene{
         this.bgcolor = bgcolor;
         if(this.bgcolor.startsWith("#")){
             var newcolor = [0,0,0,1.0]
-            this.bgcolor.replace("#","")
+            this.bgcolor =this.bgcolor.replace("#","")
             newcolor[0] = parseInt(this.bgcolor.slice(0,2),16)*(1/255);
             newcolor[1] = parseInt(this.bgcolor.slice(2,4),16)*(1/255);
             newcolor[2] = parseInt(this.bgcolor.slice(4,6),16)*(1/255);
@@ -165,16 +167,18 @@ class Scene{
     addObjectToScene(object){
         this.sceneObjects.push(object);
     }
+    clear(){
+        this.render.clear(...this.bgcolor);
+    }
     render(dontclear){
         if(!dontclear){
-            render.clear(...this.bgcolor)
+            this.render.clear(...this.bgcolor)
         }
         for(var i=0; i<this.sceneObjects.length; i++){
             var renderpackage = this.sceneObjects[i].package(this.renderer);
             var cameraMatrixes = this.camera.project(this.renderer.aspect);
-            renderpackage.uniformList.push(cameraMatrixes.prj.convertToUniform(this.renderer,"pM",renderpackage.shaderProgram));
-            renderpackage.uniformList.push(cameraMatrixes.v.convertToUniform(this.renderer,"cM",renderpackage.shaderProgram));
-            print()
+            renderpackage.uniformList.push(cameraMatrixes.prj.convertToUniform(this.renderer,"pM"));
+            renderpackage.uniformList.push(cameraMatrixes.v.convertToUniform(this.renderer,"cM"))
             this.renderer.drawPackage(renderpackage,glDictionary.ELEMENTS)
         }
     }
@@ -186,110 +190,77 @@ class Scene{
     }
 }
 //SCENE OBJECTS
-
 class Mesh{
     /**
      * 
      * @param {Array} vertexData 
      * @param {Array} indexData 
-     * @param {*} material 
-     * @param {*} meshData 
+     * @param {ShaderProgram} program 
      */
-    constructor(vertexData,indexData,material,meshData){
+    constructor(vertexData,indexData,material){
         this.vertexData = vertexData;
-        this.indexData = indexData;
+        this.indexData =indexData;
         this.material = material;
-        this.meshData = meshData;
-        this.visible = true;
-        this.transformationMatrix = new Mat4();
-        this.position = [0,0,0];
-        this.rotation = [0,0,0];
-        this.scale = [1,1,1];
     }
-    hide(){
-        this.visible = false;
+    package(renderer,uniforms){
+        currentbufferlist = [
+            new Buffer(renderer,this.vertexData,"vP",renderer.gl.ARRAY_BUFFER,glDictionary.ATTRIBUTE,[
+                3,
+                renderer.gl.FLOAT,
+                false,
+                0,
+                0,
+            ]),
+            new Buffer(renderer,this.indexData,"",render.gl.ELEMENT_ARRAY_BUFFER,glDictionary.NONATTRIBUTE,0,0,Uint16Array)
+        ];
+        
+        var newRenderPackage = new RenderablePackage(
+            this.material.program,
+            this.vertices,
+            glDictionary.ELEMENTS,
+            this.material.buffers,
+            uniforms,
+            0,
+            true,
+            this.indexData.length
+        )
     }
-    show(){
-        this.visible = true;
+}
+
+//Materials
+class SingleColorBasicMaterial{
+    /**
+     * 
+     * @param {Array} color 
+     */
+    constructor(color){
+        this.vertexShader = new VertexShader(`
+attribute vec3 vP;
+uniform mat4 pM;
+uniform mat4 vM;
+uniform mat4 tM;
+void main(void){
+    gl_Position = pM*vM*tM*vec4(vp,1.0);
+}
+`,{
+    attributes:['vP'],
+    uniforms:["pM","vM","tM"]
+});
+        this.fragmentShader = new FragmentShader(`
+void main(void){
+    gl_FragColor = ${color.toString()};
+}
+`);
     }
     /**
      * 
      * @param {Renderer} renderer 
      */
-    
-    translate(x,y,z){
-        //There is no need to store the transformations, as all of them will be a sum.
-        this.position = vec3.add(this.position,[x,y,z]);
-    }
-    rotate(x,y,z){
-        this.rotation = vec3.add(this.rotation,[x,y,z]);
-    }
-    scale(x,y,z){
-        this.scale = vec3.add(this.scale,[x,y,z]);
-    }
-    resetTransform(){
-        this.rotation = [0,0,0];
-        this.position = [0,0,0];
-        this.scale = [1,1,1];
-    }
-    package(renderer){
-        this.transformationMatrix = new Mat4();
-        const gl = renderer.gl;
-        this.transformationMatrix.scale(this.scale);
-        this.transformationMatrix.rotate(this.rotation[0],[0,0,1]);
-        this.transformationMatrix.rotate(this.rotation[1],[0,1,0]);
-        this.transformationMatrix.rotate(this.rotation[2],[1,0,0]);
-        this.transformationMatrix.translate(this.position);
-        var compiledMaterial = this.material.compile(renderer,this.vertexData,this.indexData);
-        var transformationMatrix = this.transformationMatrix.convertToUniform(renderer,"tM",compiledMaterial.program)
-        var renderpackage = new RenderablePackage(compiledMaterial.program,compiledMaterial.bufferList,this.vertexData.length/3,glDictionary.ELEMENTS,[transformationMatrix],0,true,this.indexData.length)
-        return renderpackage;
+    compile(renderer){
+
     }
 }
 
-//Materials
-
-class BasicColorMaterial{
-    constructor(color,haslighting){
-        //Tries to conserve as much space as possible
-        this.vertexShader = new VertexShader(`
-attribute vec3 vP;
-attribute vec4 vC;
-uniform mat4 pM;
-uniform mat4 cM;
-uniform mat4 tM;
-void main(void){
-gl_Position = tM*cM*pM*vec4(vP,1.0);
-}
-`,{
-    attributes:["vP","vC"],
-    uniforms:["pM","cM","tM"]
-});
-    this.fragmentShader = new FragmentShader(`
-void main(void){
-    gl_FragColor = vec4(${color.toString()});
-}
-`);
-    this.colorBufferData = color;
-    this.haslighting = haslighting;
-    }
-    compile(renderer,vertexData,indexData){
-        const gl = renderer.gl
-        var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
-        var positionBuffer = new Buffer(renderer,vertexData,null,glDictionary.ATTRIBUTE,[3,gl.FLOAT,false,0,0]);
-        var indexBuffer = new Buffer(renderer,indexData,null,glDictionary.NONATTRIBUTE,[],gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
-        if(this.haslighting){
-            //Lighting will be implemented after milestone 2! 
-        } else {
-            var colorBuffer = new Buffer(renderer)
-            var bufferList = new BufferList(["vP","idx","vC"],[positionBuffer,indexBuffer,colorBuffer]);
-        }
-        return {
-            program:shaderProgram,
-            buffers:bufferList
-        };
-    }
-}
 //#endregion
 //-----------SHADERS-----------
 //Part of the basic rendering code
@@ -366,7 +337,10 @@ class ShaderProgram{
             return null;
         }
         this.program = program;
-        this.vertexShaderAttributes = vshader.attributeData;
+        this.parameterLocations = {
+            attributes:{},
+            uniforms:{},
+        }
         var newthing = {}
         for(var i=0; i<this.vertexShaderAttributes.attributes.length;i++){
             newthing[this.vertexShaderAttributes.attributes[i]] = gl.getAttribLocation(program,this.vertexShaderAttributes.attributes[i]);
@@ -396,7 +370,7 @@ class Buffer{
      * @param {Number} usage 
      * @param {Number} type
      */
-    constructor(render,data,usage,type,programData,usageType,dataType){
+    constructor(render,data,attribute,usage,type,programData,usageType,dataType){
         if(!usageType){
             usageType = render.gl.ARRAY_BUFFER
         }
@@ -411,20 +385,18 @@ class Buffer{
         this.buffer = newBuffer;
         this.type = type;
         this.programData = programData;
+        this.attribute = attribute;
     }
     /**
      * 
-     * @param {Number} numComponentsPerIteration 
-     * @param {Number} type 
-     * @param {Number} normalize 
-     * @param {Number} stride 
-     * @param {Number} offset 
+     * @param {ShaderProgram} program
+     * 
      */
-    enableForProgram(attribute,program){
+    enableForProgram(program){
         if(this.type == glDictionary.ATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer);
             this.render.gl.vertexAttribPointer(
-                this.render.gl.getAttribLocation(program,attribute),
+                this.render.gl.getAttribLocation(program.program,this.attribute),
                 this.programData[0],
                 this.programData[1],
                 this.programData[2],
@@ -435,19 +407,6 @@ class Buffer{
         } else if(this.type == glDictionary.NONATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer)
         }
-    }
-}
-//Bruh this part is pretty useless but I'll include it anyway. ;)
-class BufferList{
-    /**
-     * 
-     * @param {Array} bufferNames 
-     * @param {Array<Buffer>} buffers 
-     */
-    constructor(bufferNames,buffers){
-        this.bufferNames = bufferNames;
-        this.buffers = buffers;
-        this.length = buffers.length;
     }
 }
 //Apparently, matrixes aren't buffers so I have to include them here.
@@ -479,7 +438,18 @@ class UniformList{
 //Just compacts everything together for renderer to process.
 //#region 
 class RenderablePackage{
-    constructor(shaderProgram,bufferList,vertices,renderType,uniformList,offset,usesIndexBuffer,indexAmount){
+    /**
+     * 
+     * @param {ShaderProgram} shaderProgram 
+     * @param {Array} bufferList 
+     * @param {Array} vertices 
+     * @param {Number} renderType 
+     * @param {Array} uniformList 
+     * @param {Number} offset 
+     * @param {Boolean} usesIndexBuffer 
+     * @param {Number} indexAmount 
+     */
+    constructor(shaderProgram,vertices,renderType,bufferList,uniformList,offset,usesIndexBuffer,indexAmount){
         this.shaderProgram = shaderProgram;
         this.program = shaderProgram.program;
         this.bufferList = bufferList;

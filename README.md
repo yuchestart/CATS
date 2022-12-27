@@ -5,7 +5,7 @@ So, this WebGL Library's goal is to make WebGL, the technology to enable hardwar
 
 Yeah not much else.
 
-Before downloading, please read LISCENSES.
+Before downloading, please read LISCENSES.md.
 <hr>
 ATTENTION CREATORS OF THREE.JS AND GLMATRIX.JS,<br>
 This software doesn't contain any of your code so please don't sue me.<br>

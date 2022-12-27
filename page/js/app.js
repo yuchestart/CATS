@@ -17,9 +17,6 @@ function main(){
     render = new Renderer($("emotionalDamage").id);
     camera = new Camera([0,0,-2],[0,0,1],45,glMath.EPSILON,100)
     scene = new Scene(render,camera,"#000000");
-    mymesh = new Mesh([0.5,0.5,0.5,-0.5,-0.5,-0.5],[0,1,2],new BasicColorMaterial([1,0,0,1],false))
-    scene.addObjectToScene(mymesh);
-    scene.render();
     
 }
 window.onload = main;
