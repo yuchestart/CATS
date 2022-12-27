@@ -3,16 +3,18 @@
 /**
  * 
  * EXTERNAL DEPENDENCIES:
- * glmatrix/mat4.js - to be replaced with WebGLLibrary/mat4.js
+ * glmatrix/mat4.js - to be replaced with WebGLLibrary/math.js
  * 
  * WebGL Library
  * 
- * (C) 2022-2023 Che Yu
- * This code is open sourced and free to use so do anything you like.
  */
 //-----------MISC-----------
 //#region 
-function print(m){
+/**
+ * Prints a message
+ * @param {*} m 
+ */
+function log(m){
     console.log(m)
 }
 //#endregion
@@ -170,7 +172,10 @@ class Scene{
         for(var i=0; i<this.sceneObjects.length; i++){
             var renderpackage = this.sceneObjects[i].package(this.renderer);
             var cameraMatrixes = this.camera.project(this.renderer.aspect);
-            renderpackage.uniformList.push()
+            renderpackage.uniformList.push(cameraMatrixes.prj.convertToUniform(this.renderer,"pM",renderpackage.shaderProgram));
+            renderpackage.uniformList.push(cameraMatrixes.v.convertToUniform(this.renderer,"cM",renderpackage.shaderProgram));
+            print()
+            this.renderer.drawPackage(renderpackage,glDictionary.ELEMENTS)
         }
     }
     translateCamera(v){

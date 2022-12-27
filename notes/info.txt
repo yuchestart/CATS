@@ -3,6 +3,5 @@ Well that's a bit sussy.
 Used for testing textures.
 
 JS information:
-Dependencies: Currently in place to substitute the unfinished parts of my math library.
+Dependencies: Will be removed.
 Library: The actual code of the WebGL Library.
-Replacements: Currently contains in progress replacements for the dependencies.
