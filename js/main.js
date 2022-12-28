@@ -97,10 +97,9 @@ class Renderer{
 //#endregion
 //-----------SCENE-----------
 //Scene code will be developed after basic rendering functions have been finished
-
 //#region
-
-//The scene code is what the user will interact with for most of the time.
+//-----MAIN SCENE-----
+//#region 
 class Camera{
     constructor(pos,facingDirection,fov,near,far){
         this.pos = pos;
@@ -168,11 +167,11 @@ class Scene{
         this.sceneObjects.push(object);
     }
     clear(){
-        this.render.clear(...this.bgcolor);
+        this.renderer.clear(...this.bgcolor);
     }
     render(dontclear){
         if(!dontclear){
-            this.render.clear(...this.bgcolor)
+            this.renderer.clear(...this.bgcolor)
         }
         for(var i=0; i<this.sceneObjects.length; i++){
             var renderpackage = this.sceneObjects[i].package(this.renderer);
@@ -189,7 +188,9 @@ class Scene{
         
     }
 }
-//SCENE OBJECTS
+//#endregion
+//-----SCENE OBJECTS-----
+//#region 
 class Mesh{
     /**
      * 
@@ -203,17 +204,19 @@ class Mesh{
         this.material = material;
     }
     package(renderer,uniforms){
-        currentbufferlist = [
-            new Buffer(renderer,this.vertexData,"vP",renderer.gl.ARRAY_BUFFER,glDictionary.ATTRIBUTE,[
+        var currentbufferlist = [
+            new Buffer(renderer,this.vertexData,"vP",null,glDictionary.ATTRIBUTE,[
                 3,
                 renderer.gl.FLOAT,
                 false,
-                0,
-                0,
+                0,0
             ]),
-            new Buffer(renderer,this.indexData,"",render.gl.ELEMENT_ARRAY_BUFFER,glDictionary.NONATTRIBUTE,0,0,Uint16Array)
+            new Buffer(renderer,this.indexData,"",null,render.gl.ELEMENT_ARRAY_BUFFER,glDictionary.NONATTRIBUTE,0,0,Uint16Array)
         ];
-        
+        var currentuniformlist = uniforms;
+        var compiledmaterial = this.material.compile(renderer);
+        currentbufferlist.push(...compiledmaterial.buffers);
+        currentuniformlist.push(...compiledmaterial.uniforms);
         var newRenderPackage = new RenderablePackage(
             this.material.program,
             this.vertices,
@@ -223,15 +226,17 @@ class Mesh{
             0,
             true,
             this.indexData.length
-        )
+        );
+        return newRenderPackage;
     }
 }
-
-//Materials
-class SingleColorBasicMaterial{
+//#endregion
+//-----MATERIALS-----
+//#region 
+class SingleColorMaterial{
     /**
      * 
-     * @param {Array} color 
+     * @param {String} color 
      */
     constructor(color){
         this.vertexShader = new VertexShader(`
@@ -240,7 +245,7 @@ uniform mat4 pM;
 uniform mat4 vM;
 uniform mat4 tM;
 void main(void){
-    gl_Position = pM*vM*tM*vec4(vp,1.0);
+    gl_Position = pM*vM*tM*vec4(vP,1.0);
 }
 `,{
     attributes:['vP'],
@@ -248,24 +253,33 @@ void main(void){
 });
         this.fragmentShader = new FragmentShader(`
 void main(void){
-    gl_FragColor = ${color.toString()};
+    gl_FragColor = vec4(${color});
 }
 `);
+        this.color = color;
     }
     /**
      * 
      * @param {Renderer} renderer 
      */
     compile(renderer){
-
+        var program = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
+        var buffers = [];
+        var uniforms = [];
+        return {
+            program:program,
+            buffers:buffers,
+            uniforms:uniforms
+        }
     }
 }
-
+//#endregion
 //#endregion
 //-----------SHADERS-----------
 //Part of the basic rendering code
-
 //#region
+//-----Vertex and fragment shaders
+//#region 
 class VertexShader{
     /**
      * 
@@ -316,6 +330,9 @@ class FragmentShader{
         return shader;
     }
 }
+//#endregion
+//-----Shader program-----
+//#region 
 class ShaderProgram{
     /**
      * 
@@ -341,27 +358,28 @@ class ShaderProgram{
             attributes:{},
             uniforms:{},
         }
-        var newthing = {}
-        for(var i=0; i<this.vertexShaderAttributes.attributes.length;i++){
-            newthing[this.vertexShaderAttributes.attributes[i]] = gl.getAttribLocation(program,this.vertexShaderAttributes.attributes[i]);
+        var newthing = {
+            attributes:[],
+            uniforms:[]
         }
-        this.vertexShaderAttributes.attributes = newthing;
-        var newthing = {}
-        for(var i=0; i<this.vertexShaderAttributes.uniforms.length;i++){
-            newthing[this.vertexShaderAttributes.uniforms[i]] = gl.getUniformLocation(program,this.vertexShaderAttributes.uniforms[i]);
+        for(var i=0; i<vertexShader.attributeData.attributes.length;i++){
+            newthing.attributes[vertexShader.attributeData.attributes[i]] = gl.getAttribLocation(program,vertexShader.attributeData.attributes[i]);
         }
-        this.vertexShaderAttributes.uniforms = newthing;
+        for(var i=0; i<vertexShader.attributeData.uniforms.length;i++){
+            newthing.uniforms[vertexShader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vertexShader.attributeDaa.uniforms[i]);
+        }
+        for(var i=0; i<fragmentShader.attributeData.uniforms.length;)
         this.fragmentShaderAttributes = fragmentShader.attributeData;
     }
 }
 //#endregion
-//-----------BUFFERS-----------
+//#endregion
+//-----------BUFFERS AND UNIFORMS-----------
 //Also part of the basic rendering code
-//Note: Color buffer for some reason fails
-
 //#region
 
-//Ugh, buffers are so annoying.
+//-----Buffers-----
+//#region 
 class Buffer{
     /**
      * 
@@ -409,7 +427,11 @@ class Buffer{
         }
     }
 }
-//Apparently, matrixes aren't buffers so I have to include them here.
+//#endregion
+//-----Uniforms-----
+//#region 
+//Apparently, uniforms aren't buffers so I have to include them here.
+//Later I found out that there are multiple types of uniforms so I'm glad I named them like this
 class UniformMAT4Matrix{
     constructor(render,matrix,attribute){
         this.matrix = matrix;
@@ -433,6 +455,7 @@ class UniformList{
         this.length = uniforms.length;
     }
 }
+//#endregion
 //#endregion
 //-----------PROGRAMS-----------
 //Just compacts everything together for renderer to process.

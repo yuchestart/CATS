@@ -8,22 +8,28 @@ TESTING HTML FILE OF THE LIBRARY
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebGL Library - Version 1.0</title>
-    <script src="./js/library/dictionary.js"></script>
-    <script src="./js/library/main.js"></script>
-    <script src="./js/library/math.js"></script>
+    <script src="./js/dictionary.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/math.js"></script>
     <script src="./page/js/app.js"></script>
-   
+    <link rel="stylesheet" href="./page/css/noscript.css">
 </head>
 <body>
+    <noscript>
+    <div class="bruh"><pre>
+ERROR:
+JAVASCRIPT HAS BEEN DISABLED.
+PLEASE ENABLE JAVASCRIPT TO CONTINUE.
+    </pre>
+    <noscript></noscript>
+</div>
     <canvas id="emotionalDamage" width="500" height="500">
-HA L BOZO
+        Get the heck out of here you don't even support canvas
     </canvas>
-    <p><i id="buildString">WebGL Library - version 1.0.105<br>
-        build 105 | Milestone 1
+    <p><i id="buildString">WebGL Library 1.0.105<br>
+        Milestone 1 | Build 5
     </i></p>
     <pre>
-DEPENDENCIES:
-glmatrix.js : mat4.js
 
 DESCRIPTION:
 ADDED COLOR TO BUFFER COMPATIBILITY
@@ -31,22 +37,23 @@ ADDED COLOR TO BUFFER COMPATIBILITY
 LEGEND:
 X - Completed
 * - In progress
+" - Parrallel in progress
 # - On hold
 ! - Discontinued
 / - Not started
+~ - Next version
 
 [*] GOALS for 1.0:
-[X] Get rid of dependencies
 [*] Add mesh support
-[*] Add complex camera movement support
-[*] Add transformations
-[*] Add user-friendliness
+[#] Add complex camera movement support
+[#] Add transformations
+["] Add user-friendliness
 [/] Add lighting support
 [/] Add texture support
 
-[/] GOALS for 1.1:
-[/] Add shadow support
-[/] Add Click-3D support
+[~] GOALS for 1.1:
+[~] Add shadow support
+[!] Add Click-3D support
 
     </pre>
 </body>
