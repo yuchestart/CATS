@@ -15,11 +15,10 @@ var render,scene,camera,mymesh,mymaterial;
 function main(){
     //Too many lines. but at least less than 100.
     render = new Renderer($("emotionalDamage").id);
-    camera = new Camera([0,0,-2],[0,0,1],45,glMath.EPSILON,100)
-    scene = new Scene(render,camera,"#000000");
+    camera = new Camera([0,0,-2],[0,0,0],45,glMath.EPSILON,100)
+    scene = new Scene(render,camera,"#00FF00");
     mymaterial = new SingleColorMaterial("1.0,0.0,0.0,1.0");
-    mymesh = new Mesh([0.5,0.5,0.5,-0.5,-0.5,-0.5],[2,1,0],mymaterial);
-    scene.addObjectToScene(mymesh);
-    scene.render();
+    
+    
 }
 window.onload = main;

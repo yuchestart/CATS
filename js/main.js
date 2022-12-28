@@ -66,7 +66,6 @@ class Renderer{
      * @param {RenderablePackage} package 
      */
     drawPackage(renderPackage,renderType){
-        this.gl.useProgram(renderPackage.program);
         log(renderPackage)
         var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
         if(!renderType){
@@ -74,15 +73,16 @@ class Renderer{
         } else {
             renderType = renderTypes[renderType]
         }
+        var buffers = renderPackage.bufferList
+        for(var i=0; i<buffers.length;i++){
+            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],renderPackage.program)
+        }
+        this.gl.useProgram(renderPackage.program);
         if(renderPackage.uniformList){
             var uniforms = renderPackage.uniformList
             for(var i=0; i<uniforms.length;i++){
                 uniforms[i].enableForProgram(renderPackage.program)
             }
-        }
-        var buffers = renderPackage.bufferList
-        for(var i=0; i<buffers.length;i++){
-            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],renderPackage.program)
         }
         switch(renderPackage.renderType){
             case glDictionary.ELEMENTS:
@@ -100,94 +100,6 @@ class Renderer{
 //#region
 //-----MAIN SCENE-----
 //#region 
-class Camera{
-    constructor(pos,facingDirection,fov,near,far){
-        this.pos = pos;
-        //Contains XYZ rotations
-        this.facingDirection = facingDirection?facingDirection:[0,0,0];
-        this.fov = fov;
-        this.near = near;
-        this.far = far;
-    }
-    project(aspect){
-        var projectionMatrix = new Mat4();
-        var viewMatrix = new Mat4();
-        var rotationMatrix = new Mat4();
-        rotationMatrix.rotate(this.facingDirection[0],[0,0,1]);
-        rotationMatrix.rotate(this.facingDirection[1],[0,1,0]);
-        rotationMatrix.rotate(this.facingDirection[2],[1,0,0]);
-        projectionMatrix.perspective(this.fov,aspect,this.near,this.far);
-        viewMatrix.lookAt(this.pos,this.facingDirection,[0,1,0]);
-        
-        return {
-            prj:projectionMatrix,
-            v:viewMatrix,
-        }
-        
-    }
-
-}
-class Scene{
-    /**
-     * Create a new scene
-     * @param {Renderer} renderer 
-     * @param {String} bgcolor
-     * @param {Camera} camera
-     */
-    constructor(renderer,camera,bgcolor){
-        this.renderer = renderer;
-        this.gl = renderer.gl;
-        this.sceneObjects = [];
-        this.bgcolor = bgcolor;
-        if(this.bgcolor.startsWith("#")){
-            var newcolor = [0,0,0,1.0]
-            this.bgcolor =this.bgcolor.replace("#","")
-            newcolor[0] = parseInt(this.bgcolor.slice(0,2),16)*(1/255);
-            newcolor[1] = parseInt(this.bgcolor.slice(2,4),16)*(1/255);
-            newcolor[2] = parseInt(this.bgcolor.slice(4,6),16)*(1/255);
-            this.bgcolor = newcolor;
-        } else if(this.bgcolor.startsWith("rgba")){
-            var newcolor = [0,0,0,0]
-            this.bgcolor.replace("rgba(","")
-            this.bgcolor.replace(")","");
-            this.bgcolor = this.bgcolor.split(",");
-            for(var i=0; i<3; i++){
-                newcolor[i] = parseInt(this.bgcolor[i])*(1/255);
-            }
-            newcolor[3] = parseFloat(this.bgcolor[i])
-            this.bgcolor = newcolor;
-        }
-        this.camera = camera;
-    }
-    /**
-     * 
-     * @param {Mesh} object 
-     */
-    addObjectToScene(object){
-        this.sceneObjects.push(object);
-    }
-    clear(){
-        this.renderer.clear(...this.bgcolor);
-    }
-    render(dontclear){
-        if(!dontclear){
-            this.renderer.clear(...this.bgcolor)
-        }
-        for(var i=0; i<this.sceneObjects.length; i++){
-            var renderpackage = this.sceneObjects[i].package(this.renderer);
-            var cameraMatrixes = this.camera.project(this.renderer.aspect);
-            renderpackage.uniformList.push(cameraMatrixes.prj.convertToUniform(this.renderer,"pM"));
-            renderpackage.uniformList.push(cameraMatrixes.v.convertToUniform(this.renderer,"cM"))
-            this.renderer.drawPackage(renderpackage,glDictionary.ELEMENTS)
-        }
-    }
-    translateCamera(v){
-        this.camera.pos = vec3.add(this.camera.pos,v);
-    }
-    rotateCamera(v){
-        
-    }
-}
 //#endregion
 //-----SCENE OBJECTS-----
 //#region 
@@ -202,77 +114,18 @@ class Mesh{
         this.vertexData = vertexData;
         this.indexData =indexData;
         this.material = material;
+        this.position = [0,0,0];
     }
-    package(renderer,uniforms){
-        var currentbufferlist = [
-            new Buffer(renderer,this.vertexData,"vP",null,glDictionary.ATTRIBUTE,[
-                3,
-                renderer.gl.FLOAT,
-                false,
-                0,0
-            ]),
-            new Buffer(renderer,this.indexData,"",null,render.gl.ELEMENT_ARRAY_BUFFER,glDictionary.NONATTRIBUTE,0,0,Uint16Array)
-        ];
-        var currentuniformlist = uniforms;
-        var compiledmaterial = this.material.compile(renderer);
-        currentbufferlist.push(...compiledmaterial.buffers);
-        currentuniformlist.push(...compiledmaterial.uniforms);
-        var newRenderPackage = new RenderablePackage(
-            this.material.program,
-            this.vertices,
-            glDictionary.ELEMENTS,
-            this.material.buffers,
-            uniforms,
-            0,
-            true,
-            this.indexData.length
-        );
-        return newRenderPackage;
+    translate(v){
+        this.position = vec3.add(v,this.position)
+    }
+    render(){
+
     }
 }
 //#endregion
 //-----MATERIALS-----
 //#region 
-class SingleColorMaterial{
-    /**
-     * 
-     * @param {String} color 
-     */
-    constructor(color){
-        this.vertexShader = new VertexShader(`
-attribute vec3 vP;
-uniform mat4 pM;
-uniform mat4 vM;
-uniform mat4 tM;
-void main(void){
-    gl_Position = pM*vM*tM*vec4(vP,1.0);
-}
-`,{
-    attributes:['vP'],
-    uniforms:["pM","vM","tM"]
-});
-        this.fragmentShader = new FragmentShader(`
-void main(void){
-    gl_FragColor = vec4(${color});
-}
-`);
-        this.color = color;
-    }
-    /**
-     * 
-     * @param {Renderer} renderer 
-     */
-    compile(renderer){
-        var program = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
-        var buffers = [];
-        var uniforms = [];
-        return {
-            program:program,
-            buffers:buffers,
-            uniforms:uniforms
-        }
-    }
-}
 //#endregion
 //#endregion
 //-----------SHADERS-----------
@@ -301,7 +154,6 @@ class VertexShader{
             gl.deleteShader(shader);
             return null;
         }
-        console.log(shader);
         return shader;
     }
 }
@@ -354,22 +206,23 @@ class ShaderProgram{
             return null;
         }
         this.program = program;
-        this.parameterLocations = {
-            attributes:{},
-            uniforms:{},
-        }
+        this.parameterLocations = null;
         var newthing = {
             attributes:[],
             uniforms:[]
         }
-        for(var i=0; i<vertexShader.attributeData.attributes.length;i++){
-            newthing.attributes[vertexShader.attributeData.attributes[i]] = gl.getAttribLocation(program,vertexShader.attributeData.attributes[i]);
+        for(var i=0; i<vshader.attributeData.attributes.length;i++){
+            newthing.attributes[vshader.attributeData.attributes[i]] = gl.getAttribLocation(program,vshader.attributeData.attributes[i]);
         }
-        for(var i=0; i<vertexShader.attributeData.uniforms.length;i++){
-            newthing.uniforms[vertexShader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vertexShader.attributeDaa.uniforms[i]);
+        for(var i=0; i<vshader.attributeData.uniforms.length;i++){
+            newthing.uniforms[vshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vshader.attributeData.uniforms[i]);
         }
-        for(var i=0; i<fragmentShader.attributeData.uniforms.length;)
-        this.fragmentShaderAttributes = fragmentShader.attributeData;
+        if(fshader.attributeData != undefined){
+            for(var i=0; i<fshader.attributeData.uniforms.length;i++){
+                newthing.uniforms[fshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,fshader.attributeData.uniforms[i]);
+            }
+        }
+        this.parameterLocations = newthing;
     }
 }
 //#endregion
@@ -440,7 +293,7 @@ class UniformMAT4Matrix{
     }
     enableForProgram(program){
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
-        false,
+        this.render.gl.FALSE,
         this.matrix)
     }
 }

@@ -52,7 +52,6 @@ class Mat4{
             }
             this.set(newMat4);
         } else if(a instanceof Array ^ b instanceof Array){
-            console.log("hooray!")
             var v = a instanceof Array ? a : b;
             var m = a instanceof Array ? b.data : a.data;
             return [
@@ -270,9 +269,9 @@ class Mat4{
         output.data[9] = forward[1]
         output.data[10] = forward[2]
         output.data[11] = 0
-        output.data[12] = position[0]
-        output.data[13] = position[1]
-        output.data[14] = position[2]
+        output.data[12] = -vec3.dot(right,[right[0],newup[0],forward[0]])
+        output.data[13] = -vec3.dot(newup,[right[1],newup[1],forward[1]])
+        output.data[14] = -vec3.dot(forward,[right[2],newup[2],forward[2]])
         output.data[15] = 1;
         this.multiply(this,output)
     }
@@ -318,3 +317,9 @@ const vec3 = {
     }
 }
 //#endregion
+//----------Triangle code----------
+const triangle = {
+    getSurfaceNormal:function(v1,v2,v3){
+
+    }
+}
