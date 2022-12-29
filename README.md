@@ -7,6 +7,6 @@ Yeah not much else.
 
 Before downloading, please read LISCENSES.md.
 <hr>
-ATTENTION CREATORS OF THREE.JS,<br>
-This software doesn't contain any of your code so please don't sue me.<br>
+ATTENTION CREATORS OF THREE.JS, P5.JS, D3.JS OR ANY OTHER LIBRARY LIKE THIS,<br>
+This software doesn't contain any of your code so please don't sue me. If it did,  it is just a coincidence, as I haven't viewed the source code of any of your librarys other than my own.<br>
 <hr>

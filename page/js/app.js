@@ -56,6 +56,9 @@ void main(void){
         3*Float32Array.BYTES_PER_ELEMENT,
         0
     ]);
+    var worldMatrix = new Mat4();
+    var viewMatrix = new Mat4();
+    var projectioNMatrix = new Mat4();
     var renderPackage = new RenderablePackage(program,
         glDictionary.ARRAYS,[posBuffer,colorBuffer],[],0,false,3);
     render.drawPackage(renderPackage,glDictionary.TRIANGLES)
