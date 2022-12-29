@@ -282,8 +282,8 @@ class Mat4{
      * @param {ShaderProgram} program 
      * @returns 
      */
-    convertToUniform(render,attribute){
-        var newUniform = new UniformMAT4Matrix(render,this.data,attribute);
+    convertToUniform(render,attribute,dataType){
+        var newUniform = new UniformMAT4Matrix(render,dataType?new dataType(this.data):new Float32Array(this.data),attribute);
         return newUniform;
     }
 }

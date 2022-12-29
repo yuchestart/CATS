@@ -128,7 +128,7 @@ class VertexShader{
         gl.shaderSource(shader,this.source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-            gl.deleteShader(shader);
+            
             throw new Error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
             
         }
@@ -153,7 +153,6 @@ class FragmentShader{
         gl.shaderSource(shader,this.source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-            gl.deleteShader(shader);
             throw new Error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
         }
         return shader;
@@ -266,8 +265,8 @@ class PositionBuffer extends Buffer{
             3,
             render.gl.FLOAT,
             render.gl.FALSE,
-            0,
-            3*Float32Array.BYTES_PER_ELEMENT
+            3*Float32Array.BYTES_PER_ELEMENT,
+            0
         ],render.gl.ARRAY_BUFFER);
     }
 }
