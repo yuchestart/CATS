@@ -128,9 +128,9 @@ class VertexShader{
         gl.shaderSource(shader,this.source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-            console.error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
             gl.deleteShader(shader);
-            return null;
+            throw new Error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
+            
         }
         return shader;
     }
@@ -153,9 +153,8 @@ class FragmentShader{
         gl.shaderSource(shader,this.source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-            console.error(`An error occurred while compiling the fragment shader: ${gl.getShaderInfoLog(shader)}`);
             gl.deleteShader(shader);
-            return null;
+            throw new Error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
         }
         return shader;
     }
@@ -169,9 +168,10 @@ class ShaderProgram{
      * @param {Renderer} renderer 
      * @param {VertexShader} vshader 
      * @param {FragmentShader} fshader 
+     * @param {Boolean} validate
      * @returns 
      */
-    constructor(renderer,vshader,fshader){
+    constructor(renderer,vshader,fshader,validate){
         const gl = renderer.gl;
         const vertexShader = vshader.compile(renderer);
         const fragmentShader = fshader.compile(renderer);
@@ -180,8 +180,13 @@ class ShaderProgram{
         gl.attachShader(program,fragmentShader);
         gl.linkProgram(program);
         if(!gl.getProgramParameter(program,gl.LINK_STATUS)){
-            console.error(`An error occurred while initializing the program: ${gl.getProgramInfoLog(program)}`);
-            return null;
+            throw new Error(`An error occurred while validating the program: ${gl.getProgramInfoLog(program)}`);
+        }
+        if(validate){
+            gl.validateProgram(program);
+            if(!gl.getProgramParameter(program,gl.VALIDATE_STATUS)){
+                throw new Error(`An error occurred while validating the program: ${gl.getProgramInfoLog(program)}`);
+            }
         }
         this.program = program;
         this.parameterLocations = null;
@@ -189,13 +194,17 @@ class ShaderProgram{
             attributes:[],
             uniforms:[]
         }
-        for(var i=0; i<vshader.attributeData.attributes.length;i++){
-            newthing.attributes[vshader.attributeData.attributes[i]] = gl.getAttribLocation(program,vshader.attributeData.attributes[i]);
+        if(typeof vshader.attributeData !== "undefined"){
+            for(var i=0; i<vshader.attributeData.attributes.length;i++){
+                newthing.attributes[vshader.attributeData.attributes[i]] = gl.getAttribLocation(program,vshader.attributeData.attributes[i]);
+            }
+            if(vshader.attributeData.uniforms){
+                for(var i=0; i<vshader.attributeData.uniforms.length;i++){
+                    newthing.uniforms[vshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vshader.attributeData.uniforms[i]);
+                }
+            }
         }
-        for(var i=0; i<vshader.attributeData.uniforms.length;i++){
-            newthing.uniforms[vshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vshader.attributeData.uniforms[i]);
-        }
-        if(fshader.attributeData != undefined){
+        if(typeof fshader.attributeData !== "undefined"){
             for(var i=0; i<fshader.attributeData.uniforms.length;i++){
                 newthing.uniforms[fshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,fshader.attributeData.uniforms[i]);
             }
