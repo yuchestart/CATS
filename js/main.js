@@ -100,60 +100,7 @@ class Renderer{
 //#region
 //-----MAIN SCENE-----
 //#region 
-class Scene{
-    /**
-     * 
-     * @param {Renderer} renderer 
-     * @param {String} bgcolor 
-     */
-    constructor(renderer,bgcolor){
-        this.renderer = renderer;
-        this.gl = renderer.gl;
-        this.bgcolor = bgcolor;
-    }
 
-}
-//#endregion
-//-----SCENE OBJECTS-----
-//#region 
-class Mesh{
-    /**
-     * 
-     * @param {Array} vertexData 
-     * @param {Array} indexData 
-     * @param {ShaderProgram} program 
-     */
-    constructor(vertexData,indexData,vertexShader,fragmentShader){
-        this.vertexData = vertexData;
-        this.indexData =indexData;
-        //this.material = material;
-        this.position = [0,0,0];
-        this.vertexShader = vertexShader;
-        this.fragmentShader  = fragmentShader;
-    }
-    translate(v){
-        this.position = vec3.add(v,this.position)
-    }
-    render(renderer,uniforms,buffers){
-        var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
-        var bufferlist = [
-            new PositionBuffer(renderer,this.vertexData,"vP"),
-            new IndexBuffer(renderer,this.indexData)
-        ]
-        var bufferlist = buffers.concat(bufferlist);
-        
-        var renderpackage = new RenderablePackage(
-            shaderProgram,
-            glDictionary.TRIANGLES,
-            bufferlist,
-            uniforms,
-            0,
-            1,
-            this.indexData.length
-        );
-        renderer.drawPackage(renderpackage,glDictionary.ELEMENTS)
-    }
-}
 //#endregion
 //-----MATERIALS-----
 //#region 
