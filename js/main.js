@@ -10,12 +10,13 @@
  */
 //-----------MISC-----------
 //#region 
-/**
- * Prints a message
- * @param {*} m 
- */
-function log(m){
-    console.log(m)
+const glLibrary = {
+    rgba2frgb:function(r,g,b,a){
+        return [r*(1/255),g*(1/255),b*(1/255),a]
+    },
+    hex2frgb:function(hex){
+        hex = hex.shift();
+    }
 }
 //#endregion
 //-----------RENDERER OBJECT-----------
@@ -66,16 +67,15 @@ class Renderer{
      * @param {RenderablePackage} package 
      */
     drawPackage(renderPackage,renderType){
-        log(renderPackage)
         var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
         if(!renderType){
             renderType = this.gl.TRIANGLES;
         } else {
             renderType = renderTypes[renderType]
         }
-        var buffers = renderPackage.bufferList
+        var buffers = renderPackage.bufferList;
         for(var i=0; i<buffers.length;i++){
-            buffers.buffers[i].enableForProgram(buffers.bufferNames[i],renderPackage.program)
+            buffers[i].enableForProgram(renderPackage.program)
         }
         this.gl.useProgram(renderPackage.program);
         if(renderPackage.uniformList){
@@ -89,7 +89,7 @@ class Renderer{
                 this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
                 break;
             case glDictionary.ARRAYS:
-                this.gl.drawArrays(renderType,0,renderPackage.vertices)
+                this.gl.drawArrays(renderType,0,renderPackage.indexAmount)
                 break;
         }
     }
@@ -100,6 +100,19 @@ class Renderer{
 //#region
 //-----MAIN SCENE-----
 //#region 
+class Scene{
+    /**
+     * 
+     * @param {Renderer} renderer 
+     * @param {String} bgcolor 
+     */
+    constructor(renderer,bgcolor){
+        this.renderer = renderer;
+        this.gl = renderer.gl;
+        this.bgcolor = bgcolor;
+    }
+
+}
 //#endregion
 //-----SCENE OBJECTS-----
 //#region 
@@ -110,17 +123,35 @@ class Mesh{
      * @param {Array} indexData 
      * @param {ShaderProgram} program 
      */
-    constructor(vertexData,indexData,material){
+    constructor(vertexData,indexData,vertexShader,fragmentShader){
         this.vertexData = vertexData;
         this.indexData =indexData;
-        this.material = material;
+        //this.material = material;
         this.position = [0,0,0];
+        this.vertexShader = vertexShader;
+        this.fragmentShader  = fragmentShader;
     }
     translate(v){
         this.position = vec3.add(v,this.position)
     }
-    render(){
-
+    render(renderer,uniforms,buffers){
+        var shaderProgram = new ShaderProgram(renderer,this.vertexShader,this.fragmentShader);
+        var bufferlist = [
+            new PositionBuffer(renderer,this.vertexData,"vP"),
+            new IndexBuffer(renderer,this.indexData)
+        ]
+        var bufferlist = buffers.concat(bufferlist);
+        
+        var renderpackage = new RenderablePackage(
+            shaderProgram,
+            glDictionary.TRIANGLES,
+            bufferlist,
+            uniforms,
+            0,
+            1,
+            this.indexData.length
+        );
+        renderer.drawPackage(renderpackage,glDictionary.ELEMENTS)
     }
 }
 //#endregion
@@ -234,13 +265,6 @@ class ShaderProgram{
 //-----Buffers-----
 //#region 
 class Buffer{
-    /**
-     * 
-     * @param {Renderer} render 
-     * @param {Array} data 
-     * @param {Number} usage 
-     * @param {Number} type
-     */
     constructor(render,data,attribute,usage,type,programData,usageType,dataType){
         if(!usageType){
             usageType = render.gl.ARRAY_BUFFER
@@ -267,17 +291,33 @@ class Buffer{
         if(this.type == glDictionary.ATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer);
             this.render.gl.vertexAttribPointer(
-                this.render.gl.getAttribLocation(program.program,this.attribute),
+                this.render.gl.getAttribLocation(program,this.attribute),
                 this.programData[0],
                 this.programData[1],
                 this.programData[2],
                 this.programData[3],
                 this.programData[4],
             )
-            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(program,attribute));
+            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(program,this.attribute));
         } else if(this.type == glDictionary.NONATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer)
         }
+    }
+}
+class PositionBuffer extends Buffer{
+    constructor(render,data,attribute){
+        super(render,data,attribute,null,glDictionary.ATTRIBUTE,[
+            3,
+            render.gl.FLOAT,
+            render.gl.FALSE,
+            0,
+            3*Float32Array.BYTES_PER_ELEMENT
+        ],render.gl.ARRAY_BUFFER);
+    }
+}
+class IndexBuffer extends Buffer{
+    constructor(render,data){
+        super(render,data,"",null,glDictionary.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER);
     }
 }
 //#endregion
@@ -318,23 +358,21 @@ class RenderablePackage{
      * 
      * @param {ShaderProgram} shaderProgram 
      * @param {Array} bufferList 
-     * @param {Array} vertices 
      * @param {Number} renderType 
      * @param {Array} uniformList 
      * @param {Number} offset 
      * @param {Boolean} usesIndexBuffer 
-     * @param {Number} indexAmount 
+     * @param {Number} numElements
      */
-    constructor(shaderProgram,vertices,renderType,bufferList,uniformList,offset,usesIndexBuffer,indexAmount){
+    constructor(shaderProgram,renderType,bufferList,uniformList,offset,usesIndexBuffer,numElements){
         this.shaderProgram = shaderProgram;
         this.program = shaderProgram.program;
         this.bufferList = bufferList;
         this.uniformList = uniformList;
-        this.vertices = vertices;
         this.renderType = renderType;
         this.offset = offset;
         this.usesIndexBuffer = usesIndexBuffer;
-        this.indexAmount = indexAmount;
+        this.indexAmount = numElements;
     }
 }
 //#endregion
