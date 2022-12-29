@@ -58,9 +58,15 @@ void main(void){
     ]);
     var worldMatrix = new Mat4();
     var viewMatrix = new Mat4();
-    var projectioNMatrix = new Mat4();
+    var projectionMatrix = new Mat4();
+    worldMatrix.rotate(45,[0,1,0])
+    viewMatrix.lookAt([0,0,2],[0,0,0],[0,1,0]);
+    console.log(viewMatrix);
+    projectionMatrix.perspective(45,render.aspect,glMath.EPSILON,100)
     var renderPackage = new RenderablePackage(program,
-        glDictionary.ARRAYS,[posBuffer,colorBuffer],[],0,false,3);
+        glDictionary.ARRAYS,[posBuffer,colorBuffer],[worldMatrix.convertToUniform(render,"worldMatrix"),
+    viewMatrix.convertToUniform(render,"viewMatrix"),
+    projectionMatrix.convertToUniform(render,"projectionMatrix")],0,false,3);
     render.drawPackage(renderPackage,glDictionary.TRIANGLES)
 }
 window.onload = main;

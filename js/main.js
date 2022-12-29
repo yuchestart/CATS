@@ -293,16 +293,6 @@ class UniformMAT4Matrix{
     }
 }
 //This part is also useless but kinda useful...
-class UniformList{
-    /**
-     * 
-     * @param {Array<UniformMAT4Matrix>} uniforms 
-     */
-    constructor(uniforms){
-        this.uniforms = uniforms;
-        this.length = uniforms.length;
-    }
-}
 //#endregion
 //#endregion
 //-----------PROGRAMS-----------
