@@ -20,7 +20,7 @@ function main(){
 precision mediump float;
 attribute vec2 vertPosition;
 void main(void){
-    gl_Position = vec4(vertPosition,0.0,1.0);
+    gl_Position = vec4(vertPosition,1.0);
 }
 `,{
     attributes:["vertPosition"]
@@ -34,9 +34,9 @@ void main(void){
     
     var program = new ShaderProgram(render,vertexShader,fragmentShader);
     var posBuffer = new PositionBuffer(render,[
-        0.0, 0.5,
-        -0.5,-0.5,
-        0.5,-0.5
+        0.0, 0.5,0.0,
+        -0.5,-0.5,0.0,
+        0.5,-0.5,0.0
     ],"vertPosition");
     
 }
