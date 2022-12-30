@@ -2,6 +2,8 @@
  * Out with the old in with the new
  * 
  * This math library will be included with the WebGL Library, replacing glmatrix
+ * 
+ * 
  */
 
 //----------Misc----------
@@ -18,7 +20,7 @@ const glMath = {
         console.log(m[1],m[5],m[9],m[13])
         console.log(m[2],m[6],m[10],m[14])
         console.log(m[3],m[7],m[11],m[15])
-    }
+    },
 }
 //#endregion
 //----------MAT4 code----------
@@ -188,52 +190,43 @@ class Mat4{
         translationMatrix.data[14] = vector[2]
         this.multiply(this,translationMatrix);
     }
-    //I might've lost 2 braincells because of this section
-    //But 2 braincells is not a lot
-    //SHUT UP! Shhhhh...
     /**
-     * 
+     * Enter a vector with 3 DEGREE values not radians
      * @param {Number} degrees 
      * @param {Array} origin 
      */
-    rotate(degrees,axis){
-        let rads = glMath.degreesToRadians(degrees);
-        let s=Math.sin(rads),c = Math.cos(rads),t=1-c;
-        var r = new Mat4()
-        let x = axis[0],y=axis[1],z=axis[2]
-        let len = Math.sqrt(x*x+y*y+z*z);
-        let a = this.data;
-        let a00=a[0],a01=a[1],a02=a[2],a03=a[3],a10=a[4],a11=a[5],a12=a[6],a13=a[7],a20=a[8],a21=a[9],a22=a[10],a23=a[11],
-        b00 = x*x*t+c,
-        b01 = y*x*t+z*s,
-        b02 = z*x*t-y*s,
-        b10 = x*y*t-z*s,
-        b11 = y*y*t+x*s,
-        b12 = z*y*t+y*s,
-        b20 = x*z*t+y*s,
-        b21 = y*z*t-x*s,
-        b22 = z*z*t+c;
-        if(len < glMath.EPSILON){
-            this.set(r);
-            return;
-        }
-        len = 1/len;
-        x*=len;
-        y*=len;
-        z*=len;
-        r.data[0] = a00 * b00 + a10 * b01 + a20 * b02;
-        r.data[1] = a01 * b00 + a11 * b01 + a21 * b02;
-        r.data[2] = a02 * b00 + a12 * b01 + a22 * b02;
-        r.data[3] = a03 * b00 + a13 * b01 + a23 * b02;
-        r.data[4] = a00 * b10 + a10 * b11 + a20 * b12;
-        r.data[5] = a01 * b10 + a11 * b11 + a21 * b12;
-        r.data[6] = a02 * b10 + a12 * b11 + a22 * b12;
-        r.data[7] = a03 * b10 + a13 * b11 + a23 * b12;
-        r.data[8] = a00 * b20 + a10 * b21 + a20 * b22;
-        r.data[9] = a01 * b20 + a11 * b21 + a21 * b22;
-        r.data[10] = a02 * b20 + a12 * b21 + a22 * b22;
-        r.data[11] = a03 * b20 + a13 * b21 + a23 * b22;
-        this.multiply(this,r)
+    rotate(vector){
+        //Please don't run slowly, even though I did 6 sin and cos.
+        var [x,y,z] = vector;
+        x=glMath.degreesToRadians(x)
+        y=glMath.degreesToRadians(y)
+        z=glMath.degreesToRadians(z)
+        var zrm = new Mat4();
+        var cos,sin;
+        cos=Math.cos(z);
+        sin=Math.sin(z);
+        zrm.data[0] = cos;
+        zrm.data[1] = -sin;
+        zrm.data[4] = sin;
+        zrm.data[5] = cos;
+        var yrm = new Mat4();
+        cos=Math.cos(y);
+        sin=Math.sin(y);
+        yrm.data[0] = cos;
+        yrm.data[2] = sin;
+        yrm.data[8] = -sin;
+        yrm.data[10] = cos;
+        var xrm = new Mat4();
+        cos=Math.cos(x);
+        sin=Math.sin(x);
+        xrm.data[5] = cos;
+        xrm.data[6] = -sin;
+        xrm.data[9] = sin;
+        xrm.data[10] = cos;
+        var out = new Mat4();
+        out.multiply(zrm,yrm);
+        out.multiply(out,xrm);
+        this.multiply(this,out);
     }
     /**
      * 
@@ -314,6 +307,9 @@ const vec3 = {
     },
     dot:function(a,b){
         return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
+    },
+    hypot:function(vector){
+        return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
     }
 }
 //#endregion

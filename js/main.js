@@ -29,7 +29,7 @@ class Renderer{
     /**
      * @param {HTMLCanvasElement} canvas 
      */
-    constructor(canvas){
+    constructor(canvas,dontCullFace,dontUseDepthTest){
         //Initialization function
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2")
@@ -44,9 +44,11 @@ class Renderer{
                 //}
             }
         }
-        this.gl.enable(this.gl.DEPTH_TEST);
-        this.gl.enable(this.gl.CULL_FACE);
-        this.gl.depthFunc(this.gl.LEQUAL);
+        if(!dontUseDepthTest)
+            this.gl.enable(this.gl.DEPTH_TEST);
+            this.gl.depthFunc(this.gl.LEQUAL);
+        if(!dontCullFace)
+            this.gl.enable(this.gl.CULL_FACE);
         this.aspect = canvas.clientWidth/canvas.clientHeight;
     }
     /**
@@ -100,11 +102,24 @@ class Renderer{
 //#region
 //-----MAIN SCENE-----
 //#region 
+class Scene{
+    /*
+    Creates a new scene
+    */
+    constructor(){
 
+    }
+}
 //#endregion
-//-----MATERIALS-----
-//#region 
-//#endregion
+//-----SCENE OBJECTS-----
+class Mesh{
+    /**
+     * A 3D Object made of several triangles
+     */
+    constructor(vertexData,indexData,material){
+
+    }
+}
 //#endregion
 //-----------SHADERS-----------
 //Part of the basic rendering code
@@ -115,11 +130,9 @@ class VertexShader{
     /**
      * 
      * @param {String} source 
-     * @param {Object} attributeData 
      */
-    constructor(source,attributeData){
+    constructor(source){
         this.source = source.replaceAll(/\n|\r|\t/gi," ");
-        this.attributeData = attributeData;
         //this.usage = usage;
     }
     compile(renderer){
@@ -140,11 +153,9 @@ class FragmentShader{
     /**
      * 
      * @param {String} source 
-     * @param {Object} attributeData 
      */
-    constructor(source,attributeData){
+    constructor(source){
         this.source = source.replaceAll(/\n|\r|\t/gi," ");
-        this.attributeData = attributeData;
         //this.usage = usage;
     }
     compile(renderer){
@@ -188,27 +199,6 @@ class ShaderProgram{
             }
         }
         this.program = program;
-        this.parameterLocations = null;
-        var newthing = {
-            attributes:[],
-            uniforms:[]
-        }
-        if(typeof vshader.attributeData !== "undefined"){
-            for(var i=0; i<vshader.attributeData.attributes.length;i++){
-                newthing.attributes[vshader.attributeData.attributes[i]] = gl.getAttribLocation(program,vshader.attributeData.attributes[i]);
-            }
-            if(vshader.attributeData.uniforms){
-                for(var i=0; i<vshader.attributeData.uniforms.length;i++){
-                    newthing.uniforms[vshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,vshader.attributeData.uniforms[i]);
-                }
-            }
-        }
-        if(typeof fshader.attributeData !== "undefined"){
-            for(var i=0; i<fshader.attributeData.uniforms.length;i++){
-                newthing.uniforms[fshader.attributeData.uniforms[i]] = gl.getUniformLocation(program,fshader.attributeData.uniforms[i]);
-            }
-        }
-        this.parameterLocations = newthing;
     }
 }
 //#endregion
@@ -272,7 +262,7 @@ class PositionBuffer extends Buffer{
 }
 class IndexBuffer extends Buffer{
     constructor(render,data){
-        super(render,data,"",null,glDictionary.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER);
+        super(render,data,"",null,glDictionary.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
     }
 }
 //#endregion
@@ -295,7 +285,7 @@ class UniformMAT4Matrix{
 //This part is also useless but kinda useful...
 //#endregion
 //#endregion
-//-----------PROGRAMS-----------
+//-----------PACKAGES-----------
 //Just compacts everything together for renderer to process.
 //#region 
 class RenderablePackage{
@@ -318,6 +308,24 @@ class RenderablePackage{
         this.offset = offset;
         this.usesIndexBuffer = usesIndexBuffer;
         this.indexAmount = numElements;
+    }
+}
+//#endregion
+//-----------MATERIALS-----------
+//Materials for easier use of the library
+//#region 
+class SingleColorMaterial{
+    constructor(color){
+        this.vertexShader = new VertexShader(`
+precision mediump float;
+attribute vec3 vertPosition;
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+void main(void){
+    gl_Position = projcetionMatrix*viewMatrix*worldMatrix*vec4(vertPosition,1.0);
+}
+`,)
     }
 }
 //#endregion
