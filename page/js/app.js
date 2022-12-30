@@ -13,6 +13,7 @@ var render,scene,camera,mymesh,mymaterial;
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
 function main(){
+    $("date").id.innerText = new Date()
     //Too many lines. but at least less than 100.
     render = new Renderer($("emotionalDamage").id);
     render.clear(0.75,0.85,0.8,1.0)
@@ -28,9 +29,7 @@ void main(void){
     gl_Position = projectionMatrix*viewMatrix*worldMatrix*vec4(vertPosition,1.0);
     fragColor = vertColor;
 }
-`,{
-    attributes:["vertPosition"]
-});
+`);
     var fragmentShader = new FragmentShader(`
 precision mediump float;
 varying vec3 fragColor;
@@ -41,14 +40,14 @@ void main(void){
     
     var program = new ShaderProgram(render,vertexShader,fragmentShader);
     var posBuffer = new PositionBuffer(render,[
-        0.0, 0.5,0.0,
-        -0.5,-0.5,0.0,
-        0.5,-0.5,0.0
+        0.0,1.0,0.0,
+        1.0,-1.0,0.0,
+        -1.0,-1.0,0.0
     ],"vertPosition");
     var colorBuffer = new Buffer(render,[
-        1.0,1.0,0.0,
-        0.7,0.0,1.0,
-        0.1,1.0,0.6
+        1.0,0.0,0.0,
+        0.0,1.0,0.0,
+        0.0,0.0,1.0,
     ],"vertColor",null,glDictionary.ATTRIBUTE,[
         3,
         render.gl.FLOAT,
@@ -56,17 +55,19 @@ void main(void){
         3*Float32Array.BYTES_PER_ELEMENT,
         0
     ]);
+    var indexBuffer = new IndexBuffer(render,[
+        2,1,0
+    ])
     var worldMatrix = new Mat4();
     var viewMatrix = new Mat4();
     var projectionMatrix = new Mat4();
-    worldMatrix.rotate(45,[0,1,0])
-    viewMatrix.lookAt([0,0,2],[0,0,0],[0,1,0]);
-    console.log(viewMatrix);
+    worldMatrix.rotate([0,0,0])
+    viewMatrix.lookAt([0,0,5],[0,0,0],[0,1,0]);
     projectionMatrix.perspective(45,render.aspect,glMath.EPSILON,100)
     var renderPackage = new RenderablePackage(program,
-        glDictionary.ARRAYS,[posBuffer,colorBuffer],[worldMatrix.convertToUniform(render,"worldMatrix"),
+        glDictionary.ELEMENTS,[posBuffer,colorBuffer,indexBuffer],[worldMatrix.convertToUniform(render,"worldMatrix"),
     viewMatrix.convertToUniform(render,"viewMatrix"),
-    projectionMatrix.convertToUniform(render,"projectionMatrix")],0,false,3);
+    projectionMatrix.convertToUniform(render,"projectionMatrix")],0,true,3);
     render.drawPackage(renderPackage,glDictionary.TRIANGLES)
 }
 window.onload = main;
