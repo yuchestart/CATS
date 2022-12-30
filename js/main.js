@@ -1,22 +1,28 @@
 //MAIN FILE OF THE LIBRARY
 
 /**
+ * What-ever-this-is's WebGL Library
  * 
- * EXTERNAL DEPENDENCIES:
- * glmatrix/mat4.js - to be replaced with WebGLLibrary/math.js
- * 
- * WebGL Library
- * 
+ * Created by Che Yu.
  */
 //-----------MISC-----------
 //#region 
+/**
+ * Some random code
+ */
 const glLibrary = {
-    rgba2frgb:function(r,g,b,a){
-        return [r*(1/255),g*(1/255),b*(1/255),a]
+    rgba2rgb:function(r,g,b,a){
+        return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
     },
-    hex2frgb:function(hex){
+    hex2rgb:function(hex,stringify){
         hex = hex.shift();
-    }
+        newcolor = [0,0,0,1.0];
+        newcolor[0] = parseInt(color.slice(0,2),16)*this.oneOver255;
+        newcolor[1] = parseInt(color.slice(2,4),16)*this.oneOver255;
+        newcolor[2] = parseInt(color.slice(4,6),16)*this.oneOver255;
+        return stringify?newcolor.toString():newcolor;
+    },
+    oneOver255:(1/255)
 }
 //#endregion
 //-----------RENDERER OBJECT-----------
@@ -32,7 +38,7 @@ class Renderer{
     constructor(canvas,dontCullFace,dontUseDepthTest){
         //Initialization function
         this.canvas = canvas;
-        this.gl = canvas.getContext("webgl2")
+        this.gl = "a"=="b"?new WebGL2RenderingContext():canvas.getContext("webgl2")
         if(this.gl===null){
             console.warn("WebGL2 Not supported, falling back to WebGL1.\nSome features may break.");
             this.gl = canvas.getContext("webgl")
@@ -106,8 +112,25 @@ class Scene{
     /*
     Creates a new scene
     */
-    constructor(){
-
+    constructor(renderer){
+        this.renderer = renderer;
+        this.camera = {
+            position:[0,0,0],
+            direction:[0,0,0],
+            fovy:45,
+            near:glMath.EPSILON,
+            far:100
+        }
+    }
+    moveCamera(vector){
+        this.camera.position = vec3.add(this.camera.position,vector);
+    }
+    rotateCamera(vector){
+        this.camera.direction = vec3.add(this.camera.direction,vector);
+    }
+    projectCamera(){
+        var viewMatrix = new Mat4();
+        viewMatrix.lookAt()
     }
 }
 //#endregion
@@ -117,7 +140,18 @@ class Mesh{
      * A 3D Object made of several triangles
      */
     constructor(vertexData,indexData,material){
-
+        this.vertexData = vertexData;
+        this.indexData = indexData;
+        this.material = material;
+    }
+    package(renderer,uniforms){
+        var compiledMaterial = material.build(renderer);
+        var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
+        var currentUniforms = uniforms
+        currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
+        currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
+        var renderpackage = new RenderablePackage(compileMaterial.program,glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
+        return renderpackage;
     }
 }
 //#endregion
@@ -291,13 +325,13 @@ class UniformMAT4Matrix{
 class RenderablePackage{
     /**
      * 
-     * @param {ShaderProgram} shaderProgram 
-     * @param {Array} bufferList 
-     * @param {Number} renderType 
-     * @param {Array} uniformList 
-     * @param {Number} offset 
-     * @param {Boolean} usesIndexBuffer 
-     * @param {Number} numElements
+     * @param {ShaderProgram} shaderProgram The shader program
+     * @param {Array} bufferList Buffers
+     * @param {Number} renderType The type to draw from, e.g. TRIANGLES
+     * @param {Array} uniformList Uniforms
+     * @param {Number} offset Offset
+     * @param {Boolean} usesIndexBuffer Uses index buffer?
+     * @param {Number} numElements Number of elements
      */
     constructor(shaderProgram,renderType,bufferList,uniformList,offset,usesIndexBuffer,numElements){
         this.shaderProgram = shaderProgram;
@@ -315,17 +349,94 @@ class RenderablePackage{
 //Materials for easier use of the library
 //#region 
 class SingleColorMaterial{
+    /**
+     * A single colored material for all of
+     * @param {String} color 
+     */
     constructor(color){
+        if(color.startsWith("#")){
+            color = glLibrary.hex2rgb(color,true);
+        }
         this.vertexShader = new VertexShader(`
 precision mediump float;
-attribute vec3 vertPosition;
-uniform mat4 worldMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+attribute vec3 vP;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
 void main(void){
-    gl_Position = projcetionMatrix*viewMatrix*worldMatrix*vec4(vertPosition,1.0);
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
 }
-`,)
+`);
+
+        this.fragmentShader = new FragmentShader(`
+precision mediump float;
+void main(void){
+    gl_FragColor = vec4(${color});
+}
+`);
+    }
+    build(render){
+        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
+        return {
+            program:program,
+            buffers:[],
+            uniforms:[]
+        }
+    }
+}
+class MultiColorMaterial{
+    /**
+     * A material to color each vertex of an object with a certain color. More formats will be supported in Milestone 2
+     * @param {Array} colors 
+     */
+    constructor(colors){
+        this.vertexShader = new VertexShader(`
+precision mediump float;
+attribute vec3 vP;
+attribute vec4 vC;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+varying vec4 fC;
+void main(void){
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fC = vC;
+}
+`);
+        this.fragmentShader = new FragmentShader(`
+precision mediump float;
+varying vec4 fC;
+void main(void){
+    gl_FragColor = fC;
+}
+`);
+        this.colors = colors;
+    }
+    /**
+     * 
+     * @param {Renderer} render 
+     */
+    build(render){
+        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
+        var colorBufferData = [];
+        for(var i=0; i<this.colors.length; i++){
+            if(this.colors[i].startsWith("#")){
+                this.colors[i] = glLibrary.hex2rgb(this.colors[i]);
+            }
+            colorBufferData.push(...this.colors[i])
+        }
+        var colorBuffer = new Buffer(render,colorBufferData,"vertColor",null,glDictionary.ATTRIBUTE,[
+            3,
+            render.gl.FLOAT,
+            render.gl.FALSE,
+            3*Float32Array.BYTES_PER_ELEMENT,
+            0
+        ],);
+        return {
+            program:program,
+            buffers:[colorBuffer],
+            uniforms:[]
+        }
     }
 }
 //#endregion
