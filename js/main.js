@@ -136,8 +136,17 @@ class Scene{
     addObject(object){
         this.objects.push(object);
     }
+    removeObject(object){
+        this.objects.splice(this.objects.indexOf(object),1)
+    }
+    clear(){
+        this.objects = [];
+    }
     render(){
         
+        for(var i=0; i<this.objects.length; i++){
+
+        }
     }
 }
 //#endregion
@@ -151,6 +160,13 @@ class Mesh{
         this.indexData = indexData;
         this.material = material;
         this.visible = true;
+        this.tags = undefined;
+    }
+    addTag(tag){
+        this.tags.push(tag);
+    }
+    removeTag(){
+        this.tag = undefined;
     }
     package(renderer,uniforms){
         var compiledMaterial = material.build(renderer);
