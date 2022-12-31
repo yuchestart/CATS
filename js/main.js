@@ -120,7 +120,8 @@ class Scene{
             fovy:45,
             near:glMath.EPSILON,
             far:100
-        }
+        };
+        this.objects = [];
     }
     moveCamera(vector){
         this.camera.position = vec3.add(this.camera.position,vector);
@@ -131,6 +132,12 @@ class Scene{
     projectCamera(){
         var viewMatrix = new Mat4();
         viewMatrix.lookAt()
+    }
+    addObject(object){
+        this.objects.push(object);
+    }
+    render(){
+        
     }
 }
 //#endregion
@@ -143,6 +150,7 @@ class Mesh{
         this.vertexData = vertexData;
         this.indexData = indexData;
         this.material = material;
+        this.visible = true;
     }
     package(renderer,uniforms){
         var compiledMaterial = material.build(renderer);
@@ -150,7 +158,7 @@ class Mesh{
         var currentUniforms = uniforms
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
-        var renderpackage = new RenderablePackage(compileMaterial.program,glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
+        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
         return renderpackage;
     }
 }
