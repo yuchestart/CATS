@@ -208,16 +208,16 @@ class Mesh{
         this.tag = undefined;
     }
     package(renderer,viewMatrix,projectionMatrix){
-        var compiledMaterial = material.build(renderer);
+        var compiledMaterial = this.material.build(renderer);
         var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
         var worldMatrix = new Mat4();
         worldMatrix.scale(this.transform.scale);
         worldMatrix.rotate(this.transform.rotation);
         worldMatrix.translate(this.transform.position)
         var currentUniforms = [
-            worldMatrix.convertToUniform(renderer,"worldMatrix"),
-            viewMatrix.convertToUniform(renderer,"viewMatrix"),
-            projectionMatrix.convertToUniform(renderer,"projectionMatrix")
+            worldMatrix.convertToUniform(renderer,"wM"),
+            viewMatrix.convertToUniform(renderer,"vM"),
+            projectionMatrix.convertToUniform(renderer,"pM")
         ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
