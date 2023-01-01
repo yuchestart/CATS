@@ -10,7 +10,7 @@
 //#region 
 //Yeah I'm pretty sure this is useless.
 const glMath = {
-    degreesToRadians:function(degrees){
+    toRadians:function(degrees){
         return degrees*(Math.PI/180)
     },
     EPSILON:1e-4,
@@ -39,8 +39,9 @@ class Mat4{
      * @param {Mat4} a 
      * @param {Mat4} b 
      */
-    multiply(a,b){
-        if(a instanceof Mat4 && b instanceof Mat4){
+    multiply(b){
+        var a = this;
+        if(b instanceof Mat4){
             var newMat4 = new Mat4();
             //There are 4 dot products when multiplying two Mat4
             for(var i=0; i<4; i++){
@@ -53,9 +54,9 @@ class Mat4{
                 }
             }
             this.set(newMat4);
-        } else if(a instanceof Array ^ b instanceof Array){
-            var v = a instanceof Array ? a : b;
-            var m = a instanceof Array ? b.data : a.data;
+        } else if( b instanceof Array){
+            var v = b;
+            var m = a.data;
             return [
                 v[0]*m[0]+v[1]*m[4]+v[2]*m[8]+v[3]*m[12],
                 v[0]*m[1]+v[1]*m[5]+v[2]*m[9]+v[3]*m[13],
@@ -86,6 +87,24 @@ class Mat4{
         this.data[13] = a[13]+b[13]
         this.data[14] = a[14]+b[14]
         this.data[15] = a[15]+b[15]
+    }
+    identity(){
+        this.data[0] = 1
+        this.data[1] = 0
+        this.data[2] = 0
+        this.data[3] = 0
+        this.data[4] = 0
+        this.data[5] = 1
+        this.data[6] = 0
+        this.data[7] = 0
+        this.data[8] = 0
+        this.data[9] = 0
+        this.data[10] = 1
+        this.data[11] = 0
+        this.data[12] = 0
+        this.data[13] = 0
+        this.data[14] = 0
+        this.data[15] = 1
     }
     subtract(a,b){
         this.data[0] = a[0]-b[0]
@@ -158,7 +177,7 @@ class Mat4{
      */
     perspective(fovy,aspect,near,far){
         var top,bottom,left,right;
-        top = near*Math.tan(glMath.degreesToRadians(fovy)/2)
+        top = near*Math.tan(glMath.toRadians(fovy)/2)
         bottom = -top;
         right = top*aspect;
         left = -right
@@ -188,7 +207,7 @@ class Mat4{
         translationMatrix.data[12] = vector[0]
         translationMatrix.data[13] = vector[1]
         translationMatrix.data[14] = vector[2]
-        this.multiply(this,translationMatrix);
+        this.multiply(translationMatrix);
     }
     /**
      * Enter a vector with 3 DEGREE values not radians
@@ -198,9 +217,9 @@ class Mat4{
     rotate(vector){
         //Please don't run slowly, even though I did 6 sin and cos.
         var [x,y,z] = vector;
-        x=glMath.degreesToRadians(x)
-        y=glMath.degreesToRadians(y)
-        z=glMath.degreesToRadians(z)
+        x=glMath.toRadians(x)
+        y=glMath.toRadians(y)
+        z=glMath.toRadians(z)
         var zrm = new Mat4();
         var cos,sin;
         cos=Math.cos(z);
@@ -224,9 +243,10 @@ class Mat4{
         xrm.data[9] = sin;
         xrm.data[10] = cos;
         var out = new Mat4();
-        out.multiply(zrm,yrm);
-        out.multiply(out,xrm);
-        this.multiply(this,out);
+        zrm.multiply(yrm);
+        out.multiply(xrm);
+        out.multiply(zrm);
+        this.multiply(out);
     }
     /**
      * 
@@ -237,7 +257,7 @@ class Mat4{
         s.data[0] = vector[0];
         s.data[5] = vector[1];
         s.data[10] = vector[2];
-        this.multiply(this,s);
+        this.multiply(s);
     }
     /**
      * 
@@ -266,7 +286,7 @@ class Mat4{
         output.data[13] = -vec3.dot(position,[right[1],newup[1],forward[1]])
         output.data[14] = -vec3.dot(position,[right[2],newup[2],forward[2]])
         output.data[15] = 1;
-        this.multiply(this,output)
+        this.multiply(output)
     }
     /**
      * 

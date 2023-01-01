@@ -50,12 +50,17 @@ class Renderer{
                 //}
             }
         }
-        if(!dontUseDepthTest)
+        if(!dontUseDepthTest){
             this.gl.enable(this.gl.DEPTH_TEST);
             this.gl.depthFunc(this.gl.LEQUAL);
+        }
         if(!dontCullFace)
             this.gl.enable(this.gl.CULL_FACE);
         this.aspect = canvas.clientWidth/canvas.clientHeight;
+        this.canvas.addEventListener("resize",function(){
+            console.log("bruh")
+            this.aspect = canvas.clientWidth/canvas.clientHeight;
+        });
     }
     /**
      * 
@@ -119,7 +124,7 @@ class Scene{
             direction:[0,0,0],
             fovy:45,
             near:glMath.EPSILON,
-            far:100
+            far:100,
         };
         this.objects = [];
     }
@@ -130,8 +135,26 @@ class Scene{
         this.camera.direction = vec3.add(this.camera.direction,vector);
     }
     projectCamera(){
+        var v = [0,0,1], vector=[0,1,0]
+        var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos= Math.cos(glMath.toRadians(this.camera.direction[0]))
+        v[1] = v[1]*cos-v[2]*sin;
+        v[2] = v[2]*cos+v[0]*sin;
+        v[0] = v[2]*sin+v[0]*cos;
+        vector[1] = vector[1]*cos-vector[2]*sin;
+        vector[2] = vector[2]*cos+vector[0]*sin;
+        vector[0] = vector[2]*sin+vector[0]*cos;
         var viewMatrix = new Mat4();
-        viewMatrix.lookAt()
+        viewMatrix.lookAt(this.camera.position,v,vector);
+        var projectionMatrix = new Mat4();
+        projectionMatrix.perspective(
+            this.camera.fovy,
+            this.renderer.aspect,
+            this.camera.near,
+            this.camera,far);
+        return {
+            viewMatrix:viewMatrix,
+            projectionMatrix:projectionMatrix
+        };
     }
     addObject(object){
         this.objects.push(object);
@@ -143,9 +166,9 @@ class Scene{
         this.objects = [];
     }
     render(){
-        
+        var uniforms
         for(var i=0; i<this.objects.length; i++){
-
+            
         }
     }
 }
@@ -161,6 +184,11 @@ class Mesh{
         this.material = material;
         this.visible = true;
         this.tags = undefined;
+        this.transform = {
+            position:[0,0,0],
+            rotation:[0,0,0],
+            scale:[1,1,1]
+        }
     }
     addTag(tag){
         this.tags.push(tag);
@@ -168,10 +196,17 @@ class Mesh{
     removeTag(){
         this.tag = undefined;
     }
-    package(renderer,uniforms){
+    package(renderer,viewMatrix,projectionMatrix){
         var compiledMaterial = material.build(renderer);
         var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
-        var currentUniforms = uniforms
+        var worldMatrix = new Mat4();
+        worldMatrix.scale(this.transform.scale);
+        worldMatrix.rotate(this.transform.rotation);
+        worldMatrix.translate(this.transform.position)
+        var currentUniforms = [
+            worldMatrix.convertToUniform(renderer,"worldMatrix"),
+            viewMatrix.convertToUniform(renderer,"viewMatrix")
+        ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
         var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);

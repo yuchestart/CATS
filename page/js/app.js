@@ -15,8 +15,7 @@ var render,scene,camera,mymesh,mymaterial;
 function main(){
     $("date").id.innerText = new Date()
     //Too many lines. but at least less than 100.
-    render = new Renderer($("emotionalDamage").id);
-    render.clear(0.75,0.85,0.8,1.0)
+    render = new Renderer($("emotionalDamage").id,1);
     var vertexShader = new VertexShader(`
 precision mediump float;
 attribute vec3 vertPosition;
@@ -59,9 +58,10 @@ void main(void){
         2,1,0
     ])
     var worldMatrix = new Mat4();
+        render.clear(0.75,0.85,0.8,1.0)
     var viewMatrix = new Mat4();
     var projectionMatrix = new Mat4();
-    worldMatrix.rotate([0,0,0])
+    worldMatrix.rotate([45,45,45])
     viewMatrix.lookAt([0,0,5],[0,0,0],[0,1,0]);
     projectionMatrix.perspective(45,render.aspect,glMath.EPSILON,100)
     var renderPackage = new RenderablePackage(program,
