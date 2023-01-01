@@ -129,6 +129,7 @@ class Scene{
             far:100,
         };
         this.objects = [];
+        this.bgcolor = [0,0,0,1]
     }
     moveCamera(vector){
         this.camera.position = vec3.add(this.camera.position,vector);
@@ -167,7 +168,13 @@ class Scene{
     clear(){
         this.objects = [];
     }
+    setBackground(color){
+        if(color.startsWith("#")){
+            this.bgcolor = glLibrary.hex2rgb(color)
+        }
+    }
     render(){
+        this.renderer.clear(...this.bgcolor);
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
@@ -192,6 +199,7 @@ class Mesh{
             rotation:[0,0,0],
             scale:[1,1,1]
         }
+        
     }
     addTag(tag){
         this.tags.push(tag);
