@@ -269,7 +269,7 @@ class FragmentShader{
         gl.shaderSource(shader,this.source);
         gl.compileShader(shader);
         if (!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
-            throw new Error(`An error occurred while compiling the vertex shader: ${gl.getShaderInfoLog(shader)}`);
+            throw new Error(`An error occurred while compiling the fragment shader: ${gl.getShaderInfoLog(shader)}`);
         }
         return shader;
     }
@@ -427,6 +427,7 @@ class SingleColorMaterial{
     constructor(color){
         if(color.startsWith("#")){
             color = glLibrary.hex2rgb(color,true);
+            console.log(color)
         }
         this.vertexShader = new VertexShader(`
 precision mediump float;
