@@ -18,7 +18,7 @@ function main(){
     render = new Renderer($("emotionalDamage").id,1);
     scene = new Scene(render)
     mymaterial = new SingleColorMaterial("#FF0000")
-    mymesh = new Mesh([0,1,-1,-1,0,-1,1,0,-1],[0,1,2],mymaterial);
+    mymesh = new Mesh([0,1,-5,-1,0,-5,1,0,-5],[0,1,2],mymaterial);
     scene.addObject(mymesh);
     scene.render()
 }

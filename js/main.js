@@ -147,7 +147,7 @@ class Scene{
         vector[2] = vector[2]*cos+vector[0]*sin;
         vector[0] = vector[2]*sin+vector[0]*cos;
         var viewMatrix = new Mat4();
-        viewMatrix.lookAt(this.camera.position,v,vector);
+        //viewMatrix.lookAt(this.camera.position,v,vector);
         var projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
