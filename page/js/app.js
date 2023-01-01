@@ -19,10 +19,7 @@ function main(){
     scene = new Scene(render)
     mymaterial = new SingleColorMaterial("#FF0000")
     mymesh = new Mesh([0,1,-1,-1,0,-1,1,0,-1],[0,1,2],mymaterial);
-    var viewMatrix = new Mat4();
-    var projectionMatrix = new Mat4();
-    projectionMatrix.perspective(45,render.aspect,glMath.EPSILON,100);
-    packagedmesh = mymesh.package(render,viewMatrix,projectionMatrix);
-    render.drawPackage(packagedmesh)
+    scene.addObject(mymesh);
+    scene.render()
 }
 window.onload = main;
