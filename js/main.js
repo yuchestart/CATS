@@ -138,7 +138,7 @@ class Scene{
         this.camera.direction = vec3.add(this.camera.direction,vector);
     }
     projectCamera(){
-        var v = [0,0,1], vector=[0,1,0]
+        var v = [0,0,-1], vector=[0,1,0]
         var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos= Math.cos(glMath.toRadians(this.camera.direction[0]))
         v[1] = v[1]*cos-v[2]*sin;
         v[2] = v[2]*cos+v[0]*sin;
@@ -146,8 +146,9 @@ class Scene{
         vector[1] = vector[1]*cos-vector[2]*sin;
         vector[2] = vector[2]*cos+vector[0]*sin;
         vector[0] = vector[2]*sin+vector[0]*cos;
+        console.log("Forward:",v,"Up:",vector)
         var viewMatrix = new Mat4();
-        //viewMatrix.lookAt(this.camera.position,v,vector);
+        viewMatrix.lookAt(this.camera.position,v,vector);
         var projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
@@ -209,7 +210,6 @@ class Mesh{
     }
     package(renderer,viewMatrix,projectionMatrix){
         var compiledMaterial = this.material.build(renderer);
-        console.log(compiledMaterial)
         var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
         var worldMatrix = new Mat4();
         worldMatrix.scale(this.transform.scale);
@@ -222,7 +222,6 @@ class Mesh{
         ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
-        console.log(currentUniforms,currentBuffers)
         var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,currentBuffers,currentUniforms,0,true,this.indexData.length);
         return renderpackage;
     }
