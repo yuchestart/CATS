@@ -209,6 +209,7 @@ class Mesh{
     }
     package(renderer,viewMatrix,projectionMatrix){
         var compiledMaterial = this.material.build(renderer);
+        console.log(compiledMaterial)
         var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
         var worldMatrix = new Mat4();
         worldMatrix.scale(this.transform.scale);
@@ -221,7 +222,8 @@ class Mesh{
         ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
-        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
+        console.log(currentUniforms,currentBuffers)
+        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,currentBuffers,currentUniforms,0,true,this.indexData.length);
         return renderpackage;
     }
 }
@@ -427,7 +429,6 @@ class SingleColorMaterial{
     constructor(color){
         if(color.startsWith("#")){
             color = glLibrary.hex2rgb(color,true);
-            console.log(color)
         }
         this.vertexShader = new VertexShader(`
 precision mediump float;
