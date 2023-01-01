@@ -19,6 +19,7 @@ function main(){
     scene = new Scene(render)
     mymaterial = new SingleColorMaterial("#FF0000")
     mymesh = new Mesh([0,1,-5,-1,0,-5,1,0,-5],[0,1,2],mymaterial);
+    scene.rotateCamera([5,0,0])
     scene.addObject(mymesh);
     scene.render()
 }
