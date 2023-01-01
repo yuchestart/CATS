@@ -330,6 +330,10 @@ const vec3 = {
     },
     hypot:function(vector){
         return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
+    },
+    rotateX:function(vector,deg){
+        var rad = glMath.toRadians(deg);
+
     }
 }
 //#endregion

@@ -140,12 +140,7 @@ class Scene{
     projectCamera(){
         var v = [0,0,-1], vector=[0,1,0]
         var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos= Math.cos(glMath.toRadians(this.camera.direction[0]))
-        v[1] = v[1]*cos-v[2]*sin;
-        v[2] = v[2]*cos+v[0]*sin;
-        v[0] = v[2]*sin+v[1]*cos;
-        vector[1] = vector[1]*cos-vector[2]*sin;
-        vector[2] = vector[2]*cos+vector[0]*sin;
-        vector[0] = vector[2]*sin+vector[0]*cos;
+        v[1]
         console.log("Forward:",v,"Up:",vector)
         var viewMatrix = new Mat4();
         viewMatrix.lookAt(this.camera.position,v,vector);
@@ -494,14 +489,16 @@ void main(void){
         for(var i=0; i<this.colors.length; i++){
             if(this.colors[i].startsWith("#")){
                 this.colors[i] = glLibrary.hex2rgb(this.colors[i]);
+                
             }
             colorBufferData.push(...this.colors[i])
         }
-        var colorBuffer = new Buffer(render,colorBufferData,"vertColor",null,glDictionary.ATTRIBUTE,[
-            3,
+        console.log(colorBufferData)
+        var colorBuffer = new Buffer(render,colorBufferData,"vC",null,glDictionary.ATTRIBUTE,[
+            4,
             render.gl.FLOAT,
             render.gl.FALSE,
-            3*Float32Array.BYTES_PER_ELEMENT,
+            4*Float32Array.BYTES_PER_ELEMENT,
             0
         ],);
         return {
