@@ -151,26 +151,22 @@ class Scene{
             var v = [0,0,-1], vector=[0,1,0];
             //ROTATE Z
             var sin = Math.sin(glMath.toRadians(this.camera.direction[2])),cos=Math.cos(glMath.toRadians(this.camera.direction[2]))
-            v[0] = v[0]*cos-v[1]*sin
-            v[1] = v[0]*sin+v[1]*cos
-            vector[0] = vector[0]*cos-vector[1]*sin
-            vector[1] = vector[0]*sin+vector[1]*cos
-            var sin = Math.sin(glMath.toRadians(this.camera.direction[1])),cos=Math.cos(glMath.toRadians(this.camera.direction[1]))
+            var a = v[0]+0,b=v[1]+0
+            v[0] = a*cos-b*sin
+            v[1] = a*sin+b*cos
+            a = vector[0]+0,b=vector[1]+0
+            vector[0] = a*cos-b*sin
+            vector[1] = a*sin+b*cos
             //ROTATE Y
-            v[0] = v[2]*sin + v[0]*cos
-            v[2] = v[2]*cos - v[0]*sin
-            vector[0] = vector[2]*sin + vector[0]*cos
-            vector[2] = vector[2]*cos - vector[0]*sin
+            sin = Math.sin(glMath.toRadians(this.camera.direction[1])),
+            cos = Math.cos(glMath.toRadians(this.camera.direction[1]));
+            
             //ROTATE X
-            var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos=Math.cos(glMath.toRadians(this.camera.direction[0]))
-            v[1] = v[1]*cos - v[2]*sin
-            v[2] = v[1]*sin + v[2]*cos
-            vector[1] = vector[1]*cos - vector[2]*sin
-            vector[2] = vector[1]*sin + vector[2]*cos
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
+            console.log("Forward:",v,"Up:",vector)
         } else {
             var viewMatrix = this.camera.lastViewMatrix;
         }
@@ -232,6 +228,15 @@ class Mesh{
     }
     removeTag(){
         this.tag = undefined;
+    }
+    scale(vector){
+        this.transform.scale = vector;
+    }
+    rotate(vector){
+        this.transform.rotation = vec3.add(vector,this.transform.rotation)
+    }
+    translate(vector){
+        this.transform.position = vec3.add(vector,this.transform.position)
     }
     package(renderer,viewMatrix,projectionMatrix){
         var compiledMaterial = this.material.build(renderer);
@@ -523,7 +528,6 @@ void main(void){
             }
             colorBufferData.push(...this.colors[i])
         }
-        console.log(colorBufferData)
         var colorBuffer = new Buffer(render,colorBufferData,"vC",null,glDictionary.ATTRIBUTE,[
             4,
             render.gl.FLOAT,
