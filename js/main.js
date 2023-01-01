@@ -77,7 +77,8 @@ class Renderer{
     }
     /**
      * Draws a renderable data package.
-     * @param {RenderablePackage} package 
+     * @param {RenderablePackage} package The package to draw
+     * @param {Number} renderType The way the package is rendered, for example glDictionary.TRIANGLES
      */
     drawPackage(renderPackage,renderType){
         var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
@@ -114,9 +115,10 @@ class Renderer{
 //-----MAIN SCENE-----
 //#region 
 class Scene{
-    /*
-    Creates a new scene
-    */
+    /**
+     * 
+     * @param {Renderer} renderer 
+     */
     constructor(renderer){
         this.renderer = renderer;
         this.camera = {
@@ -166,9 +168,10 @@ class Scene{
         this.objects = [];
     }
     render(){
-        var uniforms
+        var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
-            
+            var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
+            this.renderer.drawPackage(renderablePackage,glDictionary.TRIANGLES);
         }
     }
 }
@@ -205,7 +208,8 @@ class Mesh{
         worldMatrix.translate(this.transform.position)
         var currentUniforms = [
             worldMatrix.convertToUniform(renderer,"worldMatrix"),
-            viewMatrix.convertToUniform(renderer,"viewMatrix")
+            viewMatrix.convertToUniform(renderer,"viewMatrix"),
+            projectionMatrix.convertToUniform(renderer,"projectionMatrix")
         ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
