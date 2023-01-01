@@ -142,7 +142,7 @@ class Scene{
         var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos= Math.cos(glMath.toRadians(this.camera.direction[0]))
         v[1] = v[1]*cos-v[2]*sin;
         v[2] = v[2]*cos+v[0]*sin;
-        v[0] = v[2]*sin+v[0]*cos;
+        v[0] = v[2]*sin+v[1]*cos;
         vector[1] = vector[1]*cos-vector[2]*sin;
         vector[2] = vector[2]*cos+vector[0]*sin;
         vector[0] = vector[2]*sin+vector[0]*cos;
