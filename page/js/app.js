@@ -19,7 +19,9 @@ function main(){
     scene = new Scene(render)
     mymaterial = new MultiColorMaterial(["#FF0000","#00FF00","#0000FF"])
     mymesh = new Mesh([0,1,-5,-1,0,-5,1,0,-5],[0,1,2],mymaterial);
-    scene.rotateCamera([0,45,0])
+    scene.rotateCamera([0,45,45])
+    scene.moveCamera([0,0,2])
+    scene.setFOV(70)
     scene.addObject(mymesh);
     scene.render()
 }

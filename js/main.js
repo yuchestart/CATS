@@ -4,6 +4,8 @@
  * What-ever-this-is's WebGL Library
  * 
  * Created by Che Yu.
+ * 
+ * Now that's a lot of code.
  */
 //-----------MISC-----------
 //#region 
@@ -127,6 +129,8 @@ class Scene{
             fovy:45,
             near:glMath.EPSILON,
             far:100,
+            lastViewMatrix:new Mat4(),
+            viewMatrixInitialized:false
         };
         this.objects = [];
         this.bgcolor = [0,0,0,1]
@@ -136,14 +140,40 @@ class Scene{
     }
     rotateCamera(vector){
         this.camera.direction = vec3.add(this.camera.direction,vector);
+        this.camera.viewMatrixInitialized = false;
+    }
+    setFOV(fov){
+        this.camera.fovy = fov;
     }
     projectCamera(){
-        var v = [0,0,-1], vector=[0,1,0]
-        var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos= Math.cos(glMath.toRadians(this.camera.direction[0]))
-        v[1]
-        console.log("Forward:",v,"Up:",vector)
-        var viewMatrix = new Mat4();
-        viewMatrix.lookAt(this.camera.position,v,vector);
+        if(!this.camera.viewMatrixInitialized){
+            //Ugh I hate math so much
+            var v = [0,0,-1], vector=[0,1,0];
+            //ROTATE Z
+            var sin = Math.sin(glMath.toRadians(this.camera.direction[2])),cos=Math.cos(glMath.toRadians(this.camera.direction[2]))
+            v[0] = v[0]*cos-v[1]*sin
+            v[1] = v[0]*sin+v[1]*cos
+            vector[0] = vector[0]*cos-vector[1]*sin
+            vector[1] = vector[0]*sin+vector[1]*cos
+            var sin = Math.sin(glMath.toRadians(this.camera.direction[1])),cos=Math.cos(glMath.toRadians(this.camera.direction[1]))
+            //ROTATE Y
+            v[0] = v[2]*sin + v[0]*cos
+            v[2] = v[2]*cos - v[0]*sin
+            vector[0] = vector[2]*sin + vector[0]*cos
+            vector[2] = vector[2]*cos - vector[0]*sin
+            //ROTATE X
+            var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos=Math.cos(glMath.toRadians(this.camera.direction[0]))
+            v[1] = v[1]*cos - v[2]*sin
+            v[2] = v[1]*sin + v[2]*cos
+            vector[1] = vector[1]*cos - vector[2]*sin
+            vector[2] = vector[1]*sin + vector[2]*cos
+            var viewMatrix = new Mat4();
+            viewMatrix.lookAt(this.camera.position,v,vector);
+            this.camera.lastViewMatrix = viewMatrix;
+            this.camera.viewMatrixInitialized = true;
+        } else {
+            var viewMatrix = this.camera.lastViewMatrix;
+        }
         var projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
