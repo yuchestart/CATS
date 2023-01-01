@@ -15,7 +15,7 @@ const glLibrary = {
         return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
     },
     hex2rgb:function(hex,stringify){
-        hex = hex.slice();
+        hex = hex.slice(1);
         newcolor = [0,0,0,1.0];
         newcolor[0] = parseInt(hex.slice(0,2),16)*this.oneOver255;
         newcolor[1] = parseInt(hex.slice(2,4),16)*this.oneOver255;
