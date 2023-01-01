@@ -17,7 +17,8 @@ function main(){
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id,1);
     scene = new Scene(render)
-    mymaterial = new SingleColorMaterial("")
-    mymesh = new Mesh([0,1,0,-1,0,0,1,0,0],[0,1,2])
+    mymaterial = new SingleColorMaterial("#FF0000")
+    mymesh = new Mesh([0,1,0,-1,0,0,1,0,0],[0,1,2],mymaterial);
+    scene.render()
 }
 window.onload = main;

@@ -15,11 +15,11 @@ const glLibrary = {
         return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
     },
     hex2rgb:function(hex,stringify){
-        hex = hex.shift();
+        hex = hex.slice();
         newcolor = [0,0,0,1.0];
-        newcolor[0] = parseInt(color.slice(0,2),16)*this.oneOver255;
-        newcolor[1] = parseInt(color.slice(2,4),16)*this.oneOver255;
-        newcolor[2] = parseInt(color.slice(4,6),16)*this.oneOver255;
+        newcolor[0] = parseInt(hex.slice(0,2),16)*this.oneOver255;
+        newcolor[1] = parseInt(hex.slice(2,4),16)*this.oneOver255;
+        newcolor[2] = parseInt(hex.slice(4,6),16)*this.oneOver255;
         return stringify?newcolor.toString():newcolor;
     },
     oneOver255:(1/255)
@@ -152,7 +152,7 @@ class Scene{
             this.camera.fovy,
             this.renderer.aspect,
             this.camera.near,
-            this.camera,far);
+            this.camera.far);
         return {
             viewMatrix:viewMatrix,
             projectionMatrix:projectionMatrix
