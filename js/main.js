@@ -349,12 +349,14 @@ class Cube extends Mesh{
 }
 class Sphere extends Mesh{
     /**
-     * 
+     * Creates a new sphere
      * @param {Number} radius 
      * @param {Number} numberOfPoints 
      */
     constructor(radius,numberOfPoints){
-
+        var points = [];
+        var degreesFromPoints = 360/numberOfPoints;
+        
     }
 }
 //#endregion

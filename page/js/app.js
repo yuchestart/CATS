@@ -58,6 +58,7 @@ function main(){
     var mymesh2 = new Cube(1,mymaterial)
     mymesh2.translate([3,0,0])
     scene.setFOV(70)
+    scene.moveCamera([0,0,5])
     scene.addObject(mymesh);
     scene.addObject(mymesh2);
     document.onkeydown = function(e){
@@ -67,7 +68,7 @@ function main(){
         keybinds[e.code] = false;
     }
     function cat(){
-        mymesh.rotate([1,2,3])
+        mymesh.rotate([1,1,1])
         var forward=keybinds.KeyW,
         back=keybinds.KeyS,
         left=keybinds.KeyA,
