@@ -268,7 +268,7 @@ class Mat4{
     lookAt(position,target,up){
         var forward = vec3.normalize(vec3.subtract(position,target))
         var right = vec3.normalize(vec3.cross(up,forward))
-        var newup = vec3.cross(forward,right)
+        var newup = vec3.normalize(vec3.cross(forward,right))
         var output = new Mat4()
         output.data[0] = right[0]
         output.data[1] = right[1]

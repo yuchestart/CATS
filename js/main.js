@@ -137,6 +137,7 @@ class Scene{
     }
     moveCamera(vector){
         this.camera.position = vec3.add(this.camera.position,vector);
+        this.camera.viewMatrixInitialized = false;
     }
     rotateCamera(vector){
         this.camera.direction = vec3.add(this.camera.direction,vector);
@@ -177,7 +178,6 @@ class Scene{
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
-            console.log("Forward:",v,"Up:",vector)
         } else {
             var viewMatrix = this.camera.lastViewMatrix;
         }
@@ -285,14 +285,27 @@ class Cube extends Mesh{
             -size,-size,size,
             size,-size,size,
             //Left
-            -size,size,-size
+            -size,size,size,
+            -size,size,-size,
+            -size,-size,size,
+            -size,-size,-size,
+            //Right
+            size,-size,size,
+            size,-size,-size,
+            size,size,size,
+            size,size,-size,
+            //Top
+            
         ],[
             0,2,3,
             3,1,0,
             4,6,7,
             7,5,4,
-
-        ])
+            8,10,11,
+            11,9,8,
+            12,14,15,
+            15,13,12,
+        ],material)
     }
 }
 //#endregion
@@ -495,7 +508,9 @@ class SingleColorMaterial{
      * @param {String} color 
      */
     constructor(color){
-        if(color.startsWith("#")){
+        if(color instanceof Array){
+            color = glLibrary.rgba2rgb(...color)
+        }else if(color.startsWith("#")){
             color = glLibrary.hex2rgb(color,true);
         }
         this.vertexShader = new VertexShader(`
