@@ -172,6 +172,9 @@ class Scene{
             a = v[1],b=v[2];
             v[0] = a*cos-b*sin
             v[1] = a*sin+b*cos
+            a = vector[1],b=vector[2];
+            vector[0] = a*cos-b*sin
+            vector[1] = a*sin+b*cos
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;
