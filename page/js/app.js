@@ -31,8 +31,11 @@ function main(){
     scene = new Scene(render)
     mymaterial = new SingleColorMaterial([0,255,0,0.4])
     mymesh = new Cube(1,mymaterial)
+    var mymesh2 = new Cube(1,mymaterial)
+    mymesh2.translate([3,0,0])
     scene.setFOV(70)
     scene.addObject(mymesh);
+    scene.addObject(mymesh2);
     document.onkeydown = function(e){
         keybinds[e.code] = true;
     }
@@ -46,6 +49,10 @@ function main(){
         right=keybinds.KeyD,
         up=keybinds.KeyQ,
         down=keybinds.KeyE
+        var panleft = keybinds.ArrowLeft,
+        panright = keybinds.ArrowRight,
+        panup = keybinds.ArrowUp,
+        pandown = keybinds.ArrowDown
         if(forward){
             scene.moveCamera([0,0,-0.1])
         } else if(back){
@@ -60,6 +67,16 @@ function main(){
             scene.moveCamera([0,0.1,0])
         } else if(down){
             scene.moveCamera([0,-0.1,0])
+        }
+        if(panleft){
+            scene.rotateCamera([0,1,0])
+        } else if(panright){
+            scene.rotateCamera([0,-1,0])
+        }
+        if(panup){
+            scene.rotateCamera([1,0,0])
+        } else if(pandown){
+            scene.rotateCamera([-1,0,0])
         }
         scene.render()
         requestAnimationFrame(cat)
