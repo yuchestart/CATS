@@ -160,8 +160,18 @@ class Scene{
             //ROTATE Y
             sin = Math.sin(glMath.toRadians(this.camera.direction[1])),
             cos = Math.cos(glMath.toRadians(this.camera.direction[1]));
-            
+            a = v[2],b = v[0]
+            v[0] = a*sin+b*sin;
+            v[1] = a*cos+b*cos;
+            a = vector[2],b = vector[0]
+            vector[0] = a*sin+b*sin;
+            vector[1] = a*cos+b*cos;
             //ROTATE X
+            sin = Math.sin(glMath.toRadians(this.camera.direction[0])),
+            cos = Math.cos(glMath.toRadians(this.camera.direction[0]));
+            a = v[1],b=v[2];
+            v[0] = a*cos-b*sin
+            v[1] = a*sin+b*cos
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;

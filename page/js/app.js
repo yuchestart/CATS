@@ -18,8 +18,8 @@ function main(){
     render = new Renderer($("emotionalDamage").id,1);
     scene = new Scene(render)
     mymaterial = new MultiColorMaterial(["#FF0000","#00FF00","#0000FF"])
-    mymesh = new Mesh([0,1,-5,-1,0,-5,1,0,-5],[0,1,2],mymaterial);
-    mymesh.rotate([90,0,0])
+    mymesh = new Mesh([0,1,0,-1,0,0,1,0,0],[0,1,2],mymaterial);
+    mymesh.translate([0,-0.5,0])
     scene.rotateCamera([90,0,0])
     scene.moveCamera([0,0,2])
     scene.setFOV(70)
