@@ -29,7 +29,31 @@ function main(){
     //Wow now that's a lot of code gone.
     var render = new Renderer($("emotionalDamage").id);
     var scene = new Scene(render)
-    var mymaterial = new SingleColorMaterial([0,255,0,0.4])
+    var mymaterial = new MultiColorMaterial([
+        "#FF0000",
+        "#FF0000",
+        "#FF0000",
+        "#FF0000",
+        "#00FF00",
+        "#00FF00",
+        "#00FF00",
+        "#00FF00",
+        "#0000FF",
+        "#0000FF",
+        "#0000FF",
+        "#0000FF",
+        "#FFFF00",
+        "#FFFF00",
+        "#FFFF00",
+        "#FFFF00",
+        "#00FFFF",
+        "#00FFFF",
+        "#00FFFF",
+        "#00FFFF",
+        "#FF00FF",
+        "#FF00FF",
+        "#FF00FF",
+        "#FF00FF"])
     var mymesh = new Cube(1,mymaterial)
     var mymesh2 = new Cube(1,mymaterial)
     mymesh2.translate([3,0,0])

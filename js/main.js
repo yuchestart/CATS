@@ -234,9 +234,12 @@ class Mesh{
         this.transform = {
             position:[0,0,0],
             rotation:[0,0,0],
-            scale:[1,1,1]
+            scale:[1,1,1],
+            transformStayedSame:false,
+            worldMatrix:null
         }
-        
+        this.compiledMaterial = null;
+        this.materialCompiled = false;
     }
     addTag(tag){
         this.tags.push(tag);
@@ -246,20 +249,39 @@ class Mesh{
     }
     scale(vector){
         this.transform.scale = vector;
+        this.transform.transformStayedSame = false;
     }
     rotate(vector){
         this.transform.rotation = vec3.add(vector,this.transform.rotation)
+        this.transform.transformStayedSame = false;
     }
     translate(vector){
         this.transform.position = vec3.add(vector,this.transform.position)
+        this.transform.transformStayedSame = false;
+    }
+    changeMaterial(material){
+        this.material = material;
+        this.materialCompiled = false;
     }
     package(renderer,viewMatrix,projectionMatrix){
-        var compiledMaterial = this.material.build(renderer);
+        if(this.materialCompiled){
+            var compiledMaterial = this.compiledMaterial;
+        } else {
+            var compiledMaterial = this.material.build(renderer);
+            this.compiledMaterial = this.material.build(renderer);
+            this.materialCompiled = true;
+        }
         var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
-        var worldMatrix = new Mat4();
-        worldMatrix.scale(this.transform.scale);
-        worldMatrix.rotate(this.transform.rotation);
-        worldMatrix.translate(this.transform.position)
+        if(this.transform.transformStayedSame){
+            var worldMatrix = this.transform.worldMatrix
+        } else {
+            var worldMatrix = new Mat4();
+            worldMatrix.scale(this.transform.scale);
+            worldMatrix.rotate(this.transform.rotation);
+            worldMatrix.translate(this.transform.position);
+            this.transform.transformStayedSame = true;
+            this.transform.worldMatrix = worldMatrix
+        }
         var currentUniforms = [
             worldMatrix.convertToUniform(renderer,"wM"),
             viewMatrix.convertToUniform(renderer,"vM"),
@@ -332,7 +354,7 @@ class Sphere extends Mesh{
      * @param {Number} numberOfPoints 
      */
     constructor(radius,numberOfPoints){
-        
+
     }
 }
 //#endregion
@@ -603,11 +625,11 @@ void main(void){
         var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
         var colorBufferData = [];
         for(var i=0; i<this.colors.length; i++){
+            //console.log(i)
             if(this.colors[i].startsWith("#")){
-                this.colors[i] = glLibrary.hex2rgb(this.colors[i]);
-                
+                colorBufferData.push(...glLibrary.hex2rgb(this.colors[i]));
             }
-            colorBufferData.push(...this.colors[i])
+            
         }
         var colorBuffer = new Buffer(render,colorBufferData,"vC",null,glDictionary.ATTRIBUTE,[
             4,
