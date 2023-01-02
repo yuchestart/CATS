@@ -27,10 +27,10 @@ var keybinds = {
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    render = new Renderer($("emotionalDamage").id);
-    scene = new Scene(render)
-    mymaterial = new SingleColorMaterial([0,255,0,0.4])
-    mymesh = new Cube(1,mymaterial)
+    var render = new Renderer($("emotionalDamage").id);
+    var scene = new Scene(render)
+    var mymaterial = new SingleColorMaterial([0,255,0,0.4])
+    var mymesh = new Cube(1,mymaterial)
     var mymesh2 = new Cube(1,mymaterial)
     mymesh2.translate([3,0,0])
     scene.setFOV(70)
@@ -43,6 +43,7 @@ function main(){
         keybinds[e.code] = false;
     }
     function cat(){
+        mymesh.rotate([1,2,3])
         var forward=keybinds.KeyW,
         back=keybinds.KeyS,
         left=keybinds.KeyA,

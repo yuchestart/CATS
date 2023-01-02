@@ -37,7 +37,7 @@ class Renderer{
     /**
      * @param {HTMLCanvasElement} canvas 
      */
-    constructor(canvas,dontCullFace,dontUseDepthTest){
+    constructor(canvas,dontCullFace,dontUseDepthTest,disableAlpha){
         //Initialization function
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2");
@@ -58,6 +58,10 @@ class Renderer{
         }
         if(!dontCullFace)
             this.gl.enable(this.gl.CULL_FACE);
+        if(!disableAlpha){
+            this.gl.enable(this.gl.BLEND);
+            this.gl.blendFunc(this.gl.SRC_ALPHA,this.gl.ONE_MINUS_SRC_ALPHA)
+        }
         this.aspect = canvas.clientWidth/canvas.clientHeight;
         this.canvas.addEventListener("resize",function(){
             console.log("bruh")
@@ -295,7 +299,16 @@ class Cube extends Mesh{
             size,size,size,
             size,size,-size,
             //Top
-            -size,size
+            -size,size,size,
+            size,size,size,
+            -size,size,-size,
+            size,size,-size,
+            //Bottom
+            -size,-size,-size,
+            size,-size,-size,
+            -size,-size,size,
+            size,-size,size,
+            
         ],[
             3,2,0,
             0,1,3,
@@ -305,7 +318,21 @@ class Cube extends Mesh{
             8,9,11,
             15,14,12,
             12,13,15,
+            17,19,16,
+            19,18,16,
+            21,23,20,
+            23,22,20
         ],material)
+    }
+}
+class Sphere extends Mesh{
+    /**
+     * 
+     * @param {Number} radius 
+     * @param {Number} numberOfPoints 
+     */
+    constructor(radius,numberOfPoints){
+        
     }
 }
 //#endregion
