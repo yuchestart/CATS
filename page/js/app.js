@@ -27,7 +27,7 @@ var keybinds = {
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    var render = new Renderer($("emotionalDamage").id);
+    var render = new Renderer($("emotionalDamage").id,1);
     var scene = new Scene(render)
     var mymaterial = new MultiColorMaterial([
         "#FF0000",
@@ -53,9 +53,10 @@ function main(){
         "#FF00FF",
         "#FF00FF",
         "#FF00FF",
-        "#FF00FF"])
+        "#FF00FF"]);
+    var mymaterial2 = new SingleColorMaterial("#FF0000")
     var mymesh = new Cube(1,mymaterial)
-    var mymesh2 = new Cube(1,mymaterial)
+    var mymesh2 = new Sphere(0.5,6,mymaterial2)
     mymesh2.translate([3,0,0])
     scene.setFOV(70)
     scene.moveCamera([0,0,5])

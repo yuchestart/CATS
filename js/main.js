@@ -87,7 +87,7 @@ class Renderer{
      * @param {Number} renderType The way the package is rendered, for example glDictionary.TRIANGLES
      */
     drawPackage(renderPackage,renderType){
-        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS]
+        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS,this.gl.LINES]
         if(!renderType){
             renderType = this.gl.TRIANGLES;
         } else {
@@ -215,7 +215,7 @@ class Scene{
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
-            this.renderer.drawPackage(renderablePackage,glDictionary.TRIANGLES);
+            this.renderer.drawPackage(renderablePackage,glDictionary.LINES);
         }
     }
 }
@@ -351,12 +351,43 @@ class Sphere extends Mesh{
     /**
      * Creates a new sphere
      * @param {Number} radius 
-     * @param {Number} numberOfPoints 
+     * @param {Number} div
      */
-    constructor(radius,numberOfPoints){
-        var points = [];
-        var degreesFromPoints = 360/numberOfPoints;
-        
+    constructor(radius,div,material){
+        var points = [],indicies = [];
+        var sectorStep = 2*Math.PI/div;
+        var stackStep = Math.PI/div;
+        for(var i=0; i<div;i++){
+            var stackAngle = Math.PI/2-i*stackStep;
+            var xy = radius*Math.cos(stackAngle);
+            var z = radius*Math.sin(stackAngle);
+            for(var j=0; j<div;j++){
+                var sectorAngle = j*sectorStep;
+                var x = xy*Math.cos(sectorAngle);
+                var y = xy*Math.sin(sectorAngle);
+                points.push(x);
+                points.push(y);
+                points.push(z);
+                //Lighting and textures will be added after M2!
+            }
+        }
+        for(var i=0; i<div; i++){
+            var k1 = i * (div+1);
+            var k2 = k1 + div + 1;
+            for(var j=0; j<div; j++,k1++,k2++){
+                if(i!=0){
+                    indicies.push(k1);
+                    indicies.push(k2);
+                    indicies.push(k1+1);
+                }
+                if(i!=(div-1)){
+                    indicies.push(k1+1);
+                    indicies.push(k2);
+                    indicies.push(k2+1);
+                }
+            }
+        }
+        super(points,indicies,material)
     }
 }
 //#endregion
@@ -645,6 +676,13 @@ void main(void){
             buffers:[colorBuffer],
             uniforms:[]
         }
+    }
+}
+class PointMaterial{
+    constructor(size,color){
+        this.vertexShader = new VertexShader(`
+precision mediump float
+`)
     }
 }
 //#endregion
