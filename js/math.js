@@ -244,8 +244,8 @@ class Mat4{
         xrm.data[10] = cos;
         var out = new Mat4();
         zrm.multiply(yrm);
-        out.multiply(xrm);
         out.multiply(zrm);
+        out.multiply(xrm);
         this.multiply(out);
     }
     /**

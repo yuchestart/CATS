@@ -15,14 +15,14 @@ var render,scene,camera,mymesh,mymaterial,packagedmesh;
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    render = new Renderer($("emotionalDamage").id,1);
+    render = new Renderer($("emotionalDamage").id);
     scene = new Scene(render)
     mymaterial = new MultiColorMaterial(["#FF0000","#00FF00","#0000FF"])
     mymesh = new Mesh([0,1,0,-1,0,0,1,0,0],[0,1,2],mymaterial);
-    mymesh.translate([0,-0.5,0])
-    mymesh.rotate([0,45,0])
-    scene.rotateCamera([90,0,0])
-    scene.moveCamera([0,0,2])
+    mymesh.translate([0,0,-2])
+    mymesh.rotate([0,0,0])
+    scene.rotateCamera([0,0,0])
+    scene.moveCamera([0,0,0])
     scene.setFOV(70)
     scene.addObject(mymesh);
     scene.render()

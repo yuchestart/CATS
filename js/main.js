@@ -40,7 +40,7 @@ class Renderer{
     constructor(canvas,dontCullFace,dontUseDepthTest){
         //Initialization function
         this.canvas = canvas;
-        this.gl = "a"=="b"?new WebGL2RenderingContext():canvas.getContext("webgl2")
+        this.gl = canvas.getContext("webgl2");
         if(this.gl===null){
             console.warn("WebGL2 Not supported, falling back to WebGL1.\nSome features may break.");
             this.gl = canvas.getContext("webgl")
@@ -151,33 +151,28 @@ class Scene{
             var v = [0,0,-1], vector=[0,1,0];
             //ROTATE Z
             var sin = Math.sin(glMath.toRadians(this.camera.direction[2])),cos=Math.cos(glMath.toRadians(this.camera.direction[2]))
-            var a = v[0]+0,b=v[1]+0
-            v[0] = a*cos-b*sin
-            v[1] = a*sin+b*cos
-            a = vector[0]+0,b=vector[1]+0
-            vector[0] = a*cos-b*sin
-            vector[1] = a*sin+b*cos
-            console.log("Forward:",v,"Up:",vector)
+            var a = v[0],b=v[1]
+            v[0] = a*cos - b*sin;
+            v[1] = a*sin + b*cos;
+            a = vector[0],b=vector[1]
+            vector[0] = a*cos - b*sin;
+            vector[1] = a*sin + b*cos;
             //ROTATE Y
-            sin = Math.sin(glMath.toRadians(this.camera.direction[1])),
-            cos = Math.cos(glMath.toRadians(this.camera.direction[1]));
-            a = v[2],b = v[0]
-            v[0] = a*sin+b*sin;
-            v[2] = a*cos-b*cos;
-            a = vector[2],b = vector[0]
-            vector[0] = a*sin+b*sin;
-            vector[2] = a*cos-b*cos;
-            console.log("Forward:",v,"Up:",vector)
+            var sin = Math.sin(glMath.toRadians(this.camera.direction[1])),cos=Math.cos(glMath.toRadians(this.camera.direction[1]))
+            var a = v[0],b=v[2]
+            v[0] = a*cos - b*sin;
+            v[2] = a*sin + b*cos;
+            var a = vector[0],b=vector[2]
+            vector[0] = a*cos - b*sin;
+            vector[2] = a*sin + b*cos;
             //ROTATE X
-            sin = Math.sin(glMath.toRadians(this.camera.direction[0])),
-            cos = Math.cos(glMath.toRadians(this.camera.direction[0]));
-            a = v[1],b=v[2];
-            v[1] = a*cos-b*sin
-            v[2] = a*sin+b*cos
-            a = vector[1],b=vector[2];
-            vector[1] = a*cos-b*sin
-            vector[2] = a*sin+b*cos
-
+            var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos=Math.cos(glMath.toRadians(this.camera.direction[0]))
+            var a = v[2],b=v[1]
+            v[2] = a*cos - b*sin;
+            v[1] = a*sin + b*cos;
+            var a = vector[2],b=vector[1]
+            vector[2] = a*cos - b*sin;
+            vector[1] = a*sin + b*cos;
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;
@@ -270,6 +265,34 @@ class Mesh{
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
         var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,currentBuffers,currentUniforms,0,true,this.indexData.length);
         return renderpackage;
+    }
+}
+class Cube extends Mesh{
+    /**
+     * Creates a new cube
+     * @param {Number} size 
+     */
+    constructor(size,material){
+        super([
+            //Front
+            -size,size,-size,
+            size,size,-size,
+            -size,-size,-size,
+            size,-size,-size,
+            //Back
+            -size,size,size,
+            size,size,size,
+            -size,-size,size,
+            size,-size,size,
+            //Left
+            -size,size,-size
+        ],[
+            0,2,3,
+            3,1,0,
+            4,6,7,
+            7,5,4,
+
+        ])
     }
 }
 //#endregion
