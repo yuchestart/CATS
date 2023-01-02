@@ -157,15 +157,17 @@ class Scene{
             a = vector[0]+0,b=vector[1]+0
             vector[0] = a*cos-b*sin
             vector[1] = a*sin+b*cos
+            console.log("Forward:",v,"Up:",vector)
             //ROTATE Y
             sin = Math.sin(glMath.toRadians(this.camera.direction[1])),
             cos = Math.cos(glMath.toRadians(this.camera.direction[1]));
             a = v[2],b = v[0]
             v[0] = a*sin+b*sin;
-            v[2] = a*cos+b*cos;
+            v[2] = a*cos-b*cos;
             a = vector[2],b = vector[0]
             vector[0] = a*sin+b*sin;
-            vector[2] = a*cos+b*cos;
+            vector[2] = a*cos-b*cos;
+            console.log("Forward:",v,"Up:",vector)
             //ROTATE X
             sin = Math.sin(glMath.toRadians(this.camera.direction[0])),
             cos = Math.cos(glMath.toRadians(this.camera.direction[0]));
@@ -175,6 +177,7 @@ class Scene{
             a = vector[1],b=vector[2];
             vector[1] = a*cos-b*sin
             vector[2] = a*sin+b*cos
+
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,v,vector);
             this.camera.lastViewMatrix = viewMatrix;
