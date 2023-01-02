@@ -175,7 +175,7 @@ class Scene{
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             var viewMatrix = new Mat4();
-            viewMatrix.lookAt(this.camera.position,v,vector);
+            viewMatrix.lookAt(this.camera.position,vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
         } else {
@@ -274,12 +274,12 @@ class Cube extends Mesh{
      */
     constructor(size,material){
         super([
-            //Front
+            //Back
             -size,size,-size,
             size,size,-size,
             -size,-size,-size,
             size,-size,-size,
-            //Back
+            //Front
             -size,size,size,
             size,size,size,
             -size,-size,size,
@@ -295,16 +295,16 @@ class Cube extends Mesh{
             size,size,size,
             size,size,-size,
             //Top
-            
+            -size,size
         ],[
-            0,2,3,
-            3,1,0,
+            3,2,0,
+            0,1,3,
             4,6,7,
             7,5,4,
-            8,10,11,
-            11,9,8,
-            12,14,15,
-            15,13,12,
+            11,10,8,
+            8,9,11,
+            15,14,12,
+            12,13,15,
         ],material)
     }
 }
