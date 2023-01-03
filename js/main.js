@@ -355,36 +355,29 @@ class Sphere extends Mesh{
      */
     constructor(radius,div,material){
         var points = [],indicies = [];
-        var sectorStep = 2*Math.PI/div;
-        var stackStep = Math.PI/div;
-        for(var i=0; i<div;i++){
-            var stackAngle = Math.PI/2-i*stackStep;
-            var xy = radius*Math.cos(stackAngle);
-            var z = radius*Math.sin(stackAngle);
-            for(var j=0; j<div;j++){
-                var sectorAngle = j*sectorStep;
-                var x = xy*Math.cos(sectorAngle);
-                var y = xy*Math.sin(sectorAngle);
-                points.push(x);
-                points.push(y);
-                points.push(z);
-                //Lighting and textures will be added after M2!
+        for(var j=0; j<=div; j++){
+            var anglej = j*Math.PI / div;
+            var sinj = Math.sin(anglej);
+            var cosj = Math.cos(anglej);
+            for(var i=0; i<=div; i++){
+                var anglei=i*2*Math.PI/div;
+                var sini = Math.sin(anglei);
+                var cosi = Math.cos(anglei);
+                points.push(radius*sini*sinj);
+                points.push(radius*cosj);
+                points.push(radius*cosi*sinj);
             }
         }
-        for(var i=0; i<div; i++){
-            var k1 = i * (div+1);
-            var k2 = k1 + div + 1;
-            for(var j=0; j<div; j++,k1++,k2++){
-                if(i!=0){
-                    indicies.push(k1);
-                    indicies.push(k2);
-                    indicies.push(k1+1);
-                }
-                if(i!=(div-1)){
-                    indicies.push(k1+1);
-                    indicies.push(k2);
-                    indicies.push(k2+1);
-                }
+        for(var j=0; j<div;j++){
+            for(var i=0; i<div; i++){
+                var point1 = j*(div+1)+i;
+                var point2 = point1 + (div+1);
+                indicies.push(point1);
+                indicies.push(point2);
+                indicies.push(point1+1);
+                indicies.push(point1 + 1);
+                indicies.push(point2);
+                indicies.push(point2+1);
             }
         }
         super(points,indicies,material)
