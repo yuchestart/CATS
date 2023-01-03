@@ -215,7 +215,7 @@ class Scene{
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
-            this.renderer.drawPackage(renderablePackage,glDictionary.LINES);
+            this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
         }
     }
 }
@@ -289,7 +289,8 @@ class Mesh{
         ]
         currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
         currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
-        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,currentBuffers,currentUniforms,0,true,this.indexData.length);
+        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,
+            compiledMaterial.renderType?compiledMaterial.renderType:glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
         return renderpackage;
     }
 }
@@ -569,12 +570,13 @@ class RenderablePackage{
      * @param {Boolean} usesIndexBuffer Uses index buffer?
      * @param {Number} numElements Number of elements
      */
-    constructor(shaderProgram,renderType,bufferList,uniformList,offset,usesIndexBuffer,numElements){
+    constructor(shaderProgram,renderType,typeOfRender,bufferList,uniformList,offset,usesIndexBuffer,numElements){
         this.shaderProgram = shaderProgram;
         this.program = shaderProgram.program;
         this.bufferList = bufferList;
         this.uniformList = uniformList;
         this.renderType = renderType;
+        this.typeOfRender = typeOfRender;
         this.offset = offset;
         this.usesIndexBuffer = usesIndexBuffer;
         this.indexAmount = numElements;
@@ -679,10 +681,40 @@ void main(void){
     }
 }
 class PointMaterial{
-    constructor(size,color){
+    constructor(color){
+        
+        if(color instanceof Array){
+            color = glLibrary.rgba2rgb(...color)
+        }else if(color.startsWith("#")){
+            color = glLibrary.hex2rgb(color,true);
+        }
+        console.log(color)
         this.vertexShader = new VertexShader(`
-precision mediump float
+precision mediump float;
+attribute vec3 vP;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+void main(void){
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    gl_PointSize = 3.0;
+}
+`);
+        this.fragmentShader = new FragmentShader(`
+precision mediump float;
+void main(void){
+    gl_FragColor = vec4(${color});
+}
 `)
+    }
+    build(render){
+        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
+        return {
+            program:program,
+            buffers:[],
+            uniforms:[],
+            renderType:glDictionary.POINT_CLOUD
+        }
     }
 }
 //#endregion

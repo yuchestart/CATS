@@ -54,7 +54,7 @@ function main(){
         "#FF00FF",
         "#FF00FF",
         "#FF00FF"]);
-    var mymaterial2 = new SingleColorMaterial("#FF0000")
+    var mymaterial2 = new PointMaterial("#FF0000")
     var mymesh = new Cube(1,mymaterial)
     var mymesh2 = new Sphere(0.5,6,mymaterial2)
     mymesh2.translate([3,0,0])
