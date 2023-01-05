@@ -340,6 +340,6 @@ const vec3 = {
 //----------Triangle code----------
 const triangle = {
     getSurfaceNormal:function(v1,v2,v3){
-
+        
     }
 }

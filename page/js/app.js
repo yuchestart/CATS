@@ -27,7 +27,7 @@ var keybinds = {
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    var render = new Renderer($("emotionalDamage").id,1);
+    var render = new Renderer($("emotionalDamage").id);
     var scene = new Scene(render)
     var mymaterial = new MultiColorMaterial([
         "#FF0000",
@@ -54,10 +54,10 @@ function main(){
         "#FF00FF",
         "#FF00FF",
         "#FF00FF"]);
-    var mymaterial2 = new PointMaterial("#FF0000")
+    var mymaterial2 = new SingleColorMaterial("#CCFFCC")
     var mymesh = new Cube(1,mymaterial)
-    var mymesh2 = new Sphere(0.5,6,mymaterial2)
-    mymesh2.translate([3,0,0])
+    var mymesh2 = new Sphere(1,15,mymaterial2)
+    mymesh2.translate([5,0,0])
     scene.setFOV(70)
     scene.moveCamera([0,0,5])
     scene.addObject(mymesh);
@@ -68,8 +68,17 @@ function main(){
     document.onkeyup = function(e){
         keybinds[e.code] = false;
     }
+    ag = 0
     function cat(){
+        ag++;
         mymesh.rotate([1,1,1])
+        mymesh.scale([2+Math.sin(
+            glMath.toRadians(ag)
+        ),2+Math.sin(
+            glMath.toRadians(ag)
+        ),2+Math.sin(
+            glMath.toRadians(ag)
+        )])
         var forward=keybinds.KeyW,
         back=keybinds.KeyS,
         left=keybinds.KeyA,
