@@ -288,6 +288,9 @@ class Mat4{
         output.data[15] = 1;
         this.multiply(output)
     }
+    invert(){
+        let b00 = a[0]
+    }
     /**
      * 
      * @param {Renderer} render 
@@ -331,15 +334,19 @@ const vec3 = {
     hypot:function(vector){
         return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
     },
-    rotateX:function(vector,deg){
-        var rad = glMath.toRadians(deg);
-
+    multiplyByNumber:function(a,b){
+        return [a[0]*b,a[1]*b,a[2]*b]
+    },
+    divideByNumber:function(a,b){
+        return [a[0]/b,a[1]/b,a[2]/b]
     }
 }
 //#endregion
 //----------Triangle code----------
 const triangle = {
     getSurfaceNormal:function(v1,v2,v3){
-        
+        var u = vec3.subtract(v2,v1)
+        var v = vec3.subtract(v3,v1)
+        return vec3.normalize(vec3.cross(u,v))
     }
 }

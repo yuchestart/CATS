@@ -56,8 +56,9 @@ function main(){
         "#FF00FF"]);
     var mymaterial2 = new SingleColorMaterial("#CCFFCC")
     var mymesh = new Cube(1,mymaterial)
-    var mymesh2 = new Sphere(1,15,mymaterial2)
+    var mymesh2 = new Sphere(1,10,mymaterial2)
     mymesh2.translate([5,0,0])
+    console.log(mymesh2)
     scene.setFOV(70)
     scene.moveCamera([0,0,5])
     scene.addObject(mymesh);

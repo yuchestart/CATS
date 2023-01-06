@@ -584,7 +584,7 @@ class SingleColorMaterial{
      * A single colored material for all of
      * @param {String} color 
      */
-    constructor(color){
+    constructor(color,haslighting){
         if(color instanceof Array){
             color = glLibrary.rgba2rgb(...color)
         }else if(color.startsWith("#")){
@@ -607,8 +607,9 @@ void main(void){
     gl_FragColor = vec4(${color});
 }
 `);
+        this.haslighting = haslighting;
     }
-    build(render){
+    build(render,normals){
         var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
         return {
             program:program,
