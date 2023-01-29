@@ -22,6 +22,7 @@ const glMath = {
         console.log(m[3],m[7],m[11],m[15])
     },
 }
+Object.freeze(glMath);
 //#endregion
 //----------MAT4 code----------
 //#region 
@@ -343,7 +344,7 @@ const vec3 = {
 }
 //#endregion
 //----------Triangle code----------
-const triangle = {
+const triangleFunctions = {
     getSurfaceNormal:function(v1,v2,v3){
         var u = vec3.subtract(v2,v1)
         var v = vec3.subtract(v3,v1)

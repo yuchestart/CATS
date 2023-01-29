@@ -24,8 +24,9 @@ const glLibrary = {
         newcolor[2] = parseInt(hex.slice(4,6),16)*this.oneOver255;
         return stringify?newcolor.toString():newcolor;
     },
-    oneOver255:(1/255)
+    oneOver255:1/255
 }
+Object.freeze(glLibrary)
 //#endregion
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
@@ -36,8 +37,13 @@ class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
      * @param {HTMLCanvasElement} canvas 
+     * @param {Boolean} disableDepthTest
+     * @param {Boolean} disableCullFace
+     * @param {Boolean} disableAutoAdjustAspectRatio
+     * @param {Boolean} disableAlphaBlend
      */
-    constructor(canvas,dontCullFace,dontUseDepthTest,disableAlpha){
+    constructor(canvas,disableDepthTest,disableCullFace,disableAutoAdjustAspectRatio,disableAlphaBlend){
+        
         //Initialization function
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2");
@@ -52,21 +58,23 @@ class Renderer{
                 //}
             }
         }
-        if(!dontUseDepthTest){
+        if(!disableDepthTest){
             this.gl.enable(this.gl.DEPTH_TEST);
             this.gl.depthFunc(this.gl.LEQUAL);
         }
-        if(!dontCullFace)
+        if(!disableCullFace)
             this.gl.enable(this.gl.CULL_FACE);
-        if(!disableAlpha){
+        if(!disableAlphaBlend){
             this.gl.enable(this.gl.BLEND);
             this.gl.blendFunc(this.gl.SRC_ALPHA,this.gl.ONE_MINUS_SRC_ALPHA)
         }
         this.aspect = canvas.clientWidth/canvas.clientHeight;
-        this.canvas.addEventListener("resize",function(){
-            console.log("bruh")
-            this.aspect = canvas.clientWidth/canvas.clientHeight;
-        });
+        if(!disableAutoAdjustAspectRatio){
+            this.canvas.addEventListener("resize",function(){
+                console.log("bruh")
+                this.aspect = canvas.clientWidth/canvas.clientHeight;
+            });
+        }
     }
     /**
      * 
@@ -116,13 +124,13 @@ class Renderer{
 }
 //#endregion
 //-----------SCENE-----------
-//Scene code will be developed after basic rendering functions have been finished
 //#region
 //-----MAIN SCENE-----
 //#region 
 class Scene{
     /**
-     * 
+     * A space where 3D objects are placed. 
+     * The viewer views a scene through the camera which is placed inside.
      * @param {Renderer} renderer 
      */
     constructor(renderer){
@@ -137,7 +145,12 @@ class Scene{
             viewMatrixInitialized:false
         };
         this.objects = [];
-        this.bgcolor = [0,0,0,1]
+        this.bgcolor = [0,0,0,1];
+        this.lighting = {
+            directionalLighting:{
+                direction:[0,0,0],
+            }
+        }
     }
     moveCamera(vector){
         this.camera.position = vec3.add(this.camera.position,vector);
@@ -214,8 +227,12 @@ class Scene{
         this.renderer.clear(...this.bgcolor);
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
+            try{
             var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
+            }catch{
+                console.warn(`Object number ${i} is not processable. Are you sure it is a valid object?`)
+            }
         }
     }
 }
@@ -224,10 +241,35 @@ class Scene{
 class Mesh{
     /**
      * A 3D Object made of several triangles
+     * @param {Array<Number>} vertexData
+     * @param {Array<Number>} indexData
+     * @param {*} material
+     * @param {Boolean} manuallySpecifyNormals
+     * @param {Array<Number>} normals
      */
-    constructor(vertexData,indexData,material){
-        this.vertexData = vertexData;
-        this.indexData = indexData;
+    constructor(vertexData,indexData,material,manuallySpecifyNormals,normals){
+        if(manuallySpecifyNormals){
+            this.normals = normals;
+            this.vertexData = vertexData;
+            this.indexData = indexData;
+        } else {
+            this.vertexData = [];
+            this.indexData = [];
+            this.normals = [];
+            var vd = vertexData;
+            for(var i=0; i<indexData.length/3; i++){
+                var idx = [indexData[i*3]*3,indexData[i*3+1]*3,indexData[i*3+2]*3]
+                var triangle = [
+                    [vd[idx[0]],vd[idx[0]+1],vd[idx[0]+2]],
+                    [vd[idx[1]],vd[idx[1]+1],vd[idx[1]+2]],
+                    [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
+                ]
+                var normal = triangleFunctions.getSurfaceNormal(...triangle)
+                this.vertexData.push(...[...triangle[0],...triangle[1],...triangle[2]])
+                this.normals.push(normal,normal,normal)
+                this.indexData.push(i*3,i*3+1,i*3+2)
+            }   
+        }
         this.material = material;
         this.visible = true;
         this.tags = undefined;
@@ -238,8 +280,7 @@ class Mesh{
             transformStayedSame:false,
             worldMatrix:null
         }
-        this.compiledMaterial = null;
-        this.materialCompiled = false;
+        
     }
     addTag(tag){
         this.tags.push(tag);
@@ -259,44 +300,22 @@ class Mesh{
         this.transform.position = vec3.add(vector,this.transform.position)
         this.transform.transformStayedSame = false;
     }
-    changeMaterial(material){
+    setMaterial(material){
         this.material = material;
-        this.materialCompiled = false;
     }
     package(renderer,viewMatrix,projectionMatrix){
-        if(this.materialCompiled){
-            var compiledMaterial = this.compiledMaterial;
-        } else {
-            var compiledMaterial = this.material.build(renderer);
-            this.compiledMaterial = this.material.build(renderer);
-            this.materialCompiled = true;
+        if(this.material.lastCompiled){
+            var shaderProgram = this.material.compiled;
         }
-        var currentBuffers = [new PositionBuffer(renderer,this.vertexData,"vP"),new IndexBuffer(renderer,this.indexData)]
-        if(this.transform.transformStayedSame){
-            var worldMatrix = this.transform.worldMatrix
-        } else {
-            var worldMatrix = new Mat4();
-            worldMatrix.scale(this.transform.scale);
-            worldMatrix.rotate(this.transform.rotation);
-            worldMatrix.translate(this.transform.position);
-            this.transform.transformStayedSame = true;
-            this.transform.worldMatrix = worldMatrix
-        }
-        var currentUniforms = [
-            worldMatrix.convertToUniform(renderer,"wM"),
-            viewMatrix.convertToUniform(renderer,"vM"),
-            projectionMatrix.convertToUniform(renderer,"pM")
-        ]
-        currentBuffers = compiledMaterial.buffers.concat(currentBuffers);
-        currentUniforms = compiledMaterial.uniforms.concat(currentUniforms);
-        var renderpackage = new RenderablePackage(compiledMaterial.program,glDictionary.ELEMENTS,
-            compiledMaterial.renderType?compiledMaterial.renderType:glDictionary.TRIANGLES,currentBuffers,currentUniforms,0,true,this.indexData.length);
-        return renderpackage;
+        
+        
     }
 }
+//-------Easy to init primitives-------
+//#region
 class Cube extends Mesh{
     /**
-     * Creates a new cube
+     * An object with 8 vertices and 6 faces
      * @param {Number} size 
      */
     constructor(size,material){
@@ -350,7 +369,7 @@ class Cube extends Mesh{
 }
 class Sphere extends Mesh{
     /**
-     * Creates a new sphere
+     * A circular object with a resemblance to a ball
      * @param {Number} radius 
      * @param {Number} div
      */
@@ -384,6 +403,7 @@ class Sphere extends Mesh{
         super(points,indicies,material)
     }
 }
+//#endregion
 //#endregion
 //-----------SHADERS-----------
 //Part of the basic rendering code
@@ -580,134 +600,31 @@ class RenderablePackage{
 //Materials for easier use of the library
 //#region 
 class SingleColorMaterial{
-    /**
-     * A single colored material for all of
-     * @param {String} color 
-     */
-    constructor(color,haslighting){
-        if(color instanceof Array){
-            color = glLibrary.rgba2rgb(...color)
-        }else if(color.startsWith("#")){
-            color = glLibrary.hex2rgb(color,true);
-        }
-        this.vertexShader = new VertexShader(`
-precision mediump float;
-attribute vec3 vP;
-uniform mat4 wM;
-uniform mat4 vM;
-uniform mat4 pM;
-void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-}
-`);
-
-        this.fragmentShader = new FragmentShader(`
-precision mediump float;
-void main(void){
-    gl_FragColor = vec4(${color});
-}
-`);
-        this.haslighting = haslighting;
-    }
-    build(render,normals){
-        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
-        return {
-            program:program,
-            buffers:[],
-            uniforms:[]
-        }
-    }
-}
-class MultiColorMaterial{
-    /**
-     * A material to color each vertex of an object with a certain color. More formats will be supported in Milestone 2
-     * @param {Array} colors 
-     */
-    constructor(colors){
-        this.vertexShader = new VertexShader(`
-precision mediump float;
-attribute vec3 vP;
-attribute vec4 vC;
-uniform mat4 wM;
-uniform mat4 vM;
-uniform mat4 pM;
-varying vec4 fC;
-void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fC = vC;
-}
-`);
-        this.fragmentShader = new FragmentShader(`
-precision mediump float;
-varying vec4 fC;
-void main(void){
-    gl_FragColor = fC;
-}
-`);
-        this.colors = colors;
+    constructor(color,params){
+        this.lastCompiled = false;
+        this.compiled = null;
+        this.color = color;
+        this.params = params;
     }
     /**
-     * 
-     * @param {Renderer} render 
+     * @param {Renderer} render
+     * @param {Mesh} mesh 
+     * @param {Scene} scene 
      */
-    build(render){
-        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
-        var colorBufferData = [];
-        for(var i=0; i<this.colors.length; i++){
-            //console.log(i)
-            if(this.colors[i].startsWith("#")){
-                colorBufferData.push(...glLibrary.hex2rgb(this.colors[i]));
-            }
+    build(render,mesh,scene){
+        if(!this.lastCompiled){
             
-        }
-        var colorBuffer = new Buffer(render,colorBufferData,"vC",null,glDictionary.ATTRIBUTE,[
-            4,
-            render.gl.FLOAT,
-            render.gl.FALSE,
-            4*Float32Array.BYTES_PER_ELEMENT,
-            0
-        ],);
-        return {
-            program:program,
-            buffers:[colorBuffer],
-            uniforms:[]
-        }
-    }
-}
-class PointMaterial{
-    constructor(color){
-        
-        if(color instanceof Array){
-            color = glLibrary.rgba2rgb(...color)
-        }else if(color.startsWith("#")){
-            color = glLibrary.hex2rgb(color,true);
-        }
-        console.log(color)
-        this.vertexShader = new VertexShader(`
-precision mediump float;
+            let vertexShaderSource = `
 attribute vec3 vP;
-uniform mat4 wM;
-uniform mat4 vM;
+attribute vec3 vN;
 uniform mat4 pM;
-void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-    gl_PointSize = 3.0;
-}
-`);
-        this.fragmentShader = new FragmentShader(`
-precision mediump float;
-void main(void){
-    gl_FragColor = vec4(${color});
-}
-`)
-    }
-    build(render){
-        var program = new ShaderProgram(render,this.vertexShader,this.fragmentShader);
-        return {
-            program:program,
-            buffers:[],
-            uniforms:[],
-            renderType:glDictionary.POINT_CLOUD
+uniform mat4 vM;
+uniform mat4 wM;
+`
+            this.lastCompiled = true;
+            
+        } else {
+            return this.compiled;
         }
     }
 }
