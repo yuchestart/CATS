@@ -22,6 +22,7 @@ const glMath = {
         console.log(m[3],m[7],m[11],m[15])
     },
 }
+Object.freeze(glMath);
 //#endregion
 //----------MAT4 code----------
 //#region 
