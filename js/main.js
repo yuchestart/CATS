@@ -224,8 +224,33 @@ class Scene{
 class Mesh{
     /**
      * A 3D Object made of several triangles
+     * @param {Array} vertexData 
+     * @param {Array} indexData 
+     * @param {*} material 
+     * @param {Boolean} manuallyAddNormals 
+     * @param {Array} normals 
      */
-    constructor(vertexData,indexData,material){
+    constructor(vertexData,indexData,material,manuallyAddNormals,normals){
+        if(manuallyAddNormals){
+            this.normals = normals;
+        } else {
+            var newVertexData = [];
+            var newIndexData = [];
+            var newNormals = [];
+            for(var i=0; i<indexData.length; i+=3){
+                var triangle = [
+                    vertexData[indexData[i]],
+                    vertexData[indexData[i+1]],
+                    vertexData[indexData[i+2]]
+                ];
+                var normal = triangleFunctions.getSurfaceNormal(triangle[0],triangle[1],triangle[2]);
+                newVertexData.push(...triangle);
+                newIndexData.push(i,i+1,i+2);
+                newNormals.push(normal,normal,normal)
+            }
+            this.normals = newNormals;
+            vertexData = newVertexData;
+        }
         this.vertexData = vertexData;
         this.indexData = indexData;
         this.material = material;
@@ -345,7 +370,7 @@ class Cube extends Mesh{
             19,18,16,
             21,23,20,
             23,22,20
-        ],material)
+        ],material,true,[])
     }
 }
 class Sphere extends Mesh{

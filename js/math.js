@@ -343,7 +343,7 @@ const vec3 = {
 }
 //#endregion
 //----------Triangle code----------
-const triangle = {
+const triangleFunctions = {
     getSurfaceNormal:function(v1,v2,v3){
         var u = vec3.subtract(v2,v1)
         var v = vec3.subtract(v3,v1)
