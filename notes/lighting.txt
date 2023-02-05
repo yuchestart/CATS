@@ -1,0 +1,2 @@
+Ok, the way I implement this kind of lighting is kind of questionable and may absolutely hog the GPU RAM.
+Shader templates:

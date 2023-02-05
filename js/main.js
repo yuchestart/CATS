@@ -615,31 +615,32 @@ class SingleColorMaterial{
         if(!this.lastCompiled){
             
             let vertexShaderSource = `
+#define MAXLIGHTSOURCES 1000
 attribute vec3 vP;
 attribute vec3 vN;
-attribute int nPLS;
-attribute int nSLS;
+uniform int nPLS;
 uniform mat4 pM;
 uniform mat4 vM;
 uniform mat4 wM;
-uniform vec3 pL[];
-uniform vec3 dL[2];
-${
-    glDictionary.USES_FRAGMENT_LIGHTING in params?"varying vec3 vN;":
-    glDictionary.USES_VERTEX_LIGHTING in params?"varying vec3 vC;":
-    ""
-}
+uniform vec3 pL[MAXLIGHTSOURCES];
+varying vec3 sTPL[MAXLIGHTSOURCES];
 void main(void){
     gl_Position = pM*vM*wM*vec4(vN);
     ${gl.dictionary.USES_VERTEX_LIGHTING in params?`
     //Implement Point Lighting.
-    for(int i=0; i<nPLS){
+    int nPoints;
+    if(nPLS>MAXLIGHTSOURCES){
+        nPoints = MAXLIGHTSOURCES;
+    } else {
+        nPoints = nPLS;
+    }
+    for(int i=0; i<nPoints; i++){
 
     }
 `:""}
 }
 `
-            let fragmenShaderSource = `
+            let fragmentShaderSource = `
 varying vec3 fN;
 void main(void){
     gl_FragColor = vec4(fN,1.0);
