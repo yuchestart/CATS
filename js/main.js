@@ -148,7 +148,7 @@ class Scene{
         this.bgcolor = [0,0,0,1];
         this.lighting = {
             directionalLighting:{
-                direction:[0,0,0],
+                direction:[45,45]
             }
         }
     }
@@ -620,7 +620,19 @@ attribute vec3 vN;
 uniform mat4 pM;
 uniform mat4 vM;
 uniform mat4 wM;
+varying vec3 fN;
+void main(void){
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fN = vec3(pM*vM*wM*vec4(vN,1.0));
+}
 `
+            let fragmenShaderSource = `
+varying vec3 fN;
+void main(void){
+    gl_FragColor = vec4(fN,1.0);
+}
+            `
+
             this.lastCompiled = true;
             
         } else {
