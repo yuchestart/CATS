@@ -364,7 +364,7 @@ class Cube extends Mesh{
             19,18,16,
             21,23,20,
             23,22,20
-        ],material,true,[])
+        ],material)
     }
 }
 class Sphere extends Mesh{
@@ -617,13 +617,26 @@ class SingleColorMaterial{
             let vertexShaderSource = `
 attribute vec3 vP;
 attribute vec3 vN;
+attribute int nPLS;
+attribute int nSLS;
 uniform mat4 pM;
 uniform mat4 vM;
 uniform mat4 wM;
-varying vec3 fN;
+uniform vec3 pL[];
+uniform vec3 dL[2];
+${
+    glDictionary.USES_FRAGMENT_LIGHTING in params?"varying vec3 vN;":
+    glDictionary.USES_VERTEX_LIGHTING in params?"varying vec3 vC;":
+    ""
+}
 void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fN = vec3(pM*vM*wM*vec4(vN,1.0));
+    gl_Position = pM*vM*wM*vec4(vN);
+    ${gl.dictionary.USES_VERTEX_LIGHTING in params?`
+    //Implement Point Lighting.
+    for(int i=0; i<nPLS){
+
+    }
+`:""}
 }
 `
             let fragmenShaderSource = `
