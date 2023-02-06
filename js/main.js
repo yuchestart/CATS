@@ -626,7 +626,6 @@ uniform vec3 pL[MAXLIGHTSOURCES];
 varying vec3 sTPL[MAXLIGHTSOURCES];
 void main(void){
     gl_Position = pM*vM*wM*vec4(vN);
-    ${gl.dictionary.USES_VERTEX_LIGHTING in params?`
     //Implement Point Lighting.
     int nPoints;
     if(nPLS>MAXLIGHTSOURCES){
@@ -637,7 +636,6 @@ void main(void){
     for(int i=0; i<nPoints; i++){
 
     }
-`:""}
 }
 `
             let fragmentShaderSource = `
