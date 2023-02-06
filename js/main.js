@@ -257,7 +257,7 @@ class Scene{
     }
     setBackground(color){
         if(color.startsWith("#")){
-            this.bgcolor = glLibrary.hex2rgb(color)
+            this.bgcolor = CATS.hex2rgb(color)
         }
     }
     render(){
