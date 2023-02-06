@@ -10,9 +10,9 @@
 //-----------MISC-----------
 //#region 
 /**
- * Some random code
+ * Contains important functions and values.
  */
-const glLibrary = {
+const CATS = {
     rgba2rgb:function(r,g,b,a){
         return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
     },
@@ -24,9 +24,46 @@ const glLibrary = {
         newcolor[2] = parseInt(hex.slice(4,6),16)*this.oneOver255;
         return stringify?newcolor.toString():newcolor;
     },
-    oneOver255:1/255
+    oneOver255:1/255,
+    math:{
+        toRadians:function(degrees){
+            return degrees*(Math.PI/180)
+        },
+        EPSILON:1e-4,
+        printAsMatrix:function(matrix){
+            var m = matrix.data;
+            console.log(m[0],m[4],m[8],m[12])
+            console.log(m[1],m[5],m[9],m[13])
+            console.log(m[2],m[6],m[10],m[14])
+            console.log(m[3],m[7],m[11],m[15])
+        },
+    },
+    enum:{
+        TRIANGLE_STRIP:0,
+        TRIANGLES:1,
+        POINT_CLOUD:2,
+        LINES:3,
+        ATTRIBUTE:4,
+        UNIFORM:5,
+        NONATTRIBUTE:6,
+        ARRAYS:7,
+        ELEMENTS:8,
+        USES_COLOR_BUFFER:9,
+        USES_TEXTURE_BUFFER:10,
+        USES_NO_BUFFER:11,
+        RGBA:12,
+        FRIENDLY_RGBA:13,
+        RGB:14,
+        FRIENDLY_RGB:15,
+        HEX:16, // WOAH SO COOL
+        HSV:17,
+        DIRECTIONAL_LIGHTING_ENABLED:18,
+        USES_FRAGMENT_LIGHTING:19,
+        USES_VERTEX_LIGHTING:20,
+        USES_NO_LIGHTING:21
+    }
 }
-Object.freeze(glLibrary)
+Object.freeze(CATS)
 //#endregion
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
@@ -92,7 +129,7 @@ class Renderer{
     /**
      * Draws a renderable data package.
      * @param {RenderablePackage} package The package to draw
-     * @param {Number} renderType The way the package is rendered, for example glDictionary.TRIANGLES
+     * @param {Number} renderType The way the package is rendered, for example CATS.enum.TRIANGLES
      */
     drawPackage(renderPackage,renderType){
         var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS,this.gl.LINES]
@@ -113,10 +150,10 @@ class Renderer{
             }
         }
         switch(renderPackage.renderType){
-            case glDictionary.ELEMENTS:
+            case CATS.enum.ELEMENTS:
                 this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
                 break;
-            case glDictionary.ARRAYS:
+            case CATS.enum.ARRAYS:
                 this.gl.drawArrays(renderType,0,renderPackage.indexAmount)
                 break;
         }
@@ -139,7 +176,7 @@ class Scene{
             position:[0,0,0],
             direction:[0,0,0],
             fovy:45,
-            near:glMath.EPSILON,
+            near:CATS.math.EPSILON,
             far:100,
             lastViewMatrix:new Mat4(),
             viewMatrixInitialized:false
@@ -168,7 +205,7 @@ class Scene{
             //Ugh I hate math so much
             var v = [0,0,-1], vector=[0,1,0];
             //ROTATE Z
-            var sin = Math.sin(glMath.toRadians(this.camera.direction[2])),cos=Math.cos(glMath.toRadians(this.camera.direction[2]))
+            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[2])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[2]))
             var a = v[0],b=v[1]
             v[0] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
@@ -176,7 +213,7 @@ class Scene{
             vector[0] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             //ROTATE Y
-            var sin = Math.sin(glMath.toRadians(this.camera.direction[1])),cos=Math.cos(glMath.toRadians(this.camera.direction[1]))
+            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
             var a = v[0],b=v[2]
             v[0] = a*cos - b*sin;
             v[2] = a*sin + b*cos;
@@ -184,7 +221,7 @@ class Scene{
             vector[0] = a*cos - b*sin;
             vector[2] = a*sin + b*cos;
             //ROTATE X
-            var sin = Math.sin(glMath.toRadians(this.camera.direction[0])),cos=Math.cos(glMath.toRadians(this.camera.direction[0]))
+            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[0])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[0]))
             var a = v[2],b=v[1]
             v[2] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
@@ -517,7 +554,7 @@ class Buffer{
      * 
      */
     enableForProgram(program){
-        if(this.type == glDictionary.ATTRIBUTE){
+        if(this.type == CATS.enum.ATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer);
             this.render.gl.vertexAttribPointer(
                 this.render.gl.getAttribLocation(program,this.attribute),
@@ -528,14 +565,14 @@ class Buffer{
                 this.programData[4],
             )
             this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(program,this.attribute));
-        } else if(this.type == glDictionary.NONATTRIBUTE){
+        } else if(this.type == CATS.enum.NONATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer)
         }
     }
 }
 class PositionBuffer extends Buffer{
     constructor(render,data,attribute){
-        super(render,data,attribute,null,glDictionary.ATTRIBUTE,[
+        super(render,data,attribute,null,CATS.enum.ATTRIBUTE,[
             3,
             render.gl.FLOAT,
             render.gl.FALSE,
@@ -546,7 +583,7 @@ class PositionBuffer extends Buffer{
 }
 class IndexBuffer extends Buffer{
     constructor(render,data){
-        super(render,data,"",null,glDictionary.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        super(render,data,"",null,CATS.enum.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
     }
 }
 //#endregion

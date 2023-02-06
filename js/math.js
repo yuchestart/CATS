@@ -5,25 +5,6 @@
  * 
  * 
  */
-
-//----------Misc----------
-//#region 
-//Yeah I'm pretty sure this is useless.
-const glMath = {
-    toRadians:function(degrees){
-        return degrees*(Math.PI/180)
-    },
-    EPSILON:1e-4,
-    printAsMatrix:function(matrix){
-        var m = matrix.data;
-        console.log(m[0],m[4],m[8],m[12])
-        console.log(m[1],m[5],m[9],m[13])
-        console.log(m[2],m[6],m[10],m[14])
-        console.log(m[3],m[7],m[11],m[15])
-    },
-}
-Object.freeze(glMath);
-//#endregion
 //----------MAT4 code----------
 //#region 
 /**
@@ -178,7 +159,7 @@ class Mat4{
      */
     perspective(fovy,aspect,near,far){
         var top,bottom,left,right;
-        top = near*Math.tan(glMath.toRadians(fovy)/2)
+        top = near*Math.tan(CATS.math.toRadians(fovy)/2)
         bottom = -top;
         right = top*aspect;
         left = -right
@@ -218,9 +199,9 @@ class Mat4{
     rotate(vector){
         //Please don't run slowly, even though I did 6 sin and cos.
         var [x,y,z] = vector;
-        x=glMath.toRadians(x)
-        y=glMath.toRadians(y)
-        z=glMath.toRadians(z)
+        x=CATS.math.toRadians(x)
+        y=CATS.math.toRadians(y)
+        z=CATS.math.toRadians(z)
         var zrm = new Mat4();
         var cos,sin;
         cos=Math.cos(z);
