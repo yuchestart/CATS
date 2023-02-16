@@ -248,9 +248,9 @@ class Mat4{
      * @param {Array} up 
      */
     lookAt(position,target,up){
-        var forward = vec3.normalize(vec3.subtract(position,target))
-        var right = vec3.normalize(vec3.cross(up,forward))
-        var newup = vec3.normalize(vec3.cross(forward,right))
+        var forward = CATS.math.vec3.normalize(CATS.math.vec3.subtract(position,target))
+        var right = CATS.math.vec3.normalize(CATS.math.vec3.cross(up,forward))
+        var newup = CATS.math.vec3.normalize(CATS.math.vec3.cross(forward,right))
         var output = new Mat4()
         output.data[0] = right[0]
         output.data[1] = right[1]
@@ -264,9 +264,9 @@ class Mat4{
         output.data[9] = forward[1]
         output.data[10] = forward[2]
         output.data[11] = 0
-        output.data[12] = -vec3.dot(position,[right[0],newup[0],forward[0]])
-        output.data[13] = -vec3.dot(position,[right[1],newup[1],forward[1]])
-        output.data[14] = -vec3.dot(position,[right[2],newup[2],forward[2]])
+        output.data[12] = -CATS.math.vec3.dot(position,[right[0],newup[0],forward[0]])
+        output.data[13] = -CATS.math.vec3.dot(position,[right[1],newup[1],forward[1]])
+        output.data[14] = -CATS.math.vec3.dot(position,[right[2],newup[2],forward[2]])
         output.data[15] = 1;
         this.multiply(output)
     }
@@ -283,49 +283,3 @@ class Mat4{
     }
 }
 //#endregion
-//----------VEC3 code----------
-//#region 
-const vec3 = {
-    normalize:function(vector){
-        thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
-        if(!thing){
-            return [0,0,0]
-        } else {
-            return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
-        }
-    },
-    add:function(a,b){
-        return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]
-    },
-    subtract:function(a,b){
-        return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
-    },
-    cross:function(a,b){
-        return [
-            a[1] * b[2] - a[2] * b[1],
-            a[2] * b[0] - a[0] * b[2],
-            a[0] * b[1] - a[1] * b[0]
-        ]
-    },
-    dot:function(a,b){
-        return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
-    },
-    hypot:function(vector){
-        return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
-    },
-    multiplyByNumber:function(a,b){
-        return [a[0]*b,a[1]*b,a[2]*b]
-    },
-    divideByNumber:function(a,b){
-        return [a[0]/b,a[1]/b,a[2]/b]
-    }
-}
-//#endregion
-//----------Triangle code----------
-const triangleFunctions = {
-    getSurfaceNormal:function(v1,v2,v3){
-        var u = vec3.subtract(v2,v1)
-        var v = vec3.subtract(v3,v1)
-        return vec3.normalize(vec3.cross(u,v))
-    }
-}

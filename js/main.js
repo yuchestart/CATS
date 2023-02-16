@@ -37,6 +37,51 @@ const CATS = {
             console.log(m[2],m[6],m[10],m[14])
             console.log(m[3],m[7],m[11],m[15])
         },
+        vec3:{
+            normalize:function(vector){
+                thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
+                if(!thing){
+                    return [0,0,0]
+                } else {
+                    return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
+                }
+            },
+            add:function(a,b){
+                return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]
+            },
+            subtract:function(a,b){
+                return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
+            },
+            cross:function(a,b){
+                return [
+                    a[1] * b[2] - a[2] * b[1],
+                    a[2] * b[0] - a[0] * b[2],
+                    a[0] * b[1] - a[1] * b[0]
+                ]
+            },
+            dot:function(a,b){
+                return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
+            },
+            hypot:function(vector){
+                return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
+            },
+            multiplyByNumber:function(a,b){
+                return [a[0]*b,a[1]*b,a[2]*b]
+            },
+            divideByNumber:function(a,b){
+                return [a[0]/b,a[1]/b,a[2]/b]
+            },
+            invert:function(v){
+                return [v[0]*-1,v[1]*-1,v[2]*-1]
+            }
+        },
+        triangle:{
+            getSurfaceNormal:function(v1,v2,v3){
+                var u = CATS.math.vec3.subtract(v2,v1)
+                var v = CATS.math.vec3.subtract(v3,v1)
+                return CATS.math.vec3.normalize(CATS.math.vec3.cross(u,v))
+            }
+        }
     },
     enum:{
         TRIANGLE_STRIP:0,
@@ -197,11 +242,11 @@ class Scene{
         }
     }
     moveCamera(vector){
-        this.camera.position = vec3.add(this.camera.position,vector);
+        this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
     }
     rotateCamera(vector){
-        this.camera.direction = vec3.add(this.camera.direction,vector);
+        this.camera.direction = CATS.math.vec3.add(this.camera.direction,vector);
         this.camera.viewMatrixInitialized = false;
     }
     setFOV(fov){
@@ -236,7 +281,7 @@ class Scene{
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             var viewMatrix = new Mat4();
-            viewMatrix.lookAt(this.camera.position,vec3.add(this.camera.position,v),vector);
+            viewMatrix.lookAt(this.camera.position,CATS.math.vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
         } else {
@@ -308,7 +353,7 @@ class Mesh{
                     [vd[idx[1]],vd[idx[1]+1],vd[idx[1]+2]],
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
-                var normal = triangleFunctions.getSurfaceNormal(...triangle)
+                var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
                 this.vertexData.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(normal,normal,normal)
                 this.indexData.push(i*3,i*3+1,i*3+2)
@@ -337,19 +382,20 @@ class Mesh{
         this.transform.transformStayedSame = false;
     }
     rotate(vector){
-        this.transform.rotation = vec3.add(vector,this.transform.rotation)
+        this.transform.rotation = CATS.math.vec3.add(vector,this.transform.rotation)
         this.transform.transformStayedSame = false;
     }
     translate(vector){
-        this.transform.position = vec3.add(vector,this.transform.position)
+        this.transform.position = CATS.math.vec3.add(vector,this.transform.position)
         this.transform.transformStayedSame = false;
     }
     setMaterial(material){
         this.material = material;
     }
-    package(renderer,viewMatrix,projectionMatrix){
+    package(renderer,viewMatrix,projectionMatrix,scene){
         if(this.material.lastCompiled){
-            var shaderProgram = this.material.compiled;
+            //I figured that this function is only called when a scene renders something.
+            var shaderProgram = this.material.build(renderer,this,scene);
         }
         
         
@@ -610,6 +656,27 @@ class UniformMAT4Matrix{
         this.matrix)
     }
 }
+class UniformVector3{
+    constructor(render,vector,attribute){
+        this.vector = vector;
+        this.attribute = attribute;
+        this.render = render;
+    }
+    enableForProgram(program){
+        this.render.gl.uniform3fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
+    }
+}
+class UniformVector4{
+    constructor(render,vector,attribute){
+        this.vector = vector;
+        this.attribute = attribute;
+        this.render = render;
+    }
+    enableForProgram(program){
+        this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
+    }
+}
+
 //This part is also useless but kinda useful...
 //#endregion
 //#endregion
@@ -641,8 +708,86 @@ class RenderablePackage{
 }
 //#endregion
 //-----------MATERIALS-----------
-//Materials for easier use of the library
+//Materials for easier use of the library.
+//Each material is just a huge hunk of code.
 //#region 
+class Material{
+    /**
+     * The basic material template. It allows you to write your own materials.
+     * Defaults to magenta material with no lighting
+     * @param {Array} parameters 
+     */
+    constructor(parameters,buildFunction){
+        this.lastCompiled = false;
+        this.compiled = null;
+        this.parameters = parameters;
+        this.params = params;
+        this.build = buildFunction?function(renderer,mesh,scene){
+            buildFunction(renderer,mesh,scene);
+        }:function(renderer,mesh,scene){
+            let vertexShader = new VertexShader(`
+            attribute vec3 vP;
+            attribute vec3 vN;
+            uniform mat4 wM;
+            uniform mat4 vM;
+            uniform mat4 pM;
+            void main(void){
+                gl_Position = pM*vM*wM*vec4(vP,1.0);
+            }
+            `);
+            let fragmentShader = new FragmentShader(`
+            void main(void){
+                gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+            }
+            `);
+            let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
+            this.lastCompiled = true;
+            return shaderProgram;
+        };
+    }
+}
+class SingleColorMaterial extends Material{
+    constructor(color,params){
+        function buildMaterial(render,mesh,scene){
+            if(!this.lastCompiled){
+                let vertexShaderSource = `
+                #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
+                attribute vec3 vP;
+                attribute vec3 vN;
+                uniform mat4 wM;
+                uniform mat4 vM;
+                uniform mat4 pM;
+                varying vec3 fN;
+                void main(void){
+                    gl_Position = pM*vM*wM*vec4(vP,1.0);
+                    fN = vN;
+                }
+                `
+                            let fragmentShaderSource = `
+                #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
+                varying vec3 fN;
+                uniform vec3 inverseLightDirection; //THIS IS ONLY A PROTOTYPE
+                uniform vec4 objectColor;
+                void main(void){
+                    vec3 normal = normalize(fN);
+                    float light = dot(normal,inverseLightDirection)
+                    gl_FragColor = objectColor;
+                    gl_FragColor.rgb *= light;
+                }
+                            `
+                let vertexShader = new VertexShader(vertexShaderSource);
+                let fragmentShader = new FragmentShader(fragmentShaderSource);
+                let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
+                this.lastCompiled = true;
+                
+            } else {
+                return this.compiled;
+            }
+        }
+        super([color,params],buildMaterial);
+    }
+}
+/*
 class SingleColorMaterial{
     constructor(color,params){
         this.lastCompiled = false;
@@ -650,28 +795,42 @@ class SingleColorMaterial{
         this.color = color;
         this.params = params;
     }
-    /**
-     * @param {Renderer} render
-     * @param {Mesh} mesh 
-     * @param {Scene} scene 
-     */
     build(render,mesh,scene){
         if(!this.lastCompiled){
             
             let vertexShaderSource = `
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+varying vec3 fN;
+void main(void){
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fN = vN;
+}
 `
             let fragmentShaderSource = `
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-
+varying vec3 fN;
+uniform vec3 inverseLightDirection; //THIS IS ONLY A PROTOTYPE
+uniform vec4 objectColor;
+void main(void){
+    vec3 normal = normalize(fN);
+    float light = dot(normal,inverseLightDirection)
+    gl_FragColor = objectColor;
+    gl_FragColor.rgb *= light;
+}
             `
-
+            let vertexShader = new VertexShader(vertexShaderSource);
+            let fragmentShader = new FragmentShader(fragmentShaderSource);
+            let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
             this.lastCompiled = true;
             
         } else {
             return this.compiled;
         }
     }
-}
+}*/
 //#endregion
