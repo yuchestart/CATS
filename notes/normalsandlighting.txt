@@ -1,5 +1,0 @@
-Calculating a vertex normal
-vec3 u=p2-p0
-vec3 v=p1-p0
-vec3 normal = cross(u,v)
-How lighting works
