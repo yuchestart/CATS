@@ -270,9 +270,6 @@ class Mat4{
         output.data[15] = 1;
         this.multiply(output)
     }
-    invert(){
-        let b00 = a[0]
-    }
     /**
      * 
      * @param {Renderer} render 
