@@ -660,50 +660,11 @@ class SingleColorMaterial{
             
             let vertexShaderSource = `
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-attribute vec3 vP;
-attribute vec3 vN;
-uniform int nPLS;
-uniform mat4 pM;
-uniform mat4 vM;
-uniform mat4 wM;
-uniform vec3 pL[MAXLIGHTSOURCES];
-in vec3 sTPL[MAXLIGHTSOURCES];
-varying vec3 fN;
-void main(void){
-    gl_Position = pM*vM*wM*vec4(vP);
-    fN = vN*wM;
-    //Implement Point Lighting.
-    int nPoints;
-    if(nPLS>MAXLIGHTSOURCES){
-        nPoints = MAXLIGHTSOURCES;
-    } else {
-        nPoints = nPLS;
-    }
-    vec3 surfaceWorldPosition = (wM*vP).xyz;
-    for(int i=0; i<nPLS; i++){
-        sTPL[i] = pL[i] - surfaceWorldPosition;
-    }
-}
+
 `
             let fragmentShaderSource = `
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-varying vec3 fN;
-uniform int nPLS;
-out vec3 sTPL[MAXLIGHTSOURCES];
-void main(void){
-    vec3 normal = normalize(fN);
-    vec3 surfaceToLightDirection[MAXLIGHTSOURCES];
-    float light[MAXLIGHTSOURCES];
-    for(int i=0; i<nPLS; i++){
-        surfaceToLightDirection[i] = normalize(sTPL[i]);
-    }
-    for(int i=0; i<nPLS; i++){
-        light[i] = dot(fN,surfaceToLightDirection[i]);
-    }
-    gl_FragColor = ${this.col}
 
-    gl_FragColor = vec4(fN,1.0);
-}
             `
 
             this.lastCompiled = true;
