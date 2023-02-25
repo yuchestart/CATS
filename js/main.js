@@ -395,7 +395,8 @@ class Mesh{
     package(renderer,viewMatrix,projectionMatrix,scene){
         if(this.material.lastCompiled){
             //I figured that this function is only called when a scene renders something.
-            var shaderProgram = this.material.build(renderer,this,scene);
+            var builtMaterial = this.material.build(renderer,this,scene);
+            var 
         }
         
         
@@ -779,7 +780,20 @@ class SingleColorMaterial extends Material{
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
                 this.lastCompiled = true;
-                
+                return {
+                    shaderProgram:shaderProgram,
+                    buffers:[{
+                        type:UniformVector3,
+                        name:"inverseLightDirection",
+                        value:params[2]
+                    },
+                    {
+                        type:UniformVector4,
+                        name:"objectColor",
+                        value:params[1]
+                    }
+                ],
+                }
             } else {
                 return this.compiled;
             }
