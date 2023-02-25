@@ -278,7 +278,7 @@ class Mat4{
      * @returns 
      */
     convertToUniform(render,attribute,dataType){
-        var newUniform = new UniformMAT4Matrix(render,dataType?new dataType(this.data):new Float32Array(this.data),attribute);
+        var newUniform = new Uniform4x4Matrix(render,dataType?new dataType(this.data):new Float32Array(this.data),attribute);
         return newUniform;
     }
 }

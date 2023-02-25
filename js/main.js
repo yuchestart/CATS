@@ -396,7 +396,11 @@ class Mesh{
             //I figured that this function is only called when a scene renders something.
             var builtMaterial = this.material.build(renderer,this,scene);
             var shaderProgram = builtMaterial.shaderProgram;
-            var parameters = builtMaterial.shaderProgram;
+            var parameters = parameters;
+            var packagedParameters = [];
+            for(var i=0; i<parameters.length; i++){
+                packagedParameters.push(new parameters[i].type(renderer,parameters[i].value,parameters[]))
+            }
         }
         
         
@@ -584,6 +588,7 @@ class ShaderProgram{
 
 //-----Buffers-----
 //#region 
+/*
 class Buffer{
     constructor(render,data,attribute,usage,type,programData,usageType,dataType){
         if(!usageType){
@@ -606,7 +611,7 @@ class Buffer{
      * 
      * @param {ShaderProgram} program
      * 
-     */
+     *
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
             this.render.gl.bindBuffer(this.usageType,this.buffer);
@@ -624,6 +629,7 @@ class Buffer{
         }
     }
 }
+*/
 class PositionBuffer extends Buffer{
     constructor(render,data,attribute){
         super(render,data,attribute,null,CATS.enum.ATTRIBUTE,[
@@ -645,7 +651,7 @@ class IndexBuffer extends Buffer{
 //#region 
 //Apparently, uniforms aren't buffers so I have to include them here.
 //Later I found out that there are multiple types of uniforms so I'm glad I named them like this
-class UniformMAT4Matrix{
+class Uniform4x4Matrix{
     constructor(render,matrix,attribute){
         this.matrix = matrix;
         this.attribute = attribute;
