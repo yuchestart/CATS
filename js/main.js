@@ -105,7 +105,6 @@ const CATS = {
         DIRECTIONAL_LIGHTING_ENABLED:18,
         USES_FRAGMENT_LIGHTING:19,
         USES_VERTEX_LIGHTING:20,
-        USES_NO_LIGHTING:21
     },
     convertColor(color){
         if(color instanceof Array){
@@ -332,7 +331,7 @@ class Mesh{
      * A 3D Object made of several triangles
      * @param {Array<Number>} vertexData
      * @param {Array<Number>} indexData
-     * @param {*} material
+     * @param {Material} material
      * @param {Boolean} manuallySpecifyNormals
      * @param {Array<Number>} normals
      */
@@ -396,7 +395,8 @@ class Mesh{
         if(this.material.lastCompiled){
             //I figured that this function is only called when a scene renders something.
             var builtMaterial = this.material.build(renderer,this,scene);
-            var 
+            var shaderProgram = builtMaterial.shaderProgram;
+            var parameters = builtMaterial.shaderProgram;
         }
         
         
@@ -712,10 +712,11 @@ class RenderablePackage{
 //Materials for easier use of the library.
 //Each material is just a huge hunk of code.
 //#region 
+
 class Material{
     /**
      * The basic material template. It allows you to write your own materials.
-     * Defaults to magenta material with no lighting
+     * Defaults to a magenta material with no lighting
      * @param {Array} parameters 
      */
     constructor(parameters,buildFunction){
@@ -724,7 +725,7 @@ class Material{
         this.parameters = parameters;
         this.params = params;
         this.build = buildFunction?function(renderer,mesh,scene){
-            buildFunction(renderer,mesh,scene);
+            buildFunction(renderer,mesh,scene,this);
         }:function(renderer,mesh,scene){
             let vertexShader = new VertexShader(`
             attribute vec3 vP;
@@ -743,15 +744,25 @@ class Material{
             `);
             let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
             this.lastCompiled = true;
-            return shaderProgram;
+            return {
+                shaderProgram:shaderProgram,
+                parameters:[]
+            };
         };
     }
 }
 class SingleColorMaterial extends Material{
     constructor(color,params){
-        function buildMaterial(render,mesh,scene){
-            this
-            if(!this.lastCompiled){
+        /**
+         * A single colored material with togglable lighting.
+         * @param {Renderer} render 
+         * @param {Mesh} mesh 
+         * @param {Scene} scene 
+         * @param {Material} material 
+         * @returns
+         */
+        function buildMaterial(render,mesh,scene,material){
+            if(!material.lastCompiled){
                 let vertexShaderSource = `
                 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
                 attribute vec3 vP;
@@ -780,24 +791,23 @@ class SingleColorMaterial extends Material{
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
-                let buffers = [new UniformVector4(render,)];
                 this.lastCompiled = true;
                 return {
                     shaderProgram:shaderProgram,
-                    buffers:[{
+                    parameters:[{
                         type:UniformVector3,
                         name:"inverseLightDirection",
-                        value:params[2]
+                        value:material.params[1]
                     },
                     {
                         type:UniformVector4,
                         name:"objectColor",
-                        value:params[1]
+                        value:material.params[0]
                     }
                 ],
                 }
             } else {
-                return this.compiled;
+                return material.compiled;
             }
         }
         super([color,params],buildMaterial);
