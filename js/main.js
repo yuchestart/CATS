@@ -749,6 +749,7 @@ class Material{
 class SingleColorMaterial extends Material{
     constructor(color,params){
         function buildMaterial(render,mesh,scene){
+            this
             if(!this.lastCompiled){
                 let vertexShaderSource = `
                 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
@@ -778,8 +779,12 @@ class SingleColorMaterial extends Material{
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
+                let buffers = [new UniformVector4(render,)];
                 this.lastCompiled = true;
-                
+                return {
+                    program: shaderProgram,
+                    buffers:buffers
+                };
             } else {
                 return this.compiled;
             }
