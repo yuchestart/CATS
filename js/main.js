@@ -1,7 +1,8 @@
 //MAIN FILE OF THE LIBRARY
 
 /**
- * What-ever-this-is's WebGL Library
+ * C.A.T.S.
+ * Che's Awesome Three-dimensional toolS
  * 
  * Created by Che Yu.
  * 
@@ -13,9 +14,23 @@
  * Contains important functions and values.
  */
 const CATS = {
+    /**
+     * Converts R,G,B to 0-1
+     * @param {Number} r 
+     * @param {Number} g 
+     * @param {Number} b 
+     * @param {Number} a 
+     * @returns 
+     */
     rgba2rgb:function(r,g,b,a){
         return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
     },
+    /**
+     * Converts a hex color to 0-1
+     * @param {String} hex 
+     * @param {Boolean} stringify 
+     * @returns 
+     */
     hex2rgb:function(hex,stringify){
         hex = hex.slice(1);
         newcolor = [0,0,0,1.0];
@@ -105,18 +120,31 @@ const CATS = {
         DIRECTIONAL_LIGHTING_ENABLED:18,
         USES_FRAGMENT_LIGHTING:19,
         USES_VERTEX_LIGHTING:20,
+        ARRAY_BUFFER:21,
+        ELEMENT_ARRAY_BUFFER:22,
+        STATIC_DRAW:23,
+        
     },
-    convertColor(color){
+    /**
+     * Converts a color to a more readable interface for CATS
+     * Note that if you are using colors in range from 0-1, then there is no need to run this function.
+     * Examples include:
+     * [1.0,1.0,1.0] for white
+     * [1.0,1.0,0.0,0.5] for translucent yellow
+     * @param {Array|String} color 
+     */
+    Color(color){
         if(color instanceof Array){
 
         } else if(color instanceof String){
 
         } else {
-            throw new TypeError("What in the world are you thinking I can't process that!")
+            throw new TypeError(`Data type of inputted color is invalid.\nData type:${color.constructor}`)
         }
     }
 }
 Object.freeze(CATS)
+
 //#endregion
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
@@ -399,8 +427,9 @@ class Mesh{
             var parameters = parameters;
             var packagedParameters = [];
             for(var i=0; i<parameters.length; i++){
-                packagedParameters.push(new parameters[i].type(renderer,parameters[i].value,parameters[]))
+                packagedParameters.push(new parameters[i].type(renderer,parameters[i].value,parameters[i]))
             }
+            packagedParameters.push(new)
         }
         
         
@@ -630,6 +659,29 @@ class Buffer{
     }
 }
 */
+class Buffer{
+    constructor(renderer,data,attribute,dataType,params){
+        if(!(CATS.enum.ARRAY_BUFFER in params || CATS.enum.ELEMENT_ARRAY_BUFFER in params)){
+            this.usageType = CATS.enum.ARRAY_BUFFER;
+        }
+        this.renderer = renderer;
+        this.data = data;
+        this.attribute = attribute;
+        this.usageType = {
+21:this.renderer.gl.ARRAY_BUFFER,
+22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
+        }[this.usageType]
+        const gl = this.renderer.gl;
+        const newBuffer = gl.createBuffer();
+        gl.bindBuffer(this.usageType,newBuffer);
+        gl.bufferData(this.usageType,
+            dataType?new dataType(data):new Float32Array(data),
+            );
+    }
+    enableForProgram(program){
+        if(this.type)
+    }
+}
 class PositionBuffer extends Buffer{
     constructor(render,data,attribute){
         super(render,data,attribute,null,CATS.enum.ATTRIBUTE,[
