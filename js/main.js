@@ -122,8 +122,6 @@ const CATS = {
         USES_VERTEX_LIGHTING:20,
         ARRAY_BUFFER:21,
         ELEMENT_ARRAY_BUFFER:22,
-        STATIC_DRAW:23,
-        
     },
     /**
      * Converts a color to a more readable interface for CATS
@@ -213,9 +211,14 @@ class Renderer{
      * @param {Number} renderType The way the package is rendered, for example CATS.enum.TRIANGLES
      */
     drawPackage(renderPackage,renderType){
-        var renderTypes = [this.gl.TRIANGLE_STRIP,this.gl.TRIANGLES,this.gl.POINTS,this.gl.LINES]
+        var renderTypes = {
+            0:this.gl.TRIANGLE_STRIP,
+            1:this.gl.TRIANGLES,
+            2:this.gl.POINTS,
+            3:this.gl.LINES
+        }
         if(!renderType){
-            renderType = this.gl.TRIANGLES;
+            renderType = renderTypes[renderPackage.renderType];
         } else {
             renderType = renderTypes[renderType]
         }
@@ -230,7 +233,7 @@ class Renderer{
                 uniforms[i].enableForProgram(renderPackage.program)
             }
         }
-        switch(renderPackage.renderType){
+        switch(renderPackage.drawingMethod){
             case CATS.enum.ELEMENTS:
                 this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
                 break;
@@ -420,22 +423,20 @@ class Mesh{
         this.material = material;
     }
     package(renderer,viewMatrix,projectionMatrix,scene){
-        if(this.material.lastCompiled){
-            //I figured that this function is only called when a scene renders something.
-            var builtMaterial = this.material.build(renderer,this,scene);
-            var shaderProgram = builtMaterial.shaderProgram;
-            var parameters = parameters;
-            var packagedParameters = [];
-            for(var i=0; i<parameters.length; i++){
-                packagedParameters.push(new parameters[i].type(renderer,parameters[i].value,parameters[i]))
-            }
-            packagedParameters.push(new)
+        //I figured that this function is only called when a scene renders something.
+        var builtMaterial = this.material.build(renderer,this,scene);
+        var shaderProgram = builtMaterial.shaderProgram;
+        var parameters = builtMaterial.parameters;
+        var newparameter;//Save memory allocation
+        for(var i=0; i<parameters.length; i++){
+            //constructor(render,vector,attribute)
+            newparameter = new parameters.type(renderer,parameters.value,parameters.name)
+            parameters[i] = newparameter;
         }
-        
-        
+        var package = new RenderablePackage(shaderProgram,CATS.enum.ELEMENTS,)
     }
 }
-//-------Easy to init primitives-------
+//-------Easy to initialize primitives-------
 //#region
 class Cube extends Mesh{
     /**
@@ -617,52 +618,25 @@ class ShaderProgram{
 
 //-----Buffers-----
 //#region 
-/*
+
 class Buffer{
-    constructor(render,data,attribute,usage,type,programData,usageType,dataType){
-        if(!usageType){
-            usageType = render.gl.ARRAY_BUFFER
-        }
-        this.render = render;
-        this.data = data;
-        this.usage = usage;
-        this.usageType = usageType;
-        const gl = render.gl;
-        const newBuffer = gl.createBuffer();
-        gl.bindBuffer(usageType,newBuffer);
-        gl.bufferData(usageType,dataType?new dataType(data):new Float32Array(data),usage?usage:gl.STATIC_DRAW);
-        this.buffer = newBuffer;
-        this.type = type;
-        this.programData = programData;
-        this.attribute = attribute;
-    }
     /**
-     * 
-     * @param {ShaderProgram} program
-     * 
-     *
-    enableForProgram(program){
-        if(this.type == CATS.enum.ATTRIBUTE){
-            this.render.gl.bindBuffer(this.usageType,this.buffer);
-            this.render.gl.vertexAttribPointer(
-                this.render.gl.getAttribLocation(program,this.attribute),
-                this.programData[0],
-                this.programData[1],
-                this.programData[2],
-                this.programData[3],
-                this.programData[4],
-            )
-            this.render.gl.enableVertexAttribArray(this.render.gl.getAttribLocation(program,this.attribute));
-        } else if(this.type == CATS.enum.NONATTRIBUTE){
-            this.render.gl.bindBuffer(this.usageType,this.buffer)
-        }
-    }
-}
-*/
-class Buffer{
-    constructor(renderer,data,attribute,dataType,params){
-        if(!(CATS.enum.ARRAY_BUFFER in params || CATS.enum.ELEMENT_ARRAY_BUFFER in params)){
+     * A WebGL buffer template used internally in CATS
+     * @param {Renderer} renderer 
+     * @param {Array} data 
+     * @param {String} attribute 
+     * @param {*} dataType 
+     * @param {Object} params 
+     * @param {Number} usage 
+     */
+    constructor(renderer,data,attribute,dataType,params,usage){
+        if(!params.usageType){
             this.usageType = CATS.enum.ARRAY_BUFFER;
+        }
+        if(!params.type){
+            this.type = CATS.enum.ATTRIBUTE
+        } else {
+            this.type = params.type
         }
         this.renderer = renderer;
         this.data = data;
@@ -676,10 +650,25 @@ class Buffer{
         gl.bindBuffer(this.usageType,newBuffer);
         gl.bufferData(this.usageType,
             dataType?new dataType(data):new Float32Array(data),
-            );
+            usage?usage:gl.STATIC_DRAW
+        );
+        this.buffer = newBuffer;
     }
     enableForProgram(program){
-        if(this.type)
+        if(this.type == CATS.enum.ATTRIBUTE){
+            var location = this.renderer.gl.getAttribLocation(program,this.attribute)
+            this.renderer.gl.bindBuffer(this.usageType,this.buffer)
+            this.renderer.gl.vertexAttribPointer(location,
+                params.programData.numberOfComponents,
+                params.programData.type,
+                params.programData.normalize,
+                params.programData.stride,
+                params.programData.offset
+            );
+            this.renderer.gl.enableVertexAttribArray(location)
+        } else {
+            this.renderer.gl.bindBuffer(this.usageType,this.buffer)
+        }
     }
 }
 class PositionBuffer extends Buffer{
@@ -747,19 +736,19 @@ class RenderablePackage{
      * 
      * @param {ShaderProgram} shaderProgram The shader program
      * @param {Array} bufferList Buffers
-     * @param {Number} renderType The type to draw from, e.g. TRIANGLES
+     * @param {Number} drawingMethod The type to draw from, e.g. TRIANGLES
      * @param {Array} uniformList Uniforms
      * @param {Number} offset Offset
      * @param {Boolean} usesIndexBuffer Uses index buffer?
      * @param {Number} numElements Number of elements
      */
-    constructor(shaderProgram,renderType,typeOfRender,bufferList,uniformList,offset,usesIndexBuffer,numElements){
+    constructor(shaderProgram,drawingMethod,renderType,bufferList,uniformList,offset,usesIndexBuffer,numElements){
         this.shaderProgram = shaderProgram;
         this.program = shaderProgram.program;
         this.bufferList = bufferList;
         this.uniformList = uniformList;
+        this.drawingMethod = drawingMethod;
         this.renderType = renderType;
-        this.typeOfRender = typeOfRender;
         this.offset = offset;
         this.usesIndexBuffer = usesIndexBuffer;
         this.indexAmount = numElements;
@@ -850,7 +839,7 @@ class SingleColorMaterial extends Material{
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
                 this.lastCompiled = true;
-                return {
+                material.compiled = {
                     shaderProgram:shaderProgram,
                     parameters:[{
                         type:UniformVector3,
@@ -864,6 +853,7 @@ class SingleColorMaterial extends Material{
                     }
                 ],
                 }
+                return material.compiled;
             } else {
                 return material.compiled;
             }
