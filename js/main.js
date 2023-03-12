@@ -14,32 +14,6 @@
  * Contains important functions and values.
  */
 const CATS = {
-    /**
-     * Converts R,G,B to 0-1
-     * @param {Number} r 
-     * @param {Number} g 
-     * @param {Number} b 
-     * @param {Number} a 
-     * @returns 
-     */
-    rgba2rgb:function(r,g,b,a){
-        return [r*this.oneOver255,g*this.oneOver255,b*this.oneOver255,a]
-    },
-    /**
-     * Converts a hex color to 0-1
-     * @param {String} hex 
-     * @param {Boolean} stringify 
-     * @returns 
-     */
-    hex2rgb:function(hex,stringify){
-        hex = hex.slice(1);
-        newcolor = [0,0,0,1.0];
-        newcolor[0] = parseInt(hex.slice(0,2),16)*this.oneOver255;
-        newcolor[1] = parseInt(hex.slice(2,4),16)*this.oneOver255;
-        newcolor[2] = parseInt(hex.slice(4,6),16)*this.oneOver255;
-        return stringify?newcolor.toString():newcolor;
-    },
-    oneOver255:1/255,
     math:{
         toRadians:function(degrees){
             return degrees*(Math.PI/180)
@@ -96,7 +70,8 @@ const CATS = {
                 var v = CATS.math.vec3.subtract(v3,v1)
                 return CATS.math.vec3.normalize(CATS.math.vec3.cross(u,v))
             }
-        }
+        },
+        oneOver255:1/255,
     },
     enum:{
         TRIANGLE_STRIP:0,
@@ -105,7 +80,7 @@ const CATS = {
         LINES:3,
         ATTRIBUTE:4,
         UNIFORM:5,
-        NONATTRIBUTE:6,
+        NON_ATTRIBUTE:6,
         ARRAYS:7,
         ELEMENTS:8,
         USES_COLOR_BUFFER:9,
@@ -122,6 +97,10 @@ const CATS = {
         USES_VERTEX_LIGHTING:20,
         ARRAY_BUFFER:21,
         ELEMENT_ARRAY_BUFFER:22,
+        DISABLE_DEPTH_TEST:23,
+        DISABLE_CULL_FACE:24,
+        DISABLE_AUTO_ADJUST_ASPECT_RATIO:25,
+        DISABLE_ALPHA_BLEND:26,
     },
     /**
      * Converts a color to a more readable interface for CATS
@@ -135,9 +114,21 @@ const CATS = {
         if(color instanceof Array){
 
         } else if(color instanceof String){
-
+            if(color.startsWith("#")){
+                var hex = color.slice(1);
+                var r = parseInt(hex.slice(0,2),16)*this.math.oneOver255
+                var g = parseInt(hex.slice(2,4),16)*this.math.oneOver255
+                var b = parseInt(hex.slice(4,6),16)*this.math.oneOver255
+                return [r,g,b,1.0]
+            } else if(color.startsWith("rgb")){
+                var rgba = color.slice(3);
+                var hasAlpha = rgba.startsWith("a");
+                if(hasAlpha)
+                    rgba = color.slice(1)
+                rgba = rgba.replaceAll(/"("|")"|";"/gi)
+            }
         } else {
-            throw new TypeError(`Data type of inputted color is invalid.\nData type:${color.constructor}`)
+            throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type:${color.constructor}`)
         }
     }
 }
@@ -148,7 +139,6 @@ Object.freeze(CATS)
 //The object that the user will initiate at the start
 //The user won't interact with this much
 //#region 
-
 class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
@@ -187,7 +177,6 @@ class Renderer{
         this.aspect = canvas.clientWidth/canvas.clientHeight;
         if(!disableAutoAdjustAspectRatio){
             this.canvas.addEventListener("resize",function(){
-                console.log("bruh")
                 this.aspect = canvas.clientWidth/canvas.clientHeight;
             });
         }
@@ -210,7 +199,7 @@ class Renderer{
      * @param {RenderablePackage} package The package to draw
      * @param {Number} renderType The way the package is rendered, for example CATS.enum.TRIANGLES
      */
-    drawPackage(renderPackage,renderType){
+    drawPackage(renderPackage){
         var renderTypes = {
             0:this.gl.TRIANGLE_STRIP,
             1:this.gl.TRIANGLES,
@@ -245,6 +234,8 @@ class Renderer{
 }
 //#endregion
 //-----------SCENE-----------
+//What the user interacts with the most.
+//Makes easier use of the library
 //#region
 //-----MAIN SCENE-----
 //#region 
@@ -360,33 +351,33 @@ class Scene{
 class Mesh{
     /**
      * A 3D Object made of several triangles
-     * @param {Array<Number>} vertexData
-     * @param {Array<Number>} indexData
+     * @param {Array<Number>} vertices
+     * @param {Array<Number>} indices
      * @param {Material} material
      * @param {Boolean} manuallySpecifyNormals
      * @param {Array<Number>} normals
      */
-    constructor(vertexData,indexData,material,manuallySpecifyNormals,normals){
+    constructor(vertices,indices,material,manuallySpecifyNormals,normals){
         if(manuallySpecifyNormals){
             this.normals = normals;
-            this.vertexData = vertexData;
-            this.indexData = indexData;
+            this.vertices = vertices;
+            this.indices = indices;
         } else {
-            this.vertexData = [];
-            this.indexData = [];
+            this.vertices = [];
+            this.indices = [];
             this.normals = [];
-            var vd = vertexData;
-            for(var i=0; i<indexData.length/3; i++){
-                var idx = [indexData[i*3]*3,indexData[i*3+1]*3,indexData[i*3+2]*3]
+            var vd = vertices;
+            for(var i=0; i<indices.length/3; i++){
+                var idx = [indices[i*3]*3,indices[i*3+1]*3,indices[i*3+2]*3]
                 var triangle = [
                     [vd[idx[0]],vd[idx[0]+1],vd[idx[0]+2]],
                     [vd[idx[1]],vd[idx[1]+1],vd[idx[1]+2]],
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
                 var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
-                this.vertexData.push(...[...triangle[0],...triangle[1],...triangle[2]])
+                this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(normal,normal,normal)
-                this.indexData.push(i*3,i*3+1,i*3+2)
+                this.indices.push(i*3,i*3+1,i*3+2)
             }   
         }
         this.material = material;
@@ -397,7 +388,7 @@ class Mesh{
             rotation:[0,0,0],
             scale:[1,1,1],
             transformStayedSame:false,
-            worldMatrix:null
+            transformMatrix:null
         }
         
     }
@@ -422,26 +413,44 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
-    package(renderer,viewMatrix,projectionMatrix,scene){
-        //I figured that this function is only called when a scene renders something.
+    convertToPackage(renderer,viewMatrix,projectionMatrix,scene){
+        if(!this.transform.transformStayedSame){
+            var matrix = new Mat4();
+            matrix.scale(this.transform.scale)
+            matrix.rotate(this.transform.rotation)
+            matrix.translate(this.transform.position)
+            this.transform.transformMatrix = matrix;
+            this.transform.transformStayedSame = true;
+        }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram;
         var parameters = builtMaterial.parameters;
-        var newparameter;//Save memory allocation
+        var newparameter;
         for(var i=0; i<parameters.length; i++){
-            //constructor(render,vector,attribute)
-            newparameter = new parameters.type(renderer,parameters.value,parameters.name)
+            newparameter = new parameters.type(renderer,parameters.value,parameters.name);
             parameters[i] = newparameter;
         }
-        var package = new RenderablePackage(shaderProgram,CATS.enum.ELEMENTS,)
+        var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
+        var indexBuffer = new IndexBuffer(renderer,this.indices);
+        var normalBuffer = new PositionBuffer(renderer,this.vertices,"vN");
+        var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
+        var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
+        var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
+        var shaderInput = [positionBuffer,indexBuffer,normalBuffer,transformUniform,viewUniform,projectionUniform];
+        shaderInput.concat(parameters);
+        //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
+        var package = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,)
+        return package;
     }
 }
 //-------Easy to initialize primitives-------
 //#region
 class Cube extends Mesh{
     /**
-     * An object with 8 vertices and 6 faces
-     * @param {Number} size 
+     * An object with 8 vertices and 6 faces.
+     * Resembles a box.
+     * @param {Number} size The size of the cube.
+     * @param {Material} material The material of the cube.
      */
     constructor(size,material){
         super([
@@ -494,12 +503,13 @@ class Cube extends Mesh{
 }
 class Sphere extends Mesh{
     /**
-     * A circular object with a resemblance to a ball
-     * @param {Number} radius 
-     * @param {Number} div
+     * A circular object resembling a ball.
+     * @param {Number} radius The radius of the sphere
+     * @param {Number} div The division of the sphere, higher the smoother
+     * @param {Material} material The material applied to the sphere
      */
     constructor(radius,div,material){
-        var points = [],indicies = [];
+        var points = [],indices = [];
         for(var j=0; j<=div; j++){
             var anglej = j*Math.PI / div;
             var sinj = Math.sin(anglej);
@@ -517,15 +527,35 @@ class Sphere extends Mesh{
             for(var i=0; i<div; i++){
                 var point1 = j*(div+1)+i;
                 var point2 = point1 + (div+1);
-                indicies.push(point1);
-                indicies.push(point2);
-                indicies.push(point1+1);
-                indicies.push(point1 + 1);
-                indicies.push(point2);
-                indicies.push(point2+1);
+                indices.push(point1);
+                indices.push(point2);
+                indices.push(point1+1);
+                indices.push(point1 + 1);
+                indices.push(point2);
+                indices.push(point2+1);
             }
         }
-        super(points,indicies,material)
+        super(points,indices,material)
+    }
+}
+class Plane extends Mesh{
+    /**
+     * A flat object resembling a square.
+     * @param {Number} size The size of the plane.
+     * @param {Material} material The material applied to the plane.
+     */
+    constructor(size,material){
+        var vertices = [
+            size,0,size,
+            -size,0,size,
+            -size,0,-size,
+            size,0,-size            
+        ];
+        var indices = [
+            0,1,2,
+            1,3,2,
+        ]
+        super(vertices,indices,material,false)
     }
 }
 //#endregion
@@ -541,7 +571,7 @@ class VertexShader{
      * @param {String} source 
      */
     constructor(source){
-        this.source = source.replaceAll(/\n|\r|\t/gi," ");
+        this.source = source.replaceAll(/\n|\r|\t/gi,"");
         //this.usage = usage;
     }
     compile(renderer){
@@ -564,7 +594,7 @@ class FragmentShader{
      * @param {String} source 
      */
     constructor(source){
-        this.source = source.replaceAll(/\n|\r|\t/gi," ");
+        this.source = source.replaceAll(/\n|\r|\t/gi,"");
         //this.usage = usage;
     }
     compile(renderer){
@@ -621,15 +651,15 @@ class ShaderProgram{
 
 class Buffer{
     /**
-     * A WebGL buffer template used internally in CATS
+     * A WebGL buffer template used internally in CATS.
+     * This object is not recommended for general purpose use.
      * @param {Renderer} renderer 
      * @param {Array} data 
-     * @param {String} attribute 
      * @param {*} dataType 
      * @param {Object} params 
      * @param {Number} usage 
      */
-    constructor(renderer,data,attribute,dataType,params,usage){
+    constructor(renderer,data,dataType,params,usage){
         if(!params.usageType){
             this.usageType = CATS.enum.ARRAY_BUFFER;
         }
@@ -640,7 +670,7 @@ class Buffer{
         }
         this.renderer = renderer;
         this.data = data;
-        this.attribute = attribute;
+        this.attribute = params.attribute;
         this.usageType = {
 21:this.renderer.gl.ARRAY_BUFFER,
 22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
@@ -659,11 +689,11 @@ class Buffer{
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
-                params.programData.numberOfComponents,
-                params.programData.type,
-                params.programData.normalize,
-                params.programData.stride,
-                params.programData.offset
+                params.vertexAttribParams.numberOfComponents,
+                params.vertexAttribParams.type,
+                params.vertexAttribParams.normalize,
+                params.vertexAttribParams.stride,
+                params.vertexAttribParams.offset
             );
             this.renderer.gl.enableVertexAttribArray(location)
         } else {
@@ -672,19 +702,45 @@ class Buffer{
     }
 }
 class PositionBuffer extends Buffer{
+    /**
+     * An WebGL Buffer Object used internally in CATS.
+     * This object is not recommended for general purpose use.
+     * @param {Renderer} render 
+     * @param {Array} data 
+     * @param {String} attribute 
+     */
     constructor(render,data,attribute){
+        /*
         super(render,data,attribute,null,CATS.enum.ATTRIBUTE,[
             3,
             render.gl.FLOAT,
             render.gl.FALSE,
             3*Float32Array.BYTES_PER_ELEMENT,
             0
-        ],render.gl.ARRAY_BUFFER);
+        ],render.gl.ARRAY_BUFFER);*/
+        super(render,data,Float32Array,{
+            vertexAttribParams:{
+                numberOfComponents:3,
+                type:render.gl.FLOAT,
+                normalize:render.gl.FALSE,
+                stride:3*Float32Array.BYTES_PER_ELEMENT,
+                offset:0
+            },
+            usageType:CATS.enum.ARRAY_BUFFER,
+            type:CATS.enum.ATTRIBUTE,
+            attribute:attribute
+        },)
     }
 }
 class IndexBuffer extends Buffer{
     constructor(render,data){
-        super(render,data,"",null,CATS.enum.NONATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        /*
+        super(render,data,"",null,CATS.enum.NON_ATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        */
+        super(render,data,Uint16Array,{
+            usageType:CATS.enum.ELEMENT_ARRAY_BUFFER,
+            type:CATS.enum.NON_ATTRIBUTE
+        })
     }
 }
 //#endregion
@@ -732,26 +788,12 @@ class UniformVector4{
 //Just compacts everything together for renderer to process.
 //#region 
 class RenderablePackage{
-    /**
-     * 
-     * @param {ShaderProgram} shaderProgram The shader program
-     * @param {Array} bufferList Buffers
-     * @param {Number} drawingMethod The type to draw from, e.g. TRIANGLES
-     * @param {Array} uniformList Uniforms
-     * @param {Number} offset Offset
-     * @param {Boolean} usesIndexBuffer Uses index buffer?
-     * @param {Number} numElements Number of elements
-     */
-    constructor(shaderProgram,drawingMethod,renderType,bufferList,uniformList,offset,usesIndexBuffer,numElements){
+    constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params){
         this.shaderProgram = shaderProgram;
-        this.program = shaderProgram.program;
-        this.bufferList = bufferList;
-        this.uniformList = uniformList;
+        this.shaaerInputs = shaderInputs;
         this.drawingMethod = drawingMethod;
         this.renderType = renderType;
-        this.offset = offset;
-        this.usesIndexBuffer = usesIndexBuffer;
-        this.indexAmount = numElements;
+        this.params = params;
     }
 }
 //#endregion
@@ -826,7 +868,7 @@ class SingleColorMaterial extends Material{
                             let fragmentShaderSource = `
                 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
                 varying vec3 fN;
-                uniform vec3 inverseLightDirection; //THIS IS ONLY A PROTOTYPE
+                uniform vec3 inverseLightDirection;
                 uniform vec4 objectColor;
                 void main(void){
                     vec3 normal = normalize(fN);
