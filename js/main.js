@@ -254,7 +254,7 @@ class Scene{
         this.camera = {
             position:[0,0,0],
             direction:[0,0,0],
-            fovy:45,
+            fovy:70,
             near:CATS.math.EPSILON,
             far:100,
             lastViewMatrix:new Mat4(),
@@ -342,11 +342,10 @@ class Scene{
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             try{
-            var renderablePackage = this.objects[i].convertToPackage(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
+            var renderablePackage = this.objects[i].convertToPackage(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix,this);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
-                console.warn(`Object number ${i} is not processable. Are you sure it is a valid object?`)
-                console.warn(`ERROR:\n${e.stack}`)
+                console.warn(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)
             }
         }
     }
@@ -581,7 +580,6 @@ class VertexShader{
      */
     constructor(source){
         this.source = source;
-        console.log(this.source)
     }
     compile(renderer){
         const gl = renderer.gl
@@ -768,7 +766,6 @@ class Uniform4x4Matrix{
         this.tag = "UNIFORM";
     }
     enableForProgram(program){
-        console.log(this.matrix)
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
         this.render.gl.FALSE,
         this.matrix.data)
@@ -864,7 +861,7 @@ class Material{
     }
 }
 class SingleColorMaterial extends Material{
-    constructor(color,params){
+    constructor(color,inverseLightDirection){
         /**
          * A single colored material with togglable lighting.
          * @param {Renderer} render 
@@ -889,17 +886,17 @@ class SingleColorMaterial extends Material{
                 }
                 `
                             let fragmentShaderSource = `
-                #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
+                precision mediump float;
                 varying vec3 fN;
                 uniform vec3 inverseLightDirection;
                 uniform vec4 objectColor;
                 void main(void){
                     vec3 normal = normalize(fN);
-                    float light = dot(normal,inverseLightDirection)
+                    float light = dot(normal,inverseLightDirection);
                     gl_FragColor = objectColor;
                     gl_FragColor.rgb *= light;
                 }
-                            `
+`
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
@@ -923,7 +920,7 @@ class SingleColorMaterial extends Material{
                 return material.compiled;
             }
         }
-        super([color,params],buildMaterial);
+        super([color,inverseLightDirection],buildMaterial);
     }
 }
 /*

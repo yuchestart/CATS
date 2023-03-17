@@ -29,9 +29,9 @@ function main(){
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
-    material = new Material()
+    material = new SingleColorMaterial("#FF00FF",[0,1,0])
     mymesh = new Cube(1,material)
-    mymesh.translate([0,0,-3])
+    mymesh.translate([0,0,-5])
     scene.addObject(mymesh)
     scene.render()
 }
