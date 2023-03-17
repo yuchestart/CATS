@@ -27,6 +27,12 @@ var keybinds = {
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    
+    render = new Renderer($("emotionalDamage").id)
+    scene = new Scene(render)
+    material = new Material()
+    mymesh = new Cube(1,material)
+    mymesh.translate([0,0,-1])
+    scene.addObject(mymesh)
+    scene.render()
 }
 window.onload = main;

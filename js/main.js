@@ -142,6 +142,9 @@ Object.freeze(CATS)
 class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
+     * Create a new Renderer object.
+     * This Renderer object will do all the rendering, but you don't need to tweak around with it as
+     * it's handled internally.
      * @param {HTMLCanvasElement} canvas 
      * @param {Boolean} disableDepthTest
      * @param {Boolean} disableCullFace
@@ -149,7 +152,6 @@ class Renderer{
      * @param {Boolean} disableAlphaBlend
      */
     constructor(canvas,disableDepthTest,disableCullFace,disableAutoAdjustAspectRatio,disableAlphaBlend){
-        
         //Initialization function
         this.canvas = canvas;
         this.gl = canvas.getContext("webgl2");
@@ -195,9 +197,9 @@ class Renderer{
         this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
     }
     /**
-     * Draws a renderable data package.
-     * @param {RenderablePackage} package The package to draw
-     * @param {Number} renderType The way the package is rendered, for example CATS.enum.TRIANGLES
+     * Draws an inputted renderable data package
+     * Used INTERNALLY by CATS.
+     * @param {RenderablePackage} package The package to draw.
      */
     drawPackage(renderPackage){
         var renderTypes = {
@@ -206,28 +208,30 @@ class Renderer{
             2:this.gl.POINTS,
             3:this.gl.LINES
         }
-        if(!renderType){
-            renderType = renderTypes[renderPackage.renderType];
+        var renderType;
+        var program = renderPackage.shaderProgram.program;
+        if(!renderPackage.renderType){
+            renderType = renderTypes[1]
         } else {
-            renderType = renderTypes[renderType]
+            renderType = renderTypes[renderPackage.renderType]
         }
         var buffers = renderPackage.bufferList;
         for(var i=0; i<buffers.length;i++){
-            buffers[i].enableForProgram(renderPackage.program)
+            buffers[i].enableForProgram(program)
         }
-        this.gl.useProgram(renderPackage.program);
+        this.gl.useProgram(program);
         if(renderPackage.uniformList){
             var uniforms = renderPackage.uniformList
             for(var i=0; i<uniforms.length;i++){
-                uniforms[i].enableForProgram(renderPackage.program)
+                uniforms[i].enableForProgram(program)
             }
         }
         switch(renderPackage.drawingMethod){
             case CATS.enum.ELEMENTS:
-                this.gl.drawElements(renderType,renderPackage.indexAmount,this.gl.UNSIGNED_SHORT,renderPackage.offset);
+                this.gl.drawElements(renderType,renderPackage.params.numElements,this.gl.UNSIGNED_SHORT,renderPackage.params.offset);
                 break;
             case CATS.enum.ARRAYS:
-                this.gl.drawArrays(renderType,0,renderPackage.indexAmount)
+                this.gl.drawArrays(renderType,0,renderPackage.params.numElements)
                 break;
         }
     }
@@ -338,10 +342,11 @@ class Scene{
         var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             try{
-            var renderablePackage = this.objects[i].package(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
+            var renderablePackage = this.objects[i].convertToPackage(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
-            }catch{
+            }catch(e){
                 console.warn(`Object number ${i} is not processable. Are you sure it is a valid object?`)
+                console.warn(`ERROR:\n${e.stack}`)
             }
         }
     }
@@ -424,6 +429,7 @@ class Mesh{
         }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram;
+        console.log(shaderProgram)
         var parameters = builtMaterial.parameters;
         var newparameter;
         for(var i=0; i<parameters.length; i++){
@@ -439,8 +445,11 @@ class Mesh{
         var shaderInput = [positionBuffer,indexBuffer,normalBuffer,transformUniform,viewUniform,projectionUniform];
         shaderInput.concat(parameters);
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
-        var package = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,)
-        return package;
+        var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
+            numElements:this.indices.length,
+            offset:0
+        })
+        return renderpackage;
     }
 }
 //-------Easy to initialize primitives-------
@@ -674,9 +683,10 @@ class Buffer{
         this.usageType = {
 21:this.renderer.gl.ARRAY_BUFFER,
 22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
-        }[this.usageType]
+        }[params.usageType]
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
+        this.params = params;
         gl.bindBuffer(this.usageType,newBuffer);
         gl.bufferData(this.usageType,
             dataType?new dataType(data):new Float32Array(data),
@@ -689,11 +699,11 @@ class Buffer{
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
-                params.vertexAttribParams.numberOfComponents,
-                params.vertexAttribParams.type,
-                params.vertexAttribParams.normalize,
-                params.vertexAttribParams.stride,
-                params.vertexAttribParams.offset
+                this.params.vertexAttribParams.numberOfComponents,
+                this.params.vertexAttribParams.type,
+                this.params.vertexAttribParams.normalize,
+                this.params.vertexAttribParams.stride,
+                this.params.vertexAttribParams.offset
             );
             this.renderer.gl.enableVertexAttribArray(location)
         } else {
@@ -748,11 +758,13 @@ class IndexBuffer extends Buffer{
 //#region 
 //Apparently, uniforms aren't buffers so I have to include them here.
 //Later I found out that there are multiple types of uniforms so I'm glad I named them like this
+
 class Uniform4x4Matrix{
     constructor(render,matrix,attribute){
         this.matrix = matrix;
         this.attribute = attribute;
         this.render = render;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
@@ -765,6 +777,7 @@ class UniformVector3{
         this.vector = vector;
         this.attribute = attribute;
         this.render = render;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniform3fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
@@ -775,6 +788,7 @@ class UniformVector4{
         this.vector = vector;
         this.attribute = attribute;
         this.render = render;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
@@ -790,7 +804,15 @@ class UniformVector4{
 class RenderablePackage{
     constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params){
         this.shaderProgram = shaderProgram;
-        this.shaaerInputs = shaderInputs;
+        this.bufferList = [];
+        this.uniformList = [];
+        for(var i=0; i<shaderInputs.length; i++){
+            if(shaderInputs[i].tag === "UNIFORM"){
+                this.uniformList.push(shaderInputs[i])
+            } else if (!shaderInputs[i].tag){
+                this.bufferList.push(shaderInputs[i])
+            }
+        }
         this.drawingMethod = drawingMethod;
         this.renderType = renderType;
         this.params = params;
@@ -806,12 +828,11 @@ class Material{
     /**
      * The basic material template. It allows you to write your own materials.
      * Defaults to a magenta material with no lighting
-     * @param {Array} parameters 
+     * @param {Array} params
      */
-    constructor(parameters,buildFunction){
+    constructor(params,buildFunction){
         this.lastCompiled = false;
         this.compiled = null;
-        this.parameters = parameters;
         this.params = params;
         this.build = buildFunction?function(renderer,mesh,scene){
             buildFunction(renderer,mesh,scene,this);
