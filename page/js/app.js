@@ -31,7 +31,7 @@ function main(){
     scene = new Scene(render)
     material = new Material()
     mymesh = new Cube(1,material)
-    mymesh.translate([0,0,-1])
+    mymesh.translate([0,0,-3])
     scene.addObject(mymesh)
     scene.render()
 }

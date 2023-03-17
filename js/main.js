@@ -438,11 +438,11 @@ class Mesh{
         }
         var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
         var indexBuffer = new IndexBuffer(renderer,this.indices);
-        var normalBuffer = new PositionBuffer(renderer,this.vertices,"vN");
+        
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
-        var shaderInput = [positionBuffer,indexBuffer,normalBuffer,transformUniform,viewUniform,projectionUniform];
+        var shaderInput = [positionBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform];
         shaderInput.concat(parameters);
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
@@ -580,8 +580,8 @@ class VertexShader{
      * @param {String} source 
      */
     constructor(source){
-        this.source = source.replaceAll(/\n|\r|\t/gi,"");
-        //this.usage = usage;
+        this.source = source;
+        console.log(this.source)
     }
     compile(renderer){
         const gl = renderer.gl
@@ -697,6 +697,7 @@ class Buffer{
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
+            console.log(this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
                 this.params.vertexAttribParams.numberOfComponents,
@@ -767,9 +768,10 @@ class Uniform4x4Matrix{
         this.tag = "UNIFORM";
     }
     enableForProgram(program){
+        console.log(this.matrix)
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
         this.render.gl.FALSE,
-        this.matrix)
+        this.matrix.data)
     }
 }
 class UniformVector3{
