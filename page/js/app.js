@@ -29,10 +29,16 @@ function main(){
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
-    material = new SingleColorMaterial("#FF00FF",[0,1,0])
+    scene.bgcolor = CATS.Color("#00FF00")
+    material = new SingleColorMaterial([1,0,1,1],[0,1,0])
     mymesh = new Cube(1,material)
-    mymesh.translate([0,0,-5])
+    mymesh.translate([5,0,0])
     scene.addObject(mymesh)
-    scene.render()
+    function cat(){
+        mymesh.rotate([45,0,0])
+        scene.render()
+        //requestAnimationFrame(cat)
+    }
+    cat()
 }
 window.onload = main;
