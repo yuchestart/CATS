@@ -215,6 +215,7 @@ class Renderer{
         } else {
             renderType = renderTypes[renderPackage.renderType]
         }
+        //renderType = renderTypes[2]
         var buffers = renderPackage.bufferList;
         for(var i=0; i<buffers.length;i++){
             buffers[i].enableForProgram(program)
@@ -379,6 +380,7 @@ class Mesh{
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
                 var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
+                
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(normal,normal,normal)
                 this.indices.push(i*3,i*3+1,i*3+2)
@@ -428,12 +430,12 @@ class Mesh{
         }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
-        console.log(shaderProgram)
         var parameters = builtMaterial.parameters;
+        var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
             newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].name);
-            parameters[i] = newparameter;
+            newParameters.push(newparameter)
         }
         var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
         var indexBuffer = new IndexBuffer(renderer,this.indices);
@@ -695,7 +697,6 @@ class Buffer{
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
-            console.log(this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
                 this.params.vertexAttribParams.numberOfComponents,
@@ -739,6 +740,22 @@ class PositionBuffer extends Buffer{
             type:CATS.enum.ATTRIBUTE,
             attribute:attribute
         },)
+    }
+}
+class NormalBuffer extends Buffer{
+    constructor(render,data,attribute){
+        super(render,data,Float32Array,{
+            vertexAttribParams:{
+                numberOfComponents:3,
+                type:render.gl.FLOAT,
+                normalize:render.gl.TRUE,
+                stride:3*Float32Array.BYTES_PER_ELEMENT,
+                offset:0
+            },
+            usageType:CATS.enum.ARRAY_BUFFER,
+            type:CATS.enum.ATTRIBUTE,
+            attribute:attribute
+        })
     }
 }
 class IndexBuffer extends Buffer{
@@ -837,18 +854,25 @@ class Material{
             return buildFunction(renderer,mesh,scene,this);
         }:function(renderer,mesh,scene){
             let vertexShader = new VertexShader(`
-            attribute vec3 vP;
-            attribute vec3 vN;
-            uniform mat4 wM;
-            uniform mat4 vM;
-            uniform mat4 pM;
-            void main(void){
-                gl_Position = pM*vM*wM*vec4(vP,1.0);
-            }
+            precision mediump float;
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+varying mediump vec3 fNormal;
+void main(void){
+    
+    gl_PointSize = 10.0;
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fNormal = vN;
+}
             `);
             let fragmentShader = new FragmentShader(`
+            precision mediump float;
+            varying mediump vec3 fNormal;
             void main(void){
-                gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+                gl_FragColor = vec4(fNormal,1.0);
             }
             `);
             let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
@@ -891,9 +915,8 @@ class SingleColorMaterial extends Material{
                 uniform vec3 inverseLightDirection;
                 uniform vec4 objectColor;
                 void main(void){
-                    vec3 normal = normalize(fN);
-                    float light = dot(normal,inverseLightDirection);
-                    gl_FragColor = vec4(light,light,light,1.0);
+                    float light = dot(fN,inverseLightDirection);
+                    gl_FragColor = vec4(fN,1.0);
                     //gl_FragColor.rgb *= light;
                 }
 `
