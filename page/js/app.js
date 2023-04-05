@@ -32,74 +32,11 @@ function main(){
     
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    //material = new SingleColorMaterial([1,0,1,1],[0,1,0])
-    /*var material = new SingleColorMaterial([],)
-    mymesh = new Cube(1,material)
-    console.log(mymesh.normals)
+    mymaterial = new SingleColorMaterial()
+    mymesh = new Cube(1,mymaterial)
     scene.moveCamera([0,0,5])
-    //scene.rotateCamera([0,54,0])
+    mymesh.rotate([45,0,0])
     scene.addObject(mymesh)
-    function cat(){
-        //scene.moveCamera([scene.camera.position[0]+0.0001,0,0])
-        mymesh.rotate([0,45,0])
-        scene.render()
-        //requestAnimationFrame(cat)
-    }
-    cat()/*/
-    var vertexShader = new VertexShader(`
-precision mediump float;
-attribute vec3 vP;
-attribute vec3 vC;
-uniform mat4 wM;
-uniform mat4 vM;
-uniform mat4 pM;
-varying mediump vec3 fC;
-void main(void){
-    fC = vC;
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-}
-`);
-    var fragmentShader = new FragmentShader(`
-precision mediump float;
-varying mediump vec3 fC;
-void main(void){
-    gl_FragColor = vec4(fC,1.0);
-}
-`);
-    var shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader)
-    var worldMatrix = new Mat4()
-    var viewMatrix = new Mat4()
-    var projectionMatrix = new Mat4()
-    worldMatrix.translate([0,0,-5])
-    viewMatrix.lookAt([1,0,0],[1,0,-1],[0,1,0])
-    projectionMatrix.perspective(70,render.aspect,CATS.math.EPSILON,1000)
-    var uniformList = [
-        new Uniform4x4Matrix(render,worldMatrix,"wM"),
-        new Uniform4x4Matrix(render,viewMatrix,"vM"),
-        new Uniform4x4Matrix(render,projectionMatrix,"pM"),]
-    var bufferList = [
-        new PositionBuffer(render,[
-            1.0,1.0,0.0,
-            -1.0,1.0,0.0,
-            1.0,-1.0,0.0,
-            -1.0,-1.0,0.0
-        ],"vP"),
-        new IndexBuffer(render,[
-            0,1,2,
-            1,3,2
-        ]),
-        new PositionBuffer(render,[
-            1.0,0.0,0.0,
-            0.0,1.0,0.0,
-            0.0,0.0,1.0,
-            1.0,1.0,1.0,
-        ],"vC")
-    ]
-    var newList = bufferList.concat(uniformList)
-    var package = new RenderablePackage(shaderProgram,newList,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
-        numElements:6,
-        offset:0
-    })
-    render.drawPackage(package)
+    scene.render()
 }
 window.onload = main;

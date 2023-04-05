@@ -382,7 +382,7 @@ class Mesh{
                 var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
                 
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
-                this.normals.push(normal,normal,normal)
+                this.normals.push(...[...normal,...normal,...normal])
                 this.indices.push(i*3,i*3+1,i*3+2)
             }   
         }
@@ -427,6 +427,9 @@ class Mesh{
             matrix.translate(this.transform.position)
             this.transform.transformMatrix = matrix;
             this.transform.transformStayedSame = true;
+            var normalMatrix = new Mat4()
+            normalMatrix.set(matrix)
+
         }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
@@ -839,29 +842,26 @@ class SingleColorMaterial{
             
             let vertexShaderSource = `
 precision mediump float;
-#define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
 attribute vec3 vP;
 attribute vec3 vN;
 uniform mat4 wM;
 uniform mat4 vM;
 uniform mat4 pM;
+uniform mat4 nM;
 varying mediump vec3 fN;
 void main(void){
+    vec3 newVN = vec3(nM*vec4(vN,1.0))
     gl_Position = pM*vM*wM*vec4(vP,1.0);
     fN = vN;
 }
 `
             let fragmentShaderSource = `
 precision mediump float;
-#define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
 varying mediump vec3 fN;
-uniform vec3 inverseLightDirection; //THIS IS ONLY A PROTOTYPE
+uniform vec3 inverseLightDirection;
 uniform vec4 objectColor;
 void main(void){
-    vec3 normal = normalize(fN);
-    float light = dot(normal,inverseLightDirection);
-    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-    gl_FragColor.rgb *= light;
+    gl_FragColor = vec4(fN,1.0);
 }
             `
             let vertexShader = new VertexShader(vertexShaderSource);
@@ -1155,6 +1155,75 @@ class Mat4{
         out.data[14] = -CATS.math.vec3.dot(z,position)
         out.data[15] = 1
         this.multiply(out)
+    }
+    invert(){
+        let a00 = this.data[0]
+        let a01 = this.data[1]
+        let a02 = this.data[2]
+        let a03 = this.data[3]
+        let a10 = this.data[4]
+        let a11 = this.data[5]
+        let a12 = this.data[6]
+        let a13 = this.data[7]
+        let a20 = this.data[8]
+        let a21 = this.data[9]
+        let a22 = this.data[10]
+        let a23 = this.data[11]
+        let a30 = this.data[12]
+        let a31 = this.data[13]
+        let a32 = this.data[14]
+        let a33 = this.data[15]
+        let b00 = a00*a11 - a01*a10
+        let b01 = a00*a12 - a02*a10
+        let b02 = a00*a13 - a03*a10
+        let b03 = a01*a12 - a02*a11
+        let b04 = a01*a13 - a03*a11
+        let b05 = a02*a13 - a03*a12
+        let b06 = a20*a31 - a21*a30
+        let b07 = a20*a32 - a22*a30
+        let b08 = a20*a33 - a23*a30
+        let b09 = a21*a32 - a22*a31
+        let b10 = a21*a33 - a23*a31
+        let b11 = a22*a33 - a23*a32
+        let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+        if(!det){
+            this.identity()
+        }
+        det = 1.0 / det;
+        this.data[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;
+        this.data[1] = (a02 * b10 - a01 * b11 - a03 * b09) * det;
+        this.data[2] = (a31 * b05 - a32 * b04 + a33 * b03) * det;
+        this.data[3] = (a22 * b04 - a21 * b05 - a23 * b03) * det;
+        this.data[4] = (a12 * b08 - a10 * b11 - a13 * b07) * det;
+        this.data[5] = (a00 * b11 - a02 * b08 + a03 * b07) * det;
+        this.data[6] = (a32 * b02 - a30 * b05 - a33 * b01) * det;
+        this.data[7] = (a20 * b05 - a22 * b02 + a23 * b01) * det;
+        this.data[8] = (a10 * b10 - a11 * b08 + a13 * b06) * det;
+        this.data[9] = (a01 * b08 - a00 * b10 - a03 * b06) * det;
+        this.data[10] = (a30 * b04 - a31 * b02 + a33 * b00) * det;
+        this.data[11] = (a21 * b02 - a20 * b04 - a23 * b00) * det;
+        this.data[12] = (a11 * b07 - a10 * b09 - a12 * b06) * det;
+        this.data[13] = (a00 * b09 - a01 * b07 + a02 * b06) * det;
+        this.data[14] = (a31 * b01 - a30 * b03 - a32 * b00) * det;
+        this.data[15] = (a20 * b03 - a21 * b01 + a22 * b00) * det;
+    }
+    transpose(){
+        this.data[0] = this.data[0]
+        this.data[1] = this.data[4]
+        this.data[2] = this.data[8]
+        this.data[3] = this.data[12]
+        this.data[4] = this.data[1]
+        this.data[5] = this.data[5]
+        this.data[6] = this.data[9]
+        this.data[7] = this.data[13]
+        this.data[8] = this.data[2]
+        this.data[9] = this.data[6]
+        this.data[10] = this.data[10]
+        this.data[11] = this.data[14]
+        this.data[12] = this.data[3]
+        this.data[13] = this.data[7]
+        this.data[14] = this.data[11]
+        this.data[15] = this.data[15]
     }
     /**
      * 
