@@ -431,6 +431,7 @@ class Mesh{
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
         var parameters = builtMaterial.parameters;
+        console.log(builtMaterial)
         var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
@@ -742,22 +743,6 @@ class PositionBuffer extends Buffer{
         },)
     }
 }
-class NormalBuffer extends Buffer{
-    constructor(render,data,attribute){
-        super(render,data,Float32Array,{
-            vertexAttribParams:{
-                numberOfComponents:3,
-                type:render.gl.FLOAT,
-                normalize:render.gl.TRUE,
-                stride:3*Float32Array.BYTES_PER_ELEMENT,
-                offset:0
-            },
-            usageType:CATS.enum.ARRAY_BUFFER,
-            type:CATS.enum.ATTRIBUTE,
-            attribute:attribute
-        })
-    }
-}
 class IndexBuffer extends Buffer{
     constructor(render,data){
         /*
@@ -840,113 +825,8 @@ class RenderablePackage{
 //Each material is just a huge hunk of code.
 //#region 
 
-class Material{
-    /**
-     * The basic material template. It allows you to write your own materials.
-     * Defaults to a magenta material with no lighting
-     * @param {Array} params
-     */
-    constructor(params,buildFunction){
-        this.lastCompiled = false;
-        this.compiled = null;
-        this.params = params;
-        this.build = buildFunction?function(renderer,mesh,scene){
-            return buildFunction(renderer,mesh,scene,this);
-        }:function(renderer,mesh,scene){
-            let vertexShader = new VertexShader(`
-            precision mediump float;
-attribute vec3 vP;
-attribute vec3 vN;
-uniform mat4 wM;
-uniform mat4 vM;
-uniform mat4 pM;
-varying mediump vec3 fNormal;
-void main(void){
-    
-    gl_PointSize = 10.0;
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fNormal = vN;
-}
-            `);
-            let fragmentShader = new FragmentShader(`
-            precision mediump float;
-            varying mediump vec3 fNormal;
-            void main(void){
-                gl_FragColor = vec4(fNormal,1.0);
-            }
-            `);
-            let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
-            this.lastCompiled = true;
-            return {
-                shaderProgram:shaderProgram,
-                parameters:[]
-            };
-        };
-    }
-}
-class SingleColorMaterial extends Material{
-    constructor(color,inverseLightDirection){
-        /**
-         * A single colored material with togglable lighting.
-         * @param {Renderer} render 
-         * @param {Mesh} mesh 
-         * @param {Scene} scene 
-         * @param {Material} material 
-         * @returns
-         */
-        function buildMaterial(render,mesh,scene,material){
-            if(!material.lastCompiled){
-                let vertexShaderSource = `
-                #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-                attribute vec3 vP;
-                attribute vec3 vN;
-                uniform mat4 wM;
-                uniform mat4 vM;
-                uniform mat4 pM;
-                varying vec3 fN;
-                void main(void){
-                    gl_Position = pM*vM*wM*vec4(vP,1.0);
-                    fN = vN;
-                }
-                `
-                            let fragmentShaderSource = `
-                precision mediump float;
-                varying vec3 fN;
-                uniform vec3 inverseLightDirection;
-                uniform vec4 objectColor;
-                void main(void){
-                    float light = dot(fN,inverseLightDirection);
-                    gl_FragColor = vec4(fN,1.0);
-                    //gl_FragColor.rgb *= light;
-                }
-`
-                let vertexShader = new VertexShader(vertexShaderSource);
-                let fragmentShader = new FragmentShader(fragmentShaderSource);
-                let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
-                material.lastCompiled = true;
-                material.compiled = {
-                    shaderProgram:shaderProgram,
-                    parameters:[{
-                        type:UniformVector3,
-                        name:"inverseLightDirection",
-                        value:material.params[1]
-                    },
-                    {
-                        type:UniformVector4,
-                        name:"objectColor",
-                        value:material.params[0]
-                    }
-                ],
-                }
-                return material.compiled;
-            } else {
-                return material.compiled;
-            }
-        }
-        super([color,inverseLightDirection],buildMaterial);
-    }
-}
-/*
+
+
 class SingleColorMaterial{
     constructor(color,params){
         this.lastCompiled = false;
@@ -958,27 +838,29 @@ class SingleColorMaterial{
         if(!this.lastCompiled){
             
             let vertexShaderSource = `
+precision mediump float;
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
 attribute vec3 vP;
 attribute vec3 vN;
 uniform mat4 wM;
 uniform mat4 vM;
 uniform mat4 pM;
-varying vec3 fN;
+varying mediump vec3 fN;
 void main(void){
     gl_Position = pM*vM*wM*vec4(vP,1.0);
     fN = vN;
 }
 `
             let fragmentShaderSource = `
+precision mediump float;
 #define MAXLIGHTSOURCES ${scene.lighting.maxLightSources}
-varying vec3 fN;
+varying mediump vec3 fN;
 uniform vec3 inverseLightDirection; //THIS IS ONLY A PROTOTYPE
 uniform vec4 objectColor;
 void main(void){
     vec3 normal = normalize(fN);
-    float light = dot(normal,inverseLightDirection)
-    gl_FragColor = objectColor;
+    float light = dot(normal,inverseLightDirection);
+    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
     gl_FragColor.rgb *= light;
 }
             `
@@ -986,12 +868,16 @@ void main(void){
             let fragmentShader = new FragmentShader(fragmentShaderSource);
             let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
             this.lastCompiled = true;
-            
+            this.compiled = {
+                shaderProgram:shaderProgram,
+                parameters:this.params?this.params:[]
+            }
+            return this.compiled;
         } else {
             return this.compiled;
         }
     }
-}*/
+}
 //#endregion
 //-----------MATH-----------
 //Some files for math related things
@@ -999,6 +885,7 @@ void main(void){
 /**
  * A 4x4 matrix for WebGL.
  * Calling the constructor will create a 4x4 identity matrix.
+ * This object is generally used internally by CATS to handle transforms.
  */
 class Mat4{
     constructor(){
@@ -1237,27 +1124,37 @@ class Mat4{
      * @param {Array} up 
      */
     lookAt(position,target,up){
-        var forward = CATS.math.vec3.normalize(CATS.math.vec3.subtract(position,target))
-        var right = CATS.math.vec3.normalize(CATS.math.vec3.cross(up,forward))
-        var newup = CATS.math.vec3.normalize(CATS.math.vec3.cross(forward,right))
-        var output = new Mat4()
-        output.data[0] = right[0]
-        output.data[1] = right[1]
-        output.data[2] = right[2]
-        output.data[3] = 0
-        output.data[4] = newup[0]
-        output.data[5] = newup[1]
-        output.data[6] = newup[2]
-        output.data[7] = 0;
-        output.data[8] = forward[0]
-        output.data[9] = forward[1]
-        output.data[10] = forward[2]
-        output.data[11] = 0
-        output.data[12] = -CATS.math.vec3.dot(position,[right[0],newup[0],forward[0]])
-        output.data[13] = -CATS.math.vec3.dot(position,[right[1],newup[1],forward[1]])
-        output.data[14] = -CATS.math.vec3.dot(position,[right[2],newup[2],forward[2]])
-        output.data[15] = 1;
-        this.multiply(output)
+        let x,y,z,out,len
+        z = CATS.math.vec3.subtract(position,target)
+        if(
+            Math.abs(position[0]-target[0])<CATS.math.EPSILON &&
+            Math.abs(position[1]-target[1])<CATS.math.EPSILON &&
+            Math.abs(position[2]-target[2])<CATS.math.EPSILON
+        ){
+            this.identity()
+        }
+        len = 1/Math.hypot(z[0],z[1],z[2])
+        z = CATS.math.vec3.multiplyByNumber(z,len)
+        x = CATS.math.vec3.cross(up,z)
+        y = CATS.math.vec3.cross(z,x)
+        out = new Mat4()
+        out.data[0] = x[0]
+        out.data[1] = y[0]
+        out.data[2] = z[0]
+        out.data[3] = 0
+        out.data[4] = x[1]
+        out.data[5] = y[1]
+        out.data[6] = z[1]
+        out.data[7] = 0
+        out.data[8] = x[2]
+        out.data[9] = y[2]
+        out.data[10] = z[2]
+        out.data[11] = 0;
+        out.data[12] = -CATS.math.vec3.dot(x,position)
+        out.data[13] = -CATS.math.vec3.dot(y,position)
+        out.data[14] = -CATS.math.vec3.dot(z,position)
+        out.data[15] = 1
+        this.multiply(out)
     }
     /**
      * 

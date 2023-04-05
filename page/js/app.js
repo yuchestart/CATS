@@ -33,17 +33,19 @@ function main(){
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
     //material = new SingleColorMaterial([1,0,1,1],[0,1,0])
-    material = new Material()
+    /*var material = new SingleColorMaterial([],)
     mymesh = new Cube(1,material)
     console.log(mymesh.normals)
     scene.moveCamera([0,0,5])
+    //scene.rotateCamera([0,54,0])
     scene.addObject(mymesh)
     function cat(){
-        mymesh.rotate([1,1,0])
+        //scene.moveCamera([scene.camera.position[0]+0.0001,0,0])
+        mymesh.rotate([0,45,0])
         scene.render()
-        requestAnimationFrame(cat)
+        //requestAnimationFrame(cat)
     }
-    cat()/*
+    cat()/*/
     var vertexShader = new VertexShader(`
 precision mediump float;
 attribute vec3 vP;
@@ -69,7 +71,7 @@ void main(void){
     var viewMatrix = new Mat4()
     var projectionMatrix = new Mat4()
     worldMatrix.translate([0,0,-5])
-    viewMatrix.lookAt([0,0,0],[0,0,-1],[0,1,0])
+    viewMatrix.lookAt([1,0,0],[1,0,-1],[0,1,0])
     projectionMatrix.perspective(70,render.aspect,CATS.math.EPSILON,1000)
     var uniformList = [
         new Uniform4x4Matrix(render,worldMatrix,"wM"),
@@ -98,6 +100,6 @@ void main(void){
         numElements:6,
         offset:0
     })
-    render.drawPackage(package)*/
+    render.drawPackage(package)
 }
 window.onload = main;
