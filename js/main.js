@@ -429,7 +429,8 @@ class Mesh{
             this.transform.transformStayedSame = true;
             var normalMatrix = new Mat4()
             normalMatrix.set(matrix)
-
+            normalMatrix.invert()
+            normalMatrix.transpose()
         }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
@@ -447,6 +448,7 @@ class Mesh{
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
+        var normalUniform = new Uniform4x4Matrix(renderer,)
         var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform];
         shaderInput.concat(parameters);
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
@@ -1224,17 +1226,6 @@ class Mat4{
         this.data[13] = this.data[7]
         this.data[14] = this.data[11]
         this.data[15] = this.data[15]
-    }
-    /**
-     * 
-     * @param {Renderer} render 
-     * @param {String} attribute 
-     * @param {ShaderProgram} program 
-     * @returns 
-     */
-    convertToUniform(render,attribute,dataType){
-        var newUniform = new Uniform4x4Matrix(render,dataType?new dataType(this.data):new Float32Array(this.data),attribute);
-        return newUniform;
     }
 }
 //#endregion
