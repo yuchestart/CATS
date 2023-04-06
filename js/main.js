@@ -432,14 +432,15 @@ class Mesh{
             normalMatrix.invert()
             normalMatrix.transpose()
         }
+        console.log(builtMaterial)
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
         var parameters = builtMaterial.parameters;
-        console.log(builtMaterial)
+        
         var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
-            newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].name);
+            newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
             newParameters.push(newparameter)
         }
         var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
@@ -448,8 +449,8 @@ class Mesh{
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
-        var normalUniform = new Uniform4x4Matrix(renderer,)
-        var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform];
+        var normalUniform = new Uniform4x4Matrix(renderer,normalMatrix,"nM")
+        var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform,normalUniform];
         shaderInput.concat(parameters);
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
@@ -830,16 +831,116 @@ class RenderablePackage{
 //Each material is just a huge hunk of code.
 //#region 
 
+class Material{
+    constructor(params,buildFunction){
+        this.lastCompiled = false;
+        this.compiled = null;
+        this.params = params;
+        if(!buildFunction){
+            buildFunction = function(renderer,mesh,scene,material){
+                if(!material.lastCompiled){
+                    let vertexShaderSource = `
+    precision mediump float;
+    attribute vec3 vP;
+    attribute vec3 vN;
+    uniform mat4 wM;
+    uniform mat4 vM;
+    uniform mat4 pM;
+    uniform mat4 nM;
+    varying mediump vec3 fN;
+    void main(void){
+        vec3 newVN = vec3(nM*vec4(vN,1.0));
+        gl_Position = pM*vM*wM*vec4(vP,1.0);
+        fN = newVN;
+    }
+    `
+                    let fragmentShaderSource = `
+    precision mediump float;
+    varying mediump vec3 fN;
+    void main(void){
+        gl_FragColor = vec3(1.0,0.0,1.0,1.0);
+    }
+    `
+                    let vertexShader = new VertexShader(vertexShaderSource);
+                    let fragmentShader = new FragmentShader(fragmentShaderSource);
+                    let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader)
+                    material.lastCompiled = true;
+                    material.compiled = {
+                        shaderProgram:shaderProgram,
+                        parameters:[]
+                    }
+                    return material.compiled;
+                } else {
+                    return material.compiled;
+                }
+            }
+        }
+        this.build = function(renderer,mesh,scene){
+            return buildFunction(
+                renderer,
+                mesh,
+                scene,
+                this.params,
+                this
+            )
+        }
+    }
+    resetBuild(){
+        this.lastCompiled = false;
+        this.compiled = null;
+    }
+}
 
+class SingleColorMaterial extends Material{
+    constructor(color,inverseLightDirection){
+        function buildFunction(renderer,mesh,scene,material){
+            if(!material.lastCompiled){
+                let vertexShaderSource = `precision mediump float;
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+varying mediump vec3 fN;
+void main(void){
+    vec3 newVN = vec3(nM*vec4(vN,1.0));
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fN = newVN;
+}
+`;
+                let fragmentShaderSource = `precision mediump float;
+varying mediump vec3 fN;
+void main(void){
+    gl_FragColor = vec4(fN,1.0);
+}`;
+                let vertexShader = new VertexShader(vertexShaderSource);
+                let fragmentShader = new FragmentShader(fragmentShaderSource);
+                let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
+                material.lastCompiled = true;
+                material.compiled = {
+                    shaderProgram:shaderProgram,
+                    parameters:[
+                    ]
+                }
+                return material.compiled;
+            } else {
+                return material.compiled;
+            }
+        }
+        super([color,inverseLightDirection],buildFunction)
+    }
+}
 
+/*
 class SingleColorMaterial{
-    constructor(color,params){
+    constructor(params){
         this.lastCompiled = false;
         this.compiled = null;
         this.color = color;
         this.params = params;
     }
-    build(render,mesh,scene){
+    build(render,mesh,scene,params){
         if(!this.lastCompiled){
             
             let vertexShaderSource = `
@@ -852,9 +953,9 @@ uniform mat4 pM;
 uniform mat4 nM;
 varying mediump vec3 fN;
 void main(void){
-    vec3 newVN = vec3(nM*vec4(vN,1.0))
+    vec3 newVN = vec3(nM*vec4(vN,1.0));
     gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fN = vN;
+    fN = newVN;
 }
 `
             let fragmentShaderSource = `
@@ -872,14 +973,25 @@ void main(void){
             this.lastCompiled = true;
             this.compiled = {
                 shaderProgram:shaderProgram,
-                parameters:this.params?this.params:[]
+                parameters:[
+                    {
+                        type:UniformVector3,
+                        attribute:"inverseLightDirection",
+                        value:params[1]
+                    },
+                    {
+                        type:UniformVector4,
+                        attribute:"objectColor",
+                        value:params[0]
+                    }
+                ]
             }
             return this.compiled;
         } else {
             return this.compiled;
         }
     }
-}
+}*/
 //#endregion
 //-----------MATH-----------
 //Some files for math related things

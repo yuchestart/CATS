@@ -33,9 +33,9 @@ function main(){
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
     mymaterial = new SingleColorMaterial()
-    mymesh = new Cube(1,mymaterial)
-    scene.moveCamera([0,0,5])
-    mymesh.rotate([45,0,0])
+    mymesh = new Sphere(1,16,mymaterial)
+    scene.moveCamera([2,2,5])
+    mymesh.rotate([0,0,0])
     scene.addObject(mymesh)
     scene.render()
 }
