@@ -262,6 +262,7 @@ class Scene{
             viewMatrixInitialized:false
         };
         this.objects = [];
+        this.lights = [];
         this.bgcolor = [0,0,0,1];
         this.lighting = {
             maxLightSources:1000
@@ -394,7 +395,8 @@ class Mesh{
             rotation:[0,0,0],
             scale:[1,1,1],
             transformStayedSame:false,
-            transformMatrix:null
+            transformMatrix:null,
+            normalMatrix:null
         }
         
     }
@@ -431,12 +433,11 @@ class Mesh{
             normalMatrix.set(matrix)
             normalMatrix.invert()
             normalMatrix.transpose()
+            this.transform.normalMatrix = normalMatrix;
         }
-        console.log(builtMaterial)
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
         var parameters = builtMaterial.parameters;
-        
         var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
@@ -449,15 +450,20 @@ class Mesh{
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
-        var normalUniform = new Uniform4x4Matrix(renderer,normalMatrix,"nM")
+        var normalUniform = new Uniform4x4Matrix(renderer,this.transform.normalMatrix,"nM")
         var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform,normalUniform];
-        shaderInput.concat(parameters);
+        shaderInput = shaderInput.concat(newParameters);
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
             numElements:this.indices.length,
             offset:0
         })
         return renderpackage;
+    }
+}
+class DirectionalLight{
+    constructor(direction){
+        this.direction
     }
 }
 //-------Easy to initialize primitives-------
@@ -880,8 +886,7 @@ class Material{
                 renderer,
                 mesh,
                 scene,
-                this.params,
-                this
+                this,
             )
         }
     }
@@ -893,6 +898,14 @@ class Material{
 
 class SingleColorMaterial extends Material{
     constructor(color,inverseLightDirection){
+        /**
+         * 
+         * @param {Renderer} renderer 
+         * @param {Mesh} mesh 
+         * @param {Scene} scene 
+         * @param {Material} material 
+         * @returns 
+         */
         function buildFunction(renderer,mesh,scene,material){
             if(!material.lastCompiled){
                 let vertexShaderSource = `precision mediump float;
@@ -904,15 +917,21 @@ uniform mat4 pM;
 uniform mat4 nM;
 varying mediump vec3 fN;
 void main(void){
-    vec3 newVN = vec3(nM*vec4(vN,1.0));
     gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fN = newVN;
+    fN = (wM*vec4(vN,0.0)).xyz;
 }
 `;
-                let fragmentShaderSource = `precision mediump float;
+                let fragmentShaderSource = `
+#define MAXDPLIGHTSOURCES${scene.lighting.maxLightSources}
+precision mediump float;
 varying mediump vec3 fN;
+uniform vec4 lightDirection;
+uniform vec4 objectColor;
 void main(void){
-    gl_FragColor = vec4(fN,1.0);
+    vec3 normal = normalize(fN);
+    float light = dot(normal,lightDirection.xyz*lightDirection.w);
+    gl_FragColor = objectColor;
+    gl_FragColor.rgb*=light;
 }`;
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
@@ -921,6 +940,16 @@ void main(void){
                 material.compiled = {
                     shaderProgram:shaderProgram,
                     parameters:[
+                        {
+                            type:UniformVector4,
+                            value:CATS.Color(material.params[0]),
+                            attribute:"objectColor"
+                        },
+                        {
+                            type:UniformVector4,
+                            value:material.params[1],
+                            attribute:"lightDirection"
+                        }
                     ]
                 }
                 return material.compiled;
@@ -1271,37 +1300,38 @@ class Mat4{
         this.multiply(out)
     }
     invert(){
-        let a00 = this.data[0]
-        let a01 = this.data[1]
-        let a02 = this.data[2]
-        let a03 = this.data[3]
-        let a10 = this.data[4]
-        let a11 = this.data[5]
-        let a12 = this.data[6]
-        let a13 = this.data[7]
-        let a20 = this.data[8]
-        let a21 = this.data[9]
-        let a22 = this.data[10]
-        let a23 = this.data[11]
-        let a30 = this.data[12]
-        let a31 = this.data[13]
-        let a32 = this.data[14]
-        let a33 = this.data[15]
-        let b00 = a00*a11 - a01*a10
-        let b01 = a00*a12 - a02*a10
-        let b02 = a00*a13 - a03*a10
-        let b03 = a01*a12 - a02*a11
-        let b04 = a01*a13 - a03*a11
-        let b05 = a02*a13 - a03*a12
-        let b06 = a20*a31 - a21*a30
-        let b07 = a20*a32 - a22*a30
-        let b08 = a20*a33 - a23*a30
-        let b09 = a21*a32 - a22*a31
-        let b10 = a21*a33 - a23*a31
-        let b11 = a22*a33 - a23*a32
-        let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
-        if(!det){
-            this.identity()
+        let a00 = this.data[0],
+          a01 = this.data[1],
+          a02 = this.data[2],
+          a03 = this.data[3];
+        let a10 = this.data[4],
+          a11 = this.data[5],
+          a12 = this.data[6],
+          a13 = this.data[7];
+        let a20 = this.data[8],
+          a21 = this.data[9],
+          a22 = this.data[10],
+          a23 = this.data[11];
+        let a30 = this.data[12],
+          a31 = this.data[13],
+          a32 = this.data[14],
+          a33 = this.data[15];
+        let b00 = a00 * a11 - a01 * a10;
+        let b01 = a00 * a12 - a02 * a10;
+        let b02 = a00 * a13 - a03 * a10;
+        let b03 = a01 * a12 - a02 * a11;
+        let b04 = a01 * a13 - a03 * a11;
+        let b05 = a02 * a13 - a03 * a12;
+        let b06 = a20 * a31 - a21 * a30;
+        let b07 = a20 * a32 - a22 * a30;
+        let b08 = a20 * a33 - a23 * a30;
+        let b09 = a21 * a32 - a22 * a31;
+        let b10 = a21 * a33 - a23 * a31;
+        let b11 = a22 * a33 - a23 * a32;
+        let det =
+          b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
+        if (!det) {
+          this.identity()
         }
         det = 1.0 / det;
         this.data[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det;

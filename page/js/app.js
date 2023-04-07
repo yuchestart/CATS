@@ -27,16 +27,20 @@ var keybinds = {
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
-    
     render = new Renderer($("emotionalDamage").id)
-    
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial()
-    mymesh = new Sphere(1,16,mymaterial)
-    scene.moveCamera([2,2,5])
-    mymesh.rotate([0,0,0])
+    mymaterial = new SingleColorMaterial("#00FF00",[0,-1,0,1])
+    mymesh = new Cube(1,mymaterial)
+    mymesh.scale([1,1,1])
+    scene.moveCamera([0,-3,5])
+    scene.rotateCamera([-30,0,0])
     scene.addObject(mymesh)
+    function cat(){
+    mymesh.rotate([1,0,1])
     scene.render()
+    requestAnimationFrame(cat)
+    }
+    cat()
 }
 window.onload = main;
