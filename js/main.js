@@ -62,6 +62,9 @@ const CATS = {
             },
             invert:function(v){
                 return [v[0]*-1,v[1]*-1,v[2]*-1]
+            },
+            lengthOf:function(v){
+                return Math.sqrt(v[0]**2+v[1]**2+v[2]**2)
             }
         },
         triangle:{
@@ -103,16 +106,18 @@ const CATS = {
         DISABLE_ALPHA_BLEND:26,
     },
     /**
-     * Converts a color to a more readable interface for CATS
-     * Note that if you are using colors in range from 0-1, then there is no need to run this function.
-     * Examples include:
-     * [1.0,1.0,1.0] for white
-     * [1.0,1.0,0.0,0.5] for translucent yellow
+     * 
      * @param {Array|String} color 
      */
     Color(color){
         if(color instanceof Array){
+            if(color.length == 3){
 
+            } else if (color.length == 4){
+
+            } else {
+                throw new TypeError
+            }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
                 var hex = color.slice(1);
@@ -462,7 +467,13 @@ class Mesh{
     }
 }
 class DirectionalLight{
-    constructor(direction){
+    /**
+     * A directional light effective to all objects.
+     * @param {Array<Number>} direction 
+     * @param {Array<Number>|String} color
+     * @param {Number} intensity
+     */
+    constructor(direction,color,intensity){
         this.direction
     }
 }
@@ -677,7 +688,7 @@ class Buffer{
      * This object is not recommended for general purpose use.
      * @param {Renderer} renderer 
      * @param {Array} data 
-     * @param {*} dataType 
+     * @param {Float32Array|Uint16Array} dataType 
      * @param {Object} params 
      * @param {Number} usage 
      */
@@ -930,6 +941,11 @@ uniform vec4 objectColor;
 void main(void){
     vec3 normal = normalize(fN);
     float light = dot(normal,lightDirection.xyz*lightDirection.w);
+    if(light > 1.0){
+        light = 1.0;
+    } else if(light<0.0){
+        light = 0.0;
+    }
     gl_FragColor = objectColor;
     gl_FragColor.rgb*=light;
 }`;

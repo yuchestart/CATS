@@ -30,11 +30,10 @@ function main(){
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#00FF00",[0,-1,0,1])
+    mymaterial = new SingleColorMaterial("#59a1cd",[0,1,1,2])
     mymesh = new Cube(1,mymaterial)
     mymesh.scale([1,1,1])
-    scene.moveCamera([0,-3,5])
-    scene.rotateCamera([-30,0,0])
+    scene.moveCamera([0,0,6])
     scene.addObject(mymesh)
     function cat(){
     mymesh.rotate([1,0,1])
