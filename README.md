@@ -6,4 +6,4 @@ Why did I have to call it that?
 It can draw things 3D, and you can move the camera around, add lighting, and more.
 
 ## Download
-At the moment I haven't created a distribution file. Once I do though, you can download it [here](https://what-ever-this-is.github.io/CATS)
+At the moment I haven't created a distribution file. Once I do though, you can download it [here](https://yuchestart.github.io/CATS)
