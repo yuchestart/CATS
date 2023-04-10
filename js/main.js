@@ -95,15 +95,21 @@ const CATS = {
         FRIENDLY_RGB:15,
         HEX:16, // WOAH SO COOL
         HSV:17,
-        DIRECTIONAL_LIGHTING_ENABLED:18,
-        USES_FRAGMENT_LIGHTING:19,
-        USES_VERTEX_LIGHTING:20,
-        ARRAY_BUFFER:21,
-        ELEMENT_ARRAY_BUFFER:22,
-        DISABLE_DEPTH_TEST:23,
-        DISABLE_CULL_FACE:24,
-        DISABLE_AUTO_ADJUST_ASPECT_RATIO:25,
-        DISABLE_ALPHA_BLEND:26,
+        USES_FRAGMENT_LIGHTING:18,
+        USES_VERTEX_LIGHTING:19,
+        ARRAY_BUFFER:20,
+        ELEMENT_ARRAY_BUFFER:21,
+        RENDERER_DISABLE_DEPTH_TEST:22,
+        RENDERER_DISABLE_CULL_FACE:23,
+        RENDERER_DISABLE_AUTO_ADJUST_ASPECT_RATIO:24,
+        RENDERER_DISABLE_ALPHA_BLEND:25,
+        DIRECTIONAL_LIGHT:26,
+        POINT_LIGHT:27,
+        SPOT_LIGHT:28,
+        OBJECT_TYPE_MESH:29,
+        OBJECT_TYPE_LIGHT:30,
+        LIGHTING_TYPE_BASIC:31,
+        LIGHTING_TYPE_PHONG:32
     },
     /**
      * 
@@ -112,9 +118,17 @@ const CATS = {
     Color(color){
         if(color instanceof Array){
             if(color.length == 3){
-
+                return [
+                color[0]*CATS.math.oneOver255,
+                color[1]*CATS.math.oneOver255,
+                color[2]*CATS.math.oneOver255]
             } else if (color.length == 4){
-
+                return [
+                    color[0]*CATS.math.oneOver255,
+                    color[1]*CATS.math.oneOver255,
+                    color[2]*CATS.math.oneOver255,
+                    color[3]
+                ]
             } else {
                 throw new TypeError
             }
@@ -266,13 +280,26 @@ class Scene{
             lastViewMatrix:new Mat4(),
             viewMatrixInitialized:false
         };
+        /**
+         * Where all of the 3D objects are stored.
+         * @type {Array<Mesh>}
+         */
         this.objects = [];
+        /**
+         * Where all of any lighting related objects are stored.
+         * @type {Array<DirectionalLight>}
+         */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
         this.lighting = {
-            maxLightSources:1000
+            maxLightSourcesPerMesh:8,
+            parametersChanged:false
         }
     }
+    /**
+     * 
+     * @param {Array<Number>} vector The amount that the camera 
+     */
     moveCamera(vector){
         this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
@@ -283,6 +310,9 @@ class Scene{
     }
     setFOV(fov){
         this.camera.fovy = fov;
+    }
+    changeLightingSettings(settingName,setting){
+
     }
     projectCamera(){
         if(!this.camera.viewMatrixInitialized){
@@ -331,7 +361,12 @@ class Scene{
         };
     }
     addObject(object){
-        this.objects.push(object);
+        if(object.type == CATS.enum.OBJECT_TYPE_MESH){
+            this.objects.push(object);
+        } else if(object.type == CATS.enum.OBJECT_TYPE_LIGHT){
+            this.lights.push(object);
+        }
+        
     }
     removeObject(object){
         this.objects.splice(this.objects.indexOf(object),1)
@@ -346,10 +381,27 @@ class Scene{
     }
     render(){
         this.renderer.clear(...this.bgcolor);
-        var uniforms = this.projectCamera();
+        var matrices = this.projectCamera();
+        var uniforms = [];
+        var DLAI = [];
+        var nDL = 0;
+        for(var i=0; i<this.lights.length; i++){
+            var returnedLight = this.lights[i].addToScene()
+            switch(returnedLight.type){
+                case CATS.enum.DIRECTIONAL_LIGHT:
+                    DLAI.push([...returnedLight.direction,returnedLight.intensity]);
+                    nDL++;
+                    break;
+            }
+        }
+        DLAI = new UniformVector4(this.renderer,DLAI,"lightDirection")
+        nDL = new UniformVector3(this.renderer,[nDL,0,0],"nOfLights")
+        uniforms.push(DLAI);
+        uniforms.push(nDL);
         for(var i=0; i<this.objects.length; i++){
             try{
-            var renderablePackage = this.objects[i].convertToPackage(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix,this);
+            var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,uniforms,this);
+            //console.log(renderablePackage)
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
                 console.warn(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)
@@ -403,6 +455,7 @@ class Mesh{
             transformMatrix:null,
             normalMatrix:null
         }
+        this.type = CATS.enum.OBJECT_TYPE_MESH
         
     }
     addTag(tag){
@@ -426,7 +479,7 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
-    convertToPackage(renderer,viewMatrix,projectionMatrix,scene){
+    convertToPackage(renderer,viewMatrix,projectionMatrix,parameters,scene){
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
             matrix.scale(this.transform.scale)
@@ -469,12 +522,32 @@ class Mesh{
 class DirectionalLight{
     /**
      * A directional light effective to all objects.
-     * @param {Array<Number>} direction 
+     * @param {Array<Number>} direction CURRENTLY IN THE FORM OF A VECTOR
      * @param {Array<Number>|String} color
      * @param {Number} intensity
      */
     constructor(direction,color,intensity){
-        this.direction
+        this.direction = direction;
+        this.color = CATS.Color(color);
+        this.intensity = intensity;
+        this.type = CATS.enum.LIGHT
+    }
+    changeDirection(v){
+        this.direction = v;
+    }
+    changeColor(c){
+        this.color = CATS.Color(c);
+    }
+    changeIntensity(i){
+        this.intensity = i;
+    }
+    addToScene(){
+        return {
+            direction:this.direction,
+            intensity:this.intensity,
+            color:this.color,
+            type:CATS.enum.DIRECTIONAL_LIGHT
+        }
     }
 }
 //-------Easy to initialize primitives-------
@@ -788,7 +861,7 @@ class Uniform4x4Matrix{
         this.matrix = matrix;
         this.attribute = attribute;
         this.render = render;
-        this.tag = "UNIFORM";
+        this.tag = CATS.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
@@ -797,25 +870,33 @@ class Uniform4x4Matrix{
     }
 }
 class UniformVector3{
-    constructor(render,vector,attribute){
+    constructor(renderer,vector,attribute){
         this.vector = vector;
         this.attribute = attribute;
-        this.render = render;
-        this.tag = "UNIFORM";
+        this.render = renderer;
+        this.tag = CATS.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniform3fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
 class UniformVector4{
-    constructor(render,vector,attribute){
+    constructor(renderer,vector,attribute){
         this.vector = vector;
         this.attribute = attribute;
-        this.render = render;
-        this.tag = "UNIFORM";
+        this.render = renderer;
+        this.tag = CATS.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
+    }
+}
+class UniformIntVector3{
+    constructor(renderer,vector,attribute){
+        this.vector = vector;
+        this.attribute = attribute;
+        this.render = renderer;
+        this.tag = CATS.enum.UNIFORM;
     }
 }
 
@@ -933,22 +1014,21 @@ void main(void){
 }
 `;
                 let fragmentShaderSource = `
-#define MAXDPLIGHTSOURCES${scene.lighting.maxLightSources}
+#define MAXDPLIGHTSOURCES ${scene.lighting.maxLightSourcesPerMesh}
 precision mediump float;
 varying mediump vec3 fN;
-uniform vec4 lightDirection;
+uniform vec4 lightDirection[MAXDPLIGHTSOURCES];
+uniform vec3 nOfLights;
 uniform vec4 objectColor;
 void main(void){
-    vec3 normal = normalize(fN);
-    float light = dot(normal,lightDirection.xyz*lightDirection.w);
-    if(light > 1.0){
-        light = 1.0;
-    } else if(light<0.0){
-        light = 0.0;
+    //vec3 normal = normalize(fN);
+    for(int i=0; i<nOfLights.x; i++){
+        
     }
-    gl_FragColor = objectColor;
-    gl_FragColor.rgb*=light;
+    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    //gl_FragColor.rgb*=light;
 }`;
+                console.log(fragmentShaderSource)
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
@@ -961,11 +1041,6 @@ void main(void){
                             value:CATS.Color(material.params[0]),
                             attribute:"objectColor"
                         },
-                        {
-                            type:UniformVector4,
-                            value:material.params[1],
-                            attribute:"lightDirection"
-                        }
                     ]
                 }
                 return material.compiled;
@@ -976,67 +1051,6 @@ void main(void){
         super([color,inverseLightDirection],buildFunction)
     }
 }
-
-/*
-class SingleColorMaterial{
-    constructor(params){
-        this.lastCompiled = false;
-        this.compiled = null;
-        this.color = color;
-        this.params = params;
-    }
-    build(render,mesh,scene,params){
-        if(!this.lastCompiled){
-            
-            let vertexShaderSource = `
-precision mediump float;
-attribute vec3 vP;
-attribute vec3 vN;
-uniform mat4 wM;
-uniform mat4 vM;
-uniform mat4 pM;
-uniform mat4 nM;
-varying mediump vec3 fN;
-void main(void){
-    vec3 newVN = vec3(nM*vec4(vN,1.0));
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
-    fN = newVN;
-}
-`
-            let fragmentShaderSource = `
-precision mediump float;
-varying mediump vec3 fN;
-uniform vec3 inverseLightDirection;
-uniform vec4 objectColor;
-void main(void){
-    gl_FragColor = vec4(fN,1.0);
-}
-            `
-            let vertexShader = new VertexShader(vertexShaderSource);
-            let fragmentShader = new FragmentShader(fragmentShaderSource);
-            let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
-            this.lastCompiled = true;
-            this.compiled = {
-                shaderProgram:shaderProgram,
-                parameters:[
-                    {
-                        type:UniformVector3,
-                        attribute:"inverseLightDirection",
-                        value:params[1]
-                    },
-                    {
-                        type:UniformVector4,
-                        attribute:"objectColor",
-                        value:params[0]
-                    }
-                ]
-            }
-            return this.compiled;
-        } else {
-            return this.compiled;
-        }
-    }
-}*/
 //#endregion
 //-----------MATH-----------
 //Some files for math related things
