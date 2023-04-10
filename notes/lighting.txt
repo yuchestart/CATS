@@ -1,7 +1,2 @@
-LIGHTING SAMPLE CODE:
-float light = dot(normal,lightDirection.xyz*lightDirection.w);
-    if(light > 1.0){
-        light = 1.0;
-    } else if(light<0.0){
-        light = 0.0;
-    }
+Ok, the way I implement this kind of lighting is kind of questionable and may absolutely hog the GPU RAM.
+Shader templates:

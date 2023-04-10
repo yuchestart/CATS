@@ -23,18 +23,23 @@ var keybinds = {
     ArrowLeft:false
 }
 //Hopefully this code will be less than 100 lines with the library.
+//Code has been reset
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
-    scene.bgcolor = CATS.Color("#000000")
-    //mymaterial = new SingleColorMaterial("#59a1cd",[0,1,1,2])
-    mymaterial = new Material()
+    scene.bgcolor = CATS.Color("#FFFFFF")
+    mymaterial = new SingleColorMaterial("#59a1cd",[0,1,1,2])
     mymesh = new Cube(1,mymaterial)
     mymesh.scale([1,1,1])
     scene.moveCamera([0,0,6])
     scene.addObject(mymesh)
+    function cat(){
+    mymesh.rotate([1,0,1])
     scene.render()
+    requestAnimationFrame(cat)
+    }
+    cat()
 }
 window.onload = main;

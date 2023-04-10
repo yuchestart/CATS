@@ -95,42 +95,28 @@ const CATS = {
         FRIENDLY_RGB:15,
         HEX:16, // WOAH SO COOL
         HSV:17,
-        USES_FRAGMENT_LIGHTING:18,
-        USES_VERTEX_LIGHTING:19,
-        ARRAY_BUFFER:20,
-        ELEMENT_ARRAY_BUFFER:21,
-        RENDERER_DISABLE_DEPTH_TEST:22,
-        RENDERER_DISABLE_CULL_FACE:23,
-        RENDERER_DISABLE_AUTO_ADJUST_ASPECT_RATIO:24,
-        RENDERER_DISABLE_ALPHA_BLEND:25,
-        DIRECTIONAL_LIGHT:26,
-        POINT_LIGHT:27,
-        SPOT_LIGHT:28,
-        OBJECT_TYPE_MESH:29,
-        OBJECT_TYPE_LIGHT:30,
-        LIGHTING_TYPE_BASIC:31,
-        LIGHTING_TYPE_PHONG:32
+        DIRECTIONAL_LIGHTING_ENABLED:18,
+        USES_FRAGMENT_LIGHTING:19,
+        USES_VERTEX_LIGHTING:20,
+        ARRAY_BUFFER:21,
+        ELEMENT_ARRAY_BUFFER:22,
+        DISABLE_DEPTH_TEST:23,
+        DISABLE_CULL_FACE:24,
+        DISABLE_AUTO_ADJUST_ASPECT_RATIO:25,
+        DISABLE_ALPHA_BLEND:26,
     },
     /**
-     * Converts a lot of popular color strings into colors that CATS can parse.
+     * 
      * @param {Array|String} color 
      */
     Color(color){
         if(color instanceof Array){
             if(color.length == 3){
-                return [
-                color[0]*this.math.oneOver255,
-                color[1]*this.math.oneOver255,
-                color[2]*this.math.oneOver255]
+
             } else if (color.length == 4){
-                return [
-                    color[0]*this.math.oneOver255,
-                    color[1]*this.math.oneOver255,
-                    color[2]*this.math.oneOver255,
-                    color[3]
-                ]
+
             } else {
-                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of you array is: ${color.length}`)
+                throw new TypeError
             }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
@@ -142,50 +128,12 @@ const CATS = {
             } else if(color.startsWith("rgb")){
                 var rgba = color.slice(3);
                 var hasAlpha = rgba.startsWith("a");
-                var returningColor = [0,0,0,1];
                 if(hasAlpha)
                     rgba = color.slice(1)
                 rgba = rgba.replaceAll(/"("|")"|";"/gi)
-                rgba = rgba.split(",")
-                for(var i=0; i<rgba.length; i++){
-                    if(i!=3){
-                        var currentDigit = parseInt(rgba[i]);
-                        returningColor[i] = currentDigit*this.math.oneOver255;
-                    } else {
-                        returningColor[i] = parseFloat(rgba[i])
-                    }
-                }
-                return returningColor;
-            } else if(color.startsWith("hsv")){
-                var hsv = color.slice(3);
-                hsv = hsv.replaceAll(/"("|")"|";"/gi)
-                hsv = hsv.split(",")
-                for(var i=0; i<3; i++){
-                    hsv[i] = parseFloat(hsv[i])
-                }
-                if(hsv[0] > 360 || hsv[0] < 0 || hsv[1] > 100 || hsv[1] < 0 || hsv[2] > 100 || hsv[2] < 0){
-                    throw new TypeError(`Oops! It looks like this color's values seems to be out of range.`)
-                }
-                hsv[0] = hsv[0]/360
-                var h = hsv[0],s = hsv[1],v = hsv[2]
-                var i = Math.floor(hsv[0]*6)
-                var f = h * 6 - i
-                var p = v * (1-s)
-                var q = v * (1-f*s)
-                var t = v * (1-(1-f)*s)
-                var r,g,b;
-                switch(i%6){
-                    case 0: r=v, g=t, b=p;break;
-                    case 1: r=q, g=v, b=p;break;
-                    case 2: r=p, g=v, b=t;break;
-                    case 3: r=p, g=q, b=v;break;
-                    case 4: r=t, g=p, b=v;break;
-                    case 5: r=v, g=p, b=q;break;
-                }
-                return [r,g,b,1.0]
-            }   
+            }
         } else {
-            throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type: ${color.constructor}`)
+            throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type:${color.constructor}`)
         }
     }
 }
@@ -318,26 +266,13 @@ class Scene{
             lastViewMatrix:new Mat4(),
             viewMatrixInitialized:false
         };
-        /**
-         * Where all of the 3D objects are stored.
-         * @type {Array<Mesh>}
-         */
         this.objects = [];
-        /**
-         * Where all of any lighting related objects are stored.
-         * @type {Array<DirectionalLight>}
-         */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
         this.lighting = {
-            maxLightSourcesPerMesh:8,
-            parametersChanged:false
+            maxLightSources:1000
         }
     }
-    /**
-     * 
-     * @param {Array<Number>} vector The amount that the camera 
-     */
     moveCamera(vector){
         this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
@@ -348,9 +283,6 @@ class Scene{
     }
     setFOV(fov){
         this.camera.fovy = fov;
-    }
-    changeLightingSettings(settingName,setting){
-
     }
     projectCamera(){
         if(!this.camera.viewMatrixInitialized){
@@ -399,12 +331,7 @@ class Scene{
         };
     }
     addObject(object){
-        if(object.type == CATS.enum.OBJECT_TYPE_MESH){
-            this.objects.push(object);
-        } else if(object.type == CATS.enum.OBJECT_TYPE_LIGHT){
-            this.lights.push(object);
-        }
-        
+        this.objects.push(object);
     }
     removeObject(object){
         this.objects.splice(this.objects.indexOf(object),1)
@@ -419,27 +346,10 @@ class Scene{
     }
     render(){
         this.renderer.clear(...this.bgcolor);
-        var matrices = this.projectCamera();
-        var uniforms = [];
-        //var DLAI = [];
-        //var nDL = 0;
-        //for(var i=0; i<this.lights.length; i++){
-        //    var returnedLight = this.lights[i].addToScene()
-        //    switch(returnedLight.type){
-        //        case CATS.enum.DIRECTIONAL_LIGHT:
-        //            DLAI.push([...returnedLight.direction,returnedLight.intensity]);
-        //            nDL++;
-        //            break;
-        //    }
-        //}
-        //DLAI = new UniformVector4(this.renderer,DLAI,"lightDirection")
-        //nDL = new UniformVector3(this.renderer,[nDL,0,0],"nOfLights")
-        //uniforms.push(DLAI);
-        //uniforms.push(nDL);
+        var uniforms = this.projectCamera();
         for(var i=0; i<this.objects.length; i++){
             try{
-            var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,uniforms,this);
-            
+            var renderablePackage = this.objects[i].convertToPackage(this.renderer,uniforms.viewMatrix,uniforms.projectionMatrix,this);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
                 console.warn(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)
@@ -493,7 +403,6 @@ class Mesh{
             transformMatrix:null,
             normalMatrix:null
         }
-        this.type = CATS.enum.OBJECT_TYPE_MESH
         
     }
     addTag(tag){
@@ -517,7 +426,7 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
-    convertToPackage(renderer,viewMatrix,projectionMatrix,uniforms,scene){
+    convertToPackage(renderer,viewMatrix,projectionMatrix,scene){
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
             matrix.scale(this.transform.scale)
@@ -560,32 +469,12 @@ class Mesh{
 class DirectionalLight{
     /**
      * A directional light effective to all objects.
-     * @param {Array<Number>} direction CURRENTLY IN THE FORM OF A VECTOR
+     * @param {Array<Number>} direction 
      * @param {Array<Number>|String} color
      * @param {Number} intensity
      */
     constructor(direction,color,intensity){
-        this.direction = direction;
-        this.color = CATS.Color(color);
-        this.intensity = intensity;
-        this.type = CATS.enum.LIGHT
-    }
-    changeDirection(v){
-        this.direction = v;
-    }
-    changeColor(c){
-        this.color = CATS.Color(c);
-    }
-    changeIntensity(i){
-        this.intensity = i;
-    }
-    addToScene(){
-        return {
-            direction:this.direction,
-            intensity:this.intensity,
-            color:this.color,
-            type:CATS.enum.DIRECTIONAL_LIGHT
-        }
+        this.direction
     }
 }
 //-------Easy to initialize primitives-------
@@ -816,8 +705,8 @@ class Buffer{
         this.data = data;
         this.attribute = params.attribute;
         this.usageType = {
-20:this.renderer.gl.ARRAY_BUFFER,
-21:this.renderer.gl.ELEMENT_ARRAY_BUFFER
+21:this.renderer.gl.ARRAY_BUFFER,
+22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
         }[params.usageType]
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
@@ -899,7 +788,7 @@ class Uniform4x4Matrix{
         this.matrix = matrix;
         this.attribute = attribute;
         this.render = render;
-        this.tag = CATS.enum.UNIFORM;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
@@ -908,28 +797,27 @@ class Uniform4x4Matrix{
     }
 }
 class UniformVector3{
-    constructor(renderer,vector,attribute){
+    constructor(render,vector,attribute){
         this.vector = vector;
         this.attribute = attribute;
-        this.render = renderer;
-        this.tag = CATS.enum.UNIFORM;
+        this.render = render;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniform3fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
 class UniformVector4{
-    constructor(renderer,vector,attribute){
+    constructor(render,vector,attribute){
         this.vector = vector;
         this.attribute = attribute;
-        this.render = renderer;
-        this.tag = CATS.enum.UNIFORM;
+        this.render = render;
+        this.tag = "UNIFORM";
     }
     enableForProgram(program){
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
-
 
 //This part is also useless but kinda useful...
 //#endregion
@@ -978,15 +866,16 @@ class Material{
     uniform mat4 nM;
     varying mediump vec3 fN;
     void main(void){
+        vec3 newVN = vec3(nM*vec4(vN,1.0));
         gl_Position = pM*vM*wM*vec4(vP,1.0);
-        fN = (wM*vec4(vN,0.0)).xyz;
+        fN = newVN;
     }
     `
                     let fragmentShaderSource = `
     precision mediump float;
     varying mediump vec3 fN;
     void main(void){
-        gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+        gl_FragColor = vec3(1.0,0.0,1.0,1.0);
     }
     `
                     let vertexShader = new VertexShader(vertexShaderSource);
@@ -1044,15 +933,22 @@ void main(void){
 }
 `;
                 let fragmentShaderSource = `
-#define MAXDPLIGHTSOURCES ${scene.lighting.maxLightSourcesPerMesh}
+#define MAXDPLIGHTSOURCES${scene.lighting.maxLightSources}
 precision mediump float;
 varying mediump vec3 fN;
+uniform vec4 lightDirection;
 uniform vec4 objectColor;
 void main(void){
     vec3 normal = normalize(fN);
-    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+    float light = dot(normal,lightDirection.xyz*lightDirection.w);
+    if(light > 1.0){
+        light = 1.0;
+    } else if(light<0.0){
+        light = 0.0;
+    }
+    gl_FragColor = objectColor;
+    gl_FragColor.rgb*=light;
 }`;
-                console.log(fragmentShaderSource)
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
@@ -1065,6 +961,11 @@ void main(void){
                             value:CATS.Color(material.params[0]),
                             attribute:"objectColor"
                         },
+                        {
+                            type:UniformVector4,
+                            value:material.params[1],
+                            attribute:"lightDirection"
+                        }
                     ]
                 }
                 return material.compiled;
@@ -1075,6 +976,67 @@ void main(void){
         super([color,inverseLightDirection],buildFunction)
     }
 }
+
+/*
+class SingleColorMaterial{
+    constructor(params){
+        this.lastCompiled = false;
+        this.compiled = null;
+        this.color = color;
+        this.params = params;
+    }
+    build(render,mesh,scene,params){
+        if(!this.lastCompiled){
+            
+            let vertexShaderSource = `
+precision mediump float;
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+varying mediump vec3 fN;
+void main(void){
+    vec3 newVN = vec3(nM*vec4(vN,1.0));
+    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    fN = newVN;
+}
+`
+            let fragmentShaderSource = `
+precision mediump float;
+varying mediump vec3 fN;
+uniform vec3 inverseLightDirection;
+uniform vec4 objectColor;
+void main(void){
+    gl_FragColor = vec4(fN,1.0);
+}
+            `
+            let vertexShader = new VertexShader(vertexShaderSource);
+            let fragmentShader = new FragmentShader(fragmentShaderSource);
+            let shaderProgram = new ShaderProgram(render,vertexShader,fragmentShader);
+            this.lastCompiled = true;
+            this.compiled = {
+                shaderProgram:shaderProgram,
+                parameters:[
+                    {
+                        type:UniformVector3,
+                        attribute:"inverseLightDirection",
+                        value:params[1]
+                    },
+                    {
+                        type:UniformVector4,
+                        attribute:"objectColor",
+                        value:params[0]
+                    }
+                ]
+            }
+            return this.compiled;
+        } else {
+            return this.compiled;
+        }
+    }
+}*/
 //#endregion
 //-----------MATH-----------
 //Some files for math related things
