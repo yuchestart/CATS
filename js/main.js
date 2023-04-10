@@ -421,25 +421,25 @@ class Scene{
         this.renderer.clear(...this.bgcolor);
         var matrices = this.projectCamera();
         var uniforms = [];
-        var DLAI = [];
-        var nDL = 0;
-        for(var i=0; i<this.lights.length; i++){
-            var returnedLight = this.lights[i].addToScene()
-            switch(returnedLight.type){
-                case CATS.enum.DIRECTIONAL_LIGHT:
-                    DLAI.push([...returnedLight.direction,returnedLight.intensity]);
-                    nDL++;
-                    break;
-            }
-        }
-        DLAI = new UniformVector4(this.renderer,DLAI,"lightDirection")
-        nDL = new UniformVector3(this.renderer,[nDL,0,0],"nOfLights")
-        uniforms.push(DLAI);
-        uniforms.push(nDL);
+        //var DLAI = [];
+        //var nDL = 0;
+        //for(var i=0; i<this.lights.length; i++){
+        //    var returnedLight = this.lights[i].addToScene()
+        //    switch(returnedLight.type){
+        //        case CATS.enum.DIRECTIONAL_LIGHT:
+        //            DLAI.push([...returnedLight.direction,returnedLight.intensity]);
+        //            nDL++;
+        //            break;
+        //    }
+        //}
+        //DLAI = new UniformVector4(this.renderer,DLAI,"lightDirection")
+        //nDL = new UniformVector3(this.renderer,[nDL,0,0],"nOfLights")
+        //uniforms.push(DLAI);
+        //uniforms.push(nDL);
         for(var i=0; i<this.objects.length; i++){
             try{
             var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,uniforms,this);
-            //console.log(renderablePackage)
+            
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
                 console.warn(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)
@@ -517,7 +517,7 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
-    convertToPackage(renderer,viewMatrix,projectionMatrix,parameters,scene){
+    convertToPackage(renderer,viewMatrix,projectionMatrix,uniforms,scene){
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
             matrix.scale(this.transform.scale)
@@ -816,8 +816,8 @@ class Buffer{
         this.data = data;
         this.attribute = params.attribute;
         this.usageType = {
-21:this.renderer.gl.ARRAY_BUFFER,
-22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
+20:this.renderer.gl.ARRAY_BUFFER,
+21:this.renderer.gl.ELEMENT_ARRAY_BUFFER
         }[params.usageType]
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
@@ -929,17 +929,7 @@ class UniformVector4{
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
-class UniformIntVector3{
-    constructor(renderer,vector,attribute){
-        this.vector = vector;
-        this.attribute = attribute;
-        this.render = renderer;
-        this.tag = CATS.enum.UNIFORM;
-    }
-    enableForProgram(program){
-        this.render.gl.uniform3iv(this.render.gl)
-    }
-}
+
 
 //This part is also useless but kinda useful...
 //#endregion
@@ -988,16 +978,15 @@ class Material{
     uniform mat4 nM;
     varying mediump vec3 fN;
     void main(void){
-        vec3 newVN = vec3(nM*vec4(vN,1.0));
         gl_Position = pM*vM*wM*vec4(vP,1.0);
-        fN = newVN;
+        fN = (wM*vec4(vN,0.0)).xyz;
     }
     `
                     let fragmentShaderSource = `
     precision mediump float;
     varying mediump vec3 fN;
     void main(void){
-        gl_FragColor = vec3(1.0,0.0,1.0,1.0);
+        gl_FragColor = vec4(1.0,0.0,1.0,1.0);
     }
     `
                     let vertexShader = new VertexShader(vertexShaderSource);
@@ -1058,13 +1047,10 @@ void main(void){
 #define MAXDPLIGHTSOURCES ${scene.lighting.maxLightSourcesPerMesh}
 precision mediump float;
 varying mediump vec3 fN;
-uniform vec4 lightDirection[MAXDPLIGHTSOURCES];
-uniform ivec3 nOfLights;
 uniform vec4 objectColor;
 void main(void){
-    //vec3 normal = normalize(fN);
+    vec3 normal = normalize(fN);
     gl_FragColor = vec4(1.0,0.0,0.0,1.0);
-    //gl_FragColor.rgb*=light;
 }`;
                 console.log(fragmentShaderSource)
                 let vertexShader = new VertexShader(vertexShaderSource);
