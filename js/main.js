@@ -936,6 +936,9 @@ class UniformIntVector3{
         this.render = renderer;
         this.tag = CATS.enum.UNIFORM;
     }
+    enableForProgram(program){
+        this.render.gl.uniform3iv(this.render.gl)
+    }
 }
 
 //This part is also useless but kinda useful...
@@ -1056,13 +1059,10 @@ void main(void){
 precision mediump float;
 varying mediump vec3 fN;
 uniform vec4 lightDirection[MAXDPLIGHTSOURCES];
-uniform vec3 nOfLights;
+uniform ivec3 nOfLights;
 uniform vec4 objectColor;
 void main(void){
     //vec3 normal = normalize(fN);
-    for(int i=0; i<nOfLights.x; i++){
-        
-    }
     gl_FragColor = vec4(1.0,0.0,0.0,1.0);
     //gl_FragColor.rgb*=light;
 }`;
