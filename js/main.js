@@ -112,25 +112,25 @@ const CATS = {
         LIGHTING_TYPE_PHONG:32
     },
     /**
-     * 
+     * Converts a lot of popular color strings into colors that CATS can parse.
      * @param {Array|String} color 
      */
     Color(color){
         if(color instanceof Array){
             if(color.length == 3){
                 return [
-                color[0]*CATS.math.oneOver255,
-                color[1]*CATS.math.oneOver255,
-                color[2]*CATS.math.oneOver255]
+                color[0]*this.math.oneOver255,
+                color[1]*this.math.oneOver255,
+                color[2]*this.math.oneOver255]
             } else if (color.length == 4){
                 return [
-                    color[0]*CATS.math.oneOver255,
-                    color[1]*CATS.math.oneOver255,
-                    color[2]*CATS.math.oneOver255,
+                    color[0]*this.math.oneOver255,
+                    color[1]*this.math.oneOver255,
+                    color[2]*this.math.oneOver255,
                     color[3]
                 ]
             } else {
-                throw new TypeError
+                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of you array is: ${color.length}`)
             }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
@@ -142,12 +142,50 @@ const CATS = {
             } else if(color.startsWith("rgb")){
                 var rgba = color.slice(3);
                 var hasAlpha = rgba.startsWith("a");
+                var returningColor = [0,0,0,1];
                 if(hasAlpha)
                     rgba = color.slice(1)
                 rgba = rgba.replaceAll(/"("|")"|";"/gi)
-            }
+                rgba = rgba.split(",")
+                for(var i=0; i<rgba.length; i++){
+                    if(i!=3){
+                        var currentDigit = parseInt(rgba[i]);
+                        returningColor[i] = currentDigit*this.math.oneOver255;
+                    } else {
+                        returningColor[i] = parseFloat(rgba[i])
+                    }
+                }
+                return returningColor;
+            } else if(color.startsWith("hsv")){
+                var hsv = color.slice(3);
+                hsv = hsv.replaceAll(/"("|")"|";"/gi)
+                hsv = hsv.split(",")
+                for(var i=0; i<3; i++){
+                    hsv[i] = parseFloat(hsv[i])
+                }
+                if(hsv[0] > 360 || hsv[0] < 0 || hsv[1] > 100 || hsv[1] < 0 || hsv[2] > 100 || hsv[2] < 0){
+                    throw new TypeError(`Oops! It looks like this color's values seems to be out of range.`)
+                }
+                hsv[0] = hsv[0]/360
+                var h = hsv[0],s = hsv[1],v = hsv[2]
+                var i = Math.floor(hsv[0]*6)
+                var f = h * 6 - i
+                var p = v * (1-s)
+                var q = v * (1-f*s)
+                var t = v * (1-(1-f)*s)
+                var r,g,b;
+                switch(i%6){
+                    case 0: r=v, g=t, b=p;break;
+                    case 1: r=q, g=v, b=p;break;
+                    case 2: r=p, g=v, b=t;break;
+                    case 3: r=p, g=q, b=v;break;
+                    case 4: r=t, g=p, b=v;break;
+                    case 5: r=v, g=p, b=q;break;
+                }
+                return [r,g,b,1.0]
+            }   
         } else {
-            throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type:${color.constructor}`)
+            throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type: ${color.constructor}`)
         }
     }
 }
