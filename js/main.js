@@ -411,11 +411,17 @@ class Scene{
         var matrices = this.projectCamera();
         var divector = []
         var otherUniforms = []
+        var lightCount = {
+            directional:0,
+            point:0,
+            spot:0
+        }
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
                 case CATS.enum.DIRECTIONAL_LIGHT:
                     divector.push(...processedLight.divector)
+                    lightCount.directional++;
                     break;
             }
         }
@@ -423,6 +429,8 @@ class Scene{
             var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection")
             otherUniforms.push(divectoruniform)
         }
+        var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
+        otherUniforms.push(lightCountVector);
         for(var i=0; i<this.objects.length; i++){
             try{
             var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
@@ -1056,17 +1064,25 @@ void main(void){
 precision mediump float;
 varying mediump vec3 fN;
 uniform vec4 lightDirection[MAXLIGHTSOURCES];
-uniform int directionalLightCount;
+uniform vec3 lightCounts;
 uniform vec4 objectColor;
 void main(void){
-    int ndLights;
-    if(directionalLightCount>8){
+    int ndLights = int(lightCounts.x);
+    if(ndLights>8){
         ndLights = 8;
-    } else {
-        ndLights = directionalLightCount;
     }
     vec3 normal = normalize(fN);
-    float light = dot(normal,lightDirection[0].xyz*lightDirection[0].w);
+    float light = 0.0;
+    for(int i=0; i<MAXLIGHTSOURCES; i++){
+        if(i>=ndLights){
+            break;
+        }
+        float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
+        if(increment<0.0){
+            increment = 0.0;
+        }
+        light+=increment;
+    }
     if(light > 1.0){
         light = 1.0;
     } else if(light<0.0){
