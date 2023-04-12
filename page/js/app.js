@@ -9,7 +9,7 @@ function $(name,parent){
         class:document.getElementsByClassName(name)
     }
 }
-var render,scene,camera,mymesh,mymaterial,packagedmesh;
+var render,scene,camera,mymesh,mymaterial,packagedmesh,mylight,mylight2;
 var keybinds = {
     KeyW:false,
     KeyA:false,
@@ -30,13 +30,18 @@ function main(){
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#59a1cd",[0,1,1,2])
+    mymaterial = new SingleColorMaterial("#59a1cd")
+    mylight = new DirectionalLight([0,1,1],"#FFFFFF",1)
+    mylight2 = new DirectionalLight([0,-1,0],"#FFFFFF",1)
     mymesh = new Cube(1,mymaterial)
     mymesh.scale([1,1,1])
     scene.moveCamera([0,0,6])
+    //scene.rotateCamera([-45,0,0])
     scene.addObject(mymesh)
+    scene.addLight(mylight)
+    scene.addLight(mylight2)
     function cat(){
-    mymesh.rotate([1,0,1])
+    mymesh.rotate([1,1,0])
     scene.render()
     requestAnimationFrame(cat)
     }
