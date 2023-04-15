@@ -1,0 +1,149 @@
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+  
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #423C3A;
+    color: #fff;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: background-color 0.5s ease-in-out;
+}
+
+header.sticky {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background-color: rgba(66, 60, 58, 0.8);
+
+}
+#headerpadding {
+    width: 100%;
+    padding: 20px;
+    padding-left: 0px;
+    padding-right: 0px;
+    height: 5rem;
+}
+.invisible {
+    display: none !important;
+}
+  
+nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    border-radius: 5px;
+}
+  
+nav a:hover {
+    color: #A77A5F;
+    background-color: #fff;
+}
+  
+.centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 500px;
+    background: linear-gradient(180deg, #fff, #2a2a2a);
+}
+
+footer {
+    background-color: #423C3A;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+}
+
+.slogan {
+    font-size: 4.5rem;
+    padding: 20px;
+    height: 150px;
+    font-weight: bold;
+
+     /* set the background to transparent */
+    background-color: transparent;
+    
+    /* set the text to a gradient */
+    background: linear-gradient(90deg, #000, #eee);
+    
+    /* add necessary vendor prefixes for cross-browser compatibility */
+    background: -webkit-linear-gradient(90deg, #000, #eee);
+    background: -moz-linear-gradient(90deg, #000, #eee);
+    background: -o-linear-gradient(90deg, #000, #eee);
+    background: -ms-linear-gradient(90deg, #000, #eee);
+    
+    /* make the text transparent */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+}
+.gradientFinish {
+    background-color: #222 !important;
+    background: transparent;
+    display: inline-flex;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.hide-cursor {
+    cursor: none;
+}
+
+.canvas-blur {
+    filter: blur(1px);
+    -webkit-filter: blur(1px);
+}
+#glCanvas {
+    transition: filter 0.1s ease-in-out;
+    transition: -webkit-filter 0.1s ease-in-out;
+    filter: drop-shadow(0px 0px 5px #000);
+}
+#list-container {
+    background-color: #aaa;
+    margin: 20px;
+
+}
+#option-list {
+    list-style: none;
+    padding-left: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
+    text-align: center;
+}
+#option-list li {
+    height: 1.5rem;
+    line-height: 1.5rem;
+    width: 5rem;
+    cursor: pointer;
+    border: 0;
+}
+#option-list li:hover {
+    background-color: #ddd;
+}
+.mesh-selected {
+    border: 2px firebrick double !important;
+}
+.position-textbox {
+    resize: none;
+}
+.position-attr {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    font-size: 20px;
+    text-align: center;
+    height: 20px;
+    line-height: 20px;
+}
