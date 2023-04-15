@@ -345,14 +345,6 @@ class Scene{
             a = vector[0],b=vector[1]
             vector[0] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
-            //ROTATE Y
-            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
-            var a = v[0],b=v[2]
-            v[0] = a*cos - b*sin;
-            v[2] = a*sin + b*cos;
-            var a = vector[0],b=vector[2]
-            vector[0] = a*cos - b*sin;
-            vector[2] = a*sin + b*cos;
             //ROTATE X
             var sin = Math.sin(CATS.math.toRadians(this.camera.direction[0])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[0]))
             var a = v[2],b=v[1]
@@ -361,6 +353,14 @@ class Scene{
             var a = vector[2],b=vector[1]
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
+            //ROTATE Y
+            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
+            var a = v[0],b=v[2]
+            v[0] = a*cos - b*sin;
+            v[2] = a*sin + b*cos;
+            var a = vector[0],b=vector[2]
+            vector[0] = a*cos - b*sin;
+            vector[2] = a*sin + b*cos;
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,CATS.math.vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
