@@ -1,0 +1,14 @@
+{
+    "title":"Test page",
+    "description":"This is only a test page LOL",
+    "content-table":{
+        "1.0":"blahblahblah",
+        "2.0":"ahahaa",
+        "2.1":"asdfasdfas",
+        "3.0":"conclusion"
+    },
+    "content":{
+        "1.0":"<h1>Never gonna give you up!</h1>",
+        "2.0":"<p>Never gonna let you down!</p>"
+    }
+}
