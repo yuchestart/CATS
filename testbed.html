@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CATS - Che's Awesome Three dimensional toolS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+    <link href="./css/style.css" rel="stylesheet">
+    <script defer src="./js/app.js"></script>
+    <!--<script src="https://cdn.jsdelivr.net/gh/yuchestart/CATS@latest/js/main.js"></script>-->
+    <!-- USE THE JSDELIVR VERSION ONCE THE PR IS MERGED -->
+    <script src="./js/main.js"></script>
+  </head>
+  <body>
+    <div id="headerpadding" class="invisible"></div>
+    <header id="header">
+
+      </div>
+      <div class="logo">
+        <h1>CATS</h1>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#">Testbed</a>
+        <a href="#">Documentation</a>
+      </nav>
+    
+    </header>
+
+    <div class="slogan centered">
+      CATS Testbed
+    </div>
+
+    <div class="centered">
+      <canvas id="glCanvas" class="canvas-blur" width="500" height="500"></canvas>
+    </div>
+    <div class="gradientFinish centered" style="height: 200px;">
+      <div class="gradientFinish centered testbed-section" style="height: 50px;">
+        <div id="mesh-options">
+          <p style="color: #aaa;">Position:</p>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="position-x">0</textarea>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="position-y">0</textarea>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="position-z">0</textarea>
+          <p style="color: #aaa;">Rotation:</p>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="rotation-x">0</textarea>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="rotation-y">0</textarea>
+          <textarea rows="1" cols="3" disabled style="resize: none;" class="position-attr" id="rotation-z">0</textarea>
+        </div>
+        <div id="list-container">
+          <p style="color: #111;">Objects:</p>
+          <ul id="option-list">
+          </ul>
+        </div>
+        <button onclick="addObjectToScene();">Add Object</button> 
+        <select name="primitive" id="primitiveType">
+          <option value="cube">Cube</option>
+          <option value="sphere">Sphere</option>
+          <option value="plane">Plane</option>
+        </select>
+      </div>
+    </div>
+    <div class="gradientFinish centered" style="height: 100px; color: #aaa;">
+      Click the canvas to move around (still slightly buggy)
+    </div>
+    <footer>
+      <p>&copy; 2023 CATS - Che's Awesome Three dimension toolS</p>
+    </footer>
+  </body>
+</html>
