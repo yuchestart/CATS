@@ -319,8 +319,10 @@ class Scene{
         this.lights = [];
         this.bgcolor = [0,0,0,1];
         this.lighting = {
-            maxLightSourcesPerMesh:1000
+            maxDirectionalLightSourcesPerMesh:10,
+            maxPointLightSourcesPerMesh:20
         }
+        this.built = false;
     }
     moveCamera(vector){
         this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
@@ -332,6 +334,13 @@ class Scene{
     }
     setFOV(fov){
         this.camera.fovy = fov;
+    }
+    rebuild(){
+        this.built = false;
+    }
+    adjustLightingAttribute(attributeName,value){
+        this.lighting[attributeName] = value;
+        this.rebuild()
     }
     projectCamera(){
         if(!this.camera.viewMatrixInitialized){
@@ -345,14 +354,6 @@ class Scene{
             a = vector[0],b=vector[1]
             vector[0] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
-            //ROTATE Y
-            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
-            var a = v[0],b=v[2]
-            v[0] = a*cos - b*sin;
-            v[2] = a*sin + b*cos;
-            var a = vector[0],b=vector[2]
-            vector[0] = a*cos - b*sin;
-            vector[2] = a*sin + b*cos;
             //ROTATE X
             var sin = Math.sin(CATS.math.toRadians(this.camera.direction[0])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[0]))
             var a = v[2],b=v[1]
@@ -361,6 +362,14 @@ class Scene{
             var a = vector[2],b=vector[1]
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
+            //ROTATE Y
+            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
+            var a = v[0],b=v[2]
+            v[0] = a*cos - b*sin;
+            v[2] = a*sin + b*cos;
+            var a = vector[0],b=vector[2]
+            vector[0] = a*cos - b*sin;
+            vector[2] = a*sin + b*cos;
             var viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,CATS.math.vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
@@ -510,6 +519,15 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
+    /**
+     * 
+     * @param {Renderer} renderer 
+     * @param {Mat4} viewMatrix 
+     * @param {Mat4} projectionMatrix 
+     * @param {Array} otherthings 
+     * @param {Scene} scene 
+     * @returns 
+     */
     convertToPackage(renderer,viewMatrix,projectionMatrix,otherthings,scene){
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
@@ -523,6 +541,10 @@ class Mesh{
             normalMatrix.invert()
             normalMatrix.transpose()
             this.transform.normalMatrix = normalMatrix;
+        }
+        const rebuild = scene.built;
+        if(rebuild){
+            this.material.resetBuild();
         }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
@@ -554,44 +576,41 @@ class Mesh{
 class DirectionalLight{
     /**
      * A directional light effective to all objects.
-     * @param {Array<Number>} direction Direction in angles. Directions are ordered in XYZ
+     * @param {Array<Number>} direction Direction in angles. Directions are ordered X,Y
      * @param {Array<Number>|String} color Color of light
      * @param {Number} intensity Intensity of light
      */
     constructor(direction,color,intensity){
-        this.direction = direction;
+        this.direction = this.computeDirection(direction);
         this.color = CATS.Color(color);
         this.intensity = intensity;
     }
     computeDirection(dir){
-        var v,r,sin,cos,a,b
-        v = [0,0,-1];
-        r = {
-            x:dir[0],
-            y:dir[1],
-            z:dir[2]
-        };
-        sin = Math.sin(CATS.math.toRadians(r.z)),cos=Math.cos(CATS.math.toRadians(r.z));
-        a=v[0],b=[1];
+        var v = [0,-1,0]
+        var sin = Math.sin(CATS.math.toRadians(dir[0])), cos = Math.cos(CATS.math.toRadians(dir[0]))
+        var a=v[1],b=v[2]
+        v[1] = a*cos - b*sin;
+        v[2] = a*sin + b*cos;
+        sin = Math.sin(CATS.math.toRadians(dir[1])), cos = Math.cos(CATS.math.toRadians(dir[1]))
+        a=v[0],b=v[2]
         v[0] = a*cos - b*sin;
-        v[1] = a*sin + b*cos;
-        a = v[0],b=v[2]
-        v[0] = a*cos-b*sin
-        v[2] = a*sin+b*cos;
-        a = v[2],b=v[1]
-        v[2] = a*cos-b*sin;
-        v[0] = a*sin+b*cos
-        this.direction = v;
+        v[2] = a*sin + b*cos;
+        return v;
     }
     changeDirection(dir){
-        this.computeDirection(dir);
+        this.direction = this.computeDirection(dir);
     }
     convertToData(){
         return {
-            divector:[...this.direction,this.intensity],
+            divector:[...CATS.math.vec3.invert(this.direction),this.intensity],
             color:this.color,
             type:CATS.enum.DIRECTIONAL_LIGHT
         }
+    }
+}
+class PointLight{
+    constructor(position,color,intensity){
+
     }
 }
 //-------Easy to initialize primitives-------
@@ -703,8 +722,8 @@ class Plane extends Mesh{
             size,0,-size            
         ];
         var indices = [
-            0,1,2,
-            1,3,2,
+            0,1,3,
+            1,2,3,
         ]
         super(vertices,indices,material,false)
     }
@@ -990,10 +1009,9 @@ class Material{
     uniform mat4 wM;
     uniform mat4 vM;
     uniform mat4 pM;
-    uniform mat4 nM;
     varying mediump vec3 fN;
     void main(void){
-        vec3 newVN = vec3(nM*vec4(vN,1.0));
+        vec3 newVN = (wM*vec4(vN,0.0)).xyz;
         gl_Position = pM*vM*wM*vec4(vP,1.0);
         fN = newVN;
     }
@@ -1002,7 +1020,7 @@ class Material{
     precision mediump float;
     varying mediump vec3 fN;
     void main(void){
-        gl_FragColor = vec3(1.0,0.0,1.0,1.0);
+        gl_FragColor = vec4(1.0,0.0,1.0,1.0);
     }
     `
                     let vertexShader = new VertexShader(vertexShaderSource);
@@ -1060,20 +1078,25 @@ void main(void){
 }
 `;
                 let fragmentShaderSource = `
-#define MAXLIGHTSOURCES ${scene.lighting.maxLightSourcesPerMesh}
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
 precision mediump float;
 varying mediump vec3 fN;
-uniform vec4 lightDirection[MAXLIGHTSOURCES];
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
 uniform vec3 lightCounts;
 uniform vec4 objectColor;
 void main(void){
     int ndLights = int(lightCounts.x);
-    if(ndLights>8){
-        ndLights = 8;
+    int npLights = int(lightCounts.y);
+    if(ndLights>MAXDLIGHTSOURCES){
+        ndLights = MAXDLIGHTSOURCES;
+    }
+    if(npLights>MAXPLIGHTSOURCES){
+        npLights = MAXPLIGHTSOURCES;
     }
     vec3 normal = normalize(fN);
     float light = 0.0;
-    for(int i=0; i<MAXLIGHTSOURCES; i++){
+    for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
         }
@@ -1082,6 +1105,12 @@ void main(void){
             increment = 0.0;
         }
         light+=increment;
+    }
+    for(int i=0; i<MAXPLIGHTSOURCES; i++){
+        for(i>=npLights){
+            break;
+        }
+        float increment = 
     }
     if(light > 1.0){
         light = 1.0;

@@ -7,19 +7,18 @@ TESTING HTML FILE OF THE LIBRARY
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGL Library - Demo</title>
-    <script src="./dist/CATS.min.js"></script>
+    <title>CATS - Demo</title>
+    <script src="./js/main.js"></script>
     <script src="./page/js/app.js"></script>
     <link rel="stylesheet" href="./page/css/noscript.css">
 </head>
 <body>
     <noscript>
     <div class="bruh"><pre>
-ERROR:
-JAVASCRIPT HAS BEEN DISABLED.
-PLEASE ENABLE JAVASCRIPT TO CONTINUE.
+CATS Requires JavaScript to function.
+Sorry 
     </pre>
-    <noscript></noscript>
+</noscript>
 </div>
     <canvas id="emotionalDamage" width="500" height="500">
         Get the heck out of here you don't even support canvas
@@ -27,32 +26,35 @@ PLEASE ENABLE JAVASCRIPT TO CONTINUE.
     <p><i id="buildString">WebGL Library Alpha 1<br>
         Milestone 2 | Day: <span id="date"></span>
     </i></p>
-    <p class = "monospace">
+<pre>
+LEGEND:
+X - Completed
+* - In progress
+# - On hold
+! - Discontinued
+/ - Not started
 
-LEGEND:<br>
-X - Completed<br>
-* - In progress<br>
-# - On hold<br>
-! - Discontinued<br>
-/ - Not started<br>
-<br>
-{X} GOALS for Milestone 1(OVERDUE):<br>
-[X] Add mesh support<br>
-[X] Add complex camera movement support<br>
-[X] Add transformations<br>
-[X] Add user-friendliness<br>
-[X] Add easy to initialize primitives<br>
-<br>
-{/} Goals for Milestone 2:<br>
-[/] Add texture support<br>
-[/] Add shadow support<br>
-[/] Add cubemap support<br>
-[X] Add lighting support<br>
-[*] Add multiple types of lighting
-<br>
-{/} Goals for Milestone 3:<br>
-[/] Add mesh reader<br>
-[/] Add material file reader<br>
-    </p>
+{X} GOALS for Milestone 1:
+[X] Add mesh support
+[X] Add complex camera movement support
+[X] Add transformations
+[X] Add user-friendliness
+[X] Add easy to initialize primitives
+
+{*} Goals for Milestone 2:
+[/] Add texture support
+[/] Add shadow support
+[/] Add cubemap support
+[*] Add lighting support
+ - [X] Add directional lighting
+ - [*] Add point lighting
+ - [/] Add spot lighting
+ - [/] Add lighting colors
+
+{/} Goals for Milestone 3:
+[/] Add mesh reader
+[/] Add material file reader
+[/] Add binary/json file formats
+</pre>
 </body>
 </html>
