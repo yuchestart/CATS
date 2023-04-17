@@ -14,11 +14,26 @@
  * CATS Functions & Variables
  */
 const CATS = {
+    /**
+     * Store of CATS math functions.
+     */
     math:{
+        /**
+         * Converts degrees to radians
+         * @param {Number} degrees 
+         * @returns 
+         */
         toRadians:function(degrees){
             return degrees*(Math.PI/180)
         },
+        /**
+         * A small number for CATS to use
+         */
         EPSILON:1e-4,
+        /**
+         * Prints out an inputted 4x4 matrix
+         * @param {Mat4} matrix 
+         */
         printAsMatrix:function(matrix){
             var m = matrix.data;
             console.log(m[0],m[4],m[8],m[12])
@@ -26,7 +41,15 @@ const CATS = {
             console.log(m[2],m[6],m[10],m[14])
             console.log(m[3],m[7],m[11],m[15])
         },
+        /**
+         * Contains math functions for Vector3s
+         */
         vec3:{
+            /**
+             * Normalizes a vector
+             * @param {Array} vector 
+             * @returns 
+             */
             normalize:function(vector){
                 thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
                 if(!thing){
@@ -35,12 +58,30 @@ const CATS = {
                     return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
                 }
             },
+            /**
+             * Adds two vectors together into one
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             add:function(a,b){
                 return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]
             },
+            /**
+             * Subtracts two vectors together into one
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             subtract:function(a,b){
                 return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
             },
+            /**
+             * Gets the cross product of two vectors
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             cross:function(a,b){
                 return [
                     a[1] * b[2] - a[2] * b[1],
@@ -48,34 +89,83 @@ const CATS = {
                     a[0] * b[1] - a[1] * b[0]
                 ]
             },
+            /**
+             * Gets the dot product of two vectors
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             dot:function(a,b){
                 return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
             },
+            /**
+             * Hypot of a vector
+             * @param {Array} vector 
+             * @returns 
+             */
             hypot:function(vector){
                 return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
             },
+            /**
+             * Multiplies a vector by a number
+             * @param {Array} a 
+             * @param {Number} b 
+             * @returns 
+             */
             multiplyByNumber:function(a,b){
                 return [a[0]*b,a[1]*b,a[2]*b]
             },
+            /**
+             * Divides a vector by a number
+             * @param {Array} a 
+             * @param {Number} b 
+             * @returns 
+             */
             divideByNumber:function(a,b){
                 return [a[0]/b,a[1]/b,a[2]/b]
             },
+            /**
+             * Reverses a vector
+             * @param {Array} v 
+             * @returns 
+             */
             invert:function(v){
                 return [v[0]*-1,v[1]*-1,v[2]*-1]
             },
+            /**
+             * Gets the length of a vector
+             * @param {Array} v 
+             * @returns 
+             */
             lengthOf:function(v){
                 return Math.sqrt(v[0]**2+v[1]**2+v[2]**2)
             }
         },
+        /**
+         * Holds triangle functions
+         */
         triangle:{
+            /**
+             * Gets the surface normal of a triangle
+             * @param {Array} v1 
+             * @param {Array} v2 
+             * @param {Array} v3 
+             * @returns 
+             */
             getSurfaceNormal:function(v1,v2,v3){
                 var u = CATS.math.vec3.subtract(v2,v1)
                 var v = CATS.math.vec3.subtract(v3,v1)
                 return CATS.math.vec3.normalize(CATS.math.vec3.cross(u,v))
             }
         },
+        /**
+         * 1/255
+         */
         oneOver255:1/255,
     },
+    /**
+     * CATS enumerals
+     */
     enum:{
         TRIANGLE_STRIP:0,
         TRIANGLES:1,
@@ -106,7 +196,7 @@ const CATS = {
         DIRECTIONAL_LIGHT:20,  
     },
     /**
-     * 
+     * Converts commonly used colors into colors that CATS can process.
      * @param {Array|String} color 
      */
     Color(color){
@@ -235,7 +325,7 @@ class Renderer{
         }
     }
     /**
-     * 
+     * Clears the rendering surface
      * @param {Number} r 
      * @param {Number} g 
      * @param {Number} b 
@@ -297,7 +387,7 @@ class Renderer{
 //#region 
 class Scene{
     /**
-     * A space where 3D objects are placed. 
+     * Creates a space where 3D objects are placed. 
      * The viewer views a scene through the camera which is placed inside.
      * @param {Renderer} renderer 
      */
@@ -324,24 +414,52 @@ class Scene{
         }
         this.built = false;
     }
+    /**
+     * Moves the camera by a vector.
+     * @param {Array} vector 
+     */
     moveCamera(vector){
         this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
     }
+    /**
+     * Rotates the camera by specified angles in the vector.
+     * The angles in the vectors are specified as:
+     * [X,Y,Z]
+     * @param {Array} vector 
+     */
     rotateCamera(vector){
         this.camera.direction = CATS.math.vec3.add(this.camera.direction,vector);
         this.camera.viewMatrixInitialized = false;
     }
+    /**
+     * Sets the field of view angle for the camera.
+     * Range:
+     * 1 degree to 179 degrees
+     * @param {Number} fov 
+     */
     setFOV(fov){
         this.camera.fovy = fov;
     }
+    /**
+     * Makes all of the meshes in the scene rebuild their materials.
+     */
     rebuild(){
         this.built = false;
     }
+    /**
+     * Set a lighting attribute.
+     * @param {String} attributeName 
+     * @param {*} value 
+     */
     adjustLightingAttribute(attributeName,value){
         this.lighting[attributeName] = value;
         this.rebuild()
     }
+    /**
+     * Used internally by CATS to generate a view matrix
+     * @returns 
+     */
     projectCamera(){
         if(!this.camera.viewMatrixInitialized){
             //Ugh I hate math so much
@@ -389,18 +507,27 @@ class Scene{
         };
     }
     /**
-     * 
-     * @param {Mesh|DirectionalLight} object 
-     * @returns 
+     * Adds an object to the scene
+     * @param {Mesh} object 
+     * @returns {Number} The ID of the object
      */
     addObject(object){
         this.objects.push(object);
         return this.objects.length - 1;
     }
+    /**
+     * Adds a light to the scene
+     * @param {DirectionalLight|PointLight} light 
+     * @returns {Number} The ID of the light.
+     */
     addLight(light){
         this.lights.push(light)
         return this.lights.length-1
     }
+    /**
+     * 
+     * @param {Number} id 
+     */
     removeObject(id){
         this.objects.splice(id,1)
     }
@@ -600,6 +727,12 @@ class DirectionalLight{
     changeDirection(dir){
         this.direction = this.computeDirection(dir);
     }
+    changeIntensity(i){
+        this.intensity = i;
+    }
+    changeColor(c){
+        this.color = c;
+    }
     convertToData(){
         return {
             divector:[...CATS.math.vec3.invert(this.direction),this.intensity],
@@ -610,6 +743,11 @@ class DirectionalLight{
 }
 class PointLight{
     constructor(position,color,intensity){
+        this.position = position;
+        this.color = color;
+        this.intensity = intensity;
+    }
+    changePosition(){
 
     }
 }
@@ -719,7 +857,7 @@ class Plane extends Mesh{
             size,0,size,
             -size,0,size,
             -size,0,-size,
-            size,0,-size            
+            size,0,-size           
         ];
         var indices = [
             0,1,3,
@@ -1064,17 +1202,25 @@ class SingleColorMaterial extends Material{
          */
         function buildFunction(renderer,mesh,scene,material){
             if(!material.lastCompiled){
-                let vertexShaderSource = `precision mediump float;
+                let vertexShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+precision mediump float;    
 attribute vec3 vP;
 attribute vec3 vN;
 uniform mat4 wM;
 uniform mat4 vM;
 uniform mat4 pM;
 uniform mat4 nM;
+varying vec3 v_surfaceToLight;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
 varying mediump vec3 fN;
+varying mediump vec3 fP;
 void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    vec4 position = pM*vM*wM*vec4(vP,1.0);
+    gl_Position = position;
     fN = (wM*vec4(vN,0.0)).xyz;
+    fP = position.xyz;
 }
 `;
                 let fragmentShaderSource = `
@@ -1082,9 +1228,12 @@ void main(void){
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
 precision mediump float;
 varying mediump vec3 fN;
+varying mediump vec3 fP;
 uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
 uniform vec3 lightCounts;
 uniform vec4 objectColor;
+uniform mat4 wM;
 void main(void){
     int ndLights = int(lightCounts.x);
     int npLights = int(lightCounts.y);
@@ -1107,10 +1256,12 @@ void main(void){
         light+=increment;
     }
     for(int i=0; i<MAXPLIGHTSOURCES; i++){
-        for(i>=npLights){
+        if(i>=npLights){
             break;
         }
-        float increment = 
+        vec3 surfaceWorldPosition = (wM*vec4(fP,1.0)).xyz;
+        vec3 surfaceToLight = lightPosition[i].xyz - surfaceWorldPosition;
+        float increment = dot(normal,surfaceToLight);
     }
     if(light > 1.0){
         light = 1.0;
