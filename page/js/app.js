@@ -9,7 +9,7 @@ function $(name,parent){
         class:document.getElementsByClassName(name)
     }
 }
-var render,scene,camera,mymesh,mymaterial,packagedmesh,mylight,mylight2;
+var render,scene,camera,mymesh,mymesh2,mymaterial,packagedmesh,mylight,mylight2;
 var keybinds = {
     KeyW:false,
     KeyA:false,
@@ -31,15 +31,20 @@ function main(){
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
     mymaterial = new SingleColorMaterial("#59a1cd")
-    mymesh = new Plane(1,mymaterial)
+    mylight = new PointLight([2,3,0],"#FFFFFF",2)
+    mymesh = new Sphere(1,16,mymaterial)
+    mymesh2 = new Sphere(1,16,mymaterial)
+    mymesh2.translate([3,-5,0])
     mymesh.scale([1,1,1])
     mymesh.rotate([180,0,0])
     scene.moveCamera([0,3,4])
+    scene.addLight(mylight);
     scene.rotateCamera([45,0,0])
     scene.addObject(mymesh)
+    scene.addObject(mymesh2)
     function cat(){
     scene.render()
-    requestAnimationFrame(cat)
+    //requestAnimationFrame(cat)
     }
     cat()
 }

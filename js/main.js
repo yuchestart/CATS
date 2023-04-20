@@ -193,7 +193,8 @@ const CATS = {
         DISABLE_ALPHA_BLEND:26,
         MESH:18,
         LIGHT:19,
-        DIRECTIONAL_LIGHT:20,  
+        DIRECTIONAL_LIGHT:20,
+        POINT_LIGHT:21
     },
     /**
      * Converts commonly used colors into colors that CATS can process.
@@ -404,7 +405,7 @@ class Scene{
         };
         this.objects = [];
         /**
-         * @type {Array<DirectionalLight>}
+         * @type {Array<DirectionalLight|PointLight>}
          */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
@@ -546,6 +547,7 @@ class Scene{
         this.renderer.clear(...this.bgcolor);
         var matrices = this.projectCamera();
         var divector = []
+        var pivector = []
         var otherUniforms = []
         var lightCount = {
             directional:0,
@@ -559,11 +561,20 @@ class Scene{
                     divector.push(...processedLight.divector)
                     lightCount.directional++;
                     break;
+                case CATS.enum.POINT_LIGHT:
+                    pivector.push(...processedLight.pivector)
+                    lightCount.point++;
+                    console.log("ouch")
+                    break;
             }
         }
         if(divector.length){
             var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection")
             otherUniforms.push(divectoruniform)
+        }
+        if(pivector.length){
+            var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
+            otherUniforms.push(pivectoruniform);
         }
         var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
         otherUniforms.push(lightCountVector);
@@ -731,7 +742,7 @@ class DirectionalLight{
         this.intensity = i;
     }
     changeColor(c){
-        this.color = c;
+        this.color = CATS.Color(c);
     }
     convertToData(){
         return {
@@ -744,11 +755,15 @@ class DirectionalLight{
 class PointLight{
     constructor(position,color,intensity){
         this.position = position;
-        this.color = color;
+        this.color = CATS.Color(color);
         this.intensity = intensity;
     }
-    changePosition(){
-
+    convertToData(){
+        return {
+            pivector:[...this.position,this.intensity],
+            color:this.color,
+            type:CATS.enum.POINT_LIGHT
+        }
     }
 }
 //-------Easy to initialize primitives-------
@@ -1217,8 +1232,8 @@ uniform vec4 lightPosition[MAXPLIGHTSOURCES];
 varying mediump vec3 fN;
 varying mediump vec3 fP;
 void main(void){
-    vec4 position = pM*vM*wM*vec4(vP,1.0);
-    gl_Position = position;
+    vec4 position = wM*vec4(vP,1.0);
+    gl_Position = pM*vM*position;
     fN = (wM*vec4(vN,0.0)).xyz;
     fP = position.xyz;
 }
@@ -1233,7 +1248,6 @@ uniform vec4 lightDirection[MAXDLIGHTSOURCES];
 uniform vec4 lightPosition[MAXPLIGHTSOURCES];
 uniform vec3 lightCounts;
 uniform vec4 objectColor;
-uniform mat4 wM;
 void main(void){
     int ndLights = int(lightCounts.x);
     int npLights = int(lightCounts.y);
@@ -1259,9 +1273,18 @@ void main(void){
         if(i>=npLights){
             break;
         }
-        vec3 surfaceWorldPosition = (wM*vec4(fP,1.0)).xyz;
-        vec3 surfaceToLight = lightPosition[i].xyz - surfaceWorldPosition;
-        float increment = dot(normal,surfaceToLight);
+        vec3 surfaceToLight = lightPosition[i].xyz - fP;
+        float distance = pow(
+            surfaceToLight.x*surfaceToLight.x+
+            surfaceToLight.y*surfaceToLight.y+
+            surfaceToLight.z*surfaceToLight.z,0.5
+        );
+        float increment = (dot(fN,normalize(surfaceToLight))-(distance*0.05))*lightPosition[i].w;
+        light+=increment;
+        if(increment<0.0){
+            increment = 0.0;
+        }
+        //gl_FragColor = vec4(surfaceToLight,1.0);
     }
     if(light > 1.0){
         light = 1.0;
