@@ -24,27 +24,34 @@ var keybinds = {
 }
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
+function updateShininess(){
+    $("shininessvalue").id.innerText = $("shininess").id.value;
+    mymaterial.shininess = parseInt($("shininess").id.value)
+}
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#59a1cd")
-    mylight = new PointLight([2,3,0],"#FFFFFF",2)
-    mymesh = new Sphere(1,16,mymaterial)
-    mymesh2 = new Sphere(1,16,mymaterial)
-    mymesh2.translate([3,-5,0])
+    mymaterial = new SingleColorMaterial("#59a1cd",70)
+    mylight = new PointLight([0,0,0],"#FFFFFF",8,2)
+    mymesh2 = new Cube(1,mymaterial)
+    mymesh = new Sphere(1,90,mymaterial)
+    mymesh2.translate([2,0,1])
+    mymesh.translate([-0.5,0,-4])
     mymesh.scale([1,1,1])
-    mymesh.rotate([180,0,0])
-    scene.moveCamera([0,3,4])
+    //mymesh.rotate([180,0,0])
+    scene.moveCamera([-4,0,4])
     scene.addLight(mylight);
-    scene.rotateCamera([45,0,0])
+    scene.rotateCamera([0,45,0])
     scene.addObject(mymesh)
     scene.addObject(mymesh2)
+    scene.setFOV(45)
     function cat(){
     scene.render()
-    //requestAnimationFrame(cat)
+    mymaterial.resetBuild()
+    requestAnimationFrame(cat)
     }
     cat()
 }

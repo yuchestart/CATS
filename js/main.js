@@ -42,6 +42,20 @@ const CATS = {
             console.log(m[3],m[7],m[11],m[15])
         },
         /**
+         * Clamps a value between min and max
+         * @param {Number} value 
+         * @param {Number} min 
+         * @param {Number} max 
+         * @returns 
+         */
+        clamp:function(value,min,max){
+            if(value<min)
+                return min
+            else if(value>max)
+                return max
+            return value
+        },
+        /**
          * Contains math functions for Vector3s
          */
         vec3:{
@@ -197,7 +211,12 @@ const CATS = {
         POINT_LIGHT:21
     },
     /**
-     * Converts commonly used colors into colors that CATS can process.
+     * Converts commonly used color formats to RGBA.
+     * Formats include:
+     * * HSV: "hsv(h,s,v)"
+     * * RGB32: "rgb(r,g,b)" or [r,g,b]
+     * * RGBA32*: "rgba(r,g,b,a)" or [r,g,b,a]
+     * * HEX: "#rrggbb"
      * @param {Array|String} color 
      */
     Color(color){
@@ -546,25 +565,30 @@ class Scene{
     render(){
         this.renderer.clear(...this.bgcolor);
         var matrices = this.projectCamera();
-        var divector = []
-        var pivector = []
-        var otherUniforms = []
+        var divector = [];
+        var pivector = [];
+        var lightColors = {
+            directional:[],
+            point:[]
+        };
+        var otherUniforms = [];
         var lightCount = {
             directional:0,
             point:0,
             spot:0
-        }
+        };
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
                 case CATS.enum.DIRECTIONAL_LIGHT:
                     divector.push(...processedLight.divector)
+                    lightColors.directional.push(...processedLight.color)
                     lightCount.directional++;
                     break;
                 case CATS.enum.POINT_LIGHT:
                     pivector.push(...processedLight.pivector)
+                    lightColors.point.push(...processedLight.color)
                     lightCount.point++;
-                    console.log("ouch")
                     break;
             }
         }
@@ -576,8 +600,18 @@ class Scene{
             var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
             otherUniforms.push(pivectoruniform);
         }
+        if(lightColors.directional.length){
+            var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors")
+            otherUniforms.push(lcd)
+        }
+        if(lightColors.point.length){
+            var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors")
+            otherUniforms.push(lcp)
+        }
         var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
+        var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
+        otherUniforms.push(viewPosVector);
         for(var i=0; i<this.objects.length; i++){
             try{
             var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
@@ -634,7 +668,6 @@ class Mesh{
             transformMatrix:null,
             normalMatrix:null
         }
-        
     }
     addTag(tag){
         this.tags.push(tag);
@@ -715,12 +748,16 @@ class DirectionalLight{
     /**
      * A directional light effective to all objects.
      * @param {Array<Number>} direction Direction in angles. Directions are ordered X,Y
-     * @param {Array<Number>|String} color Color of light
+     * @param {Array<Number>|String} color Color of light. Default is white.
      * @param {Number} intensity Intensity of light
      */
-    constructor(direction,color,intensity){
+    constructor(direction,intensity,color){
         this.direction = this.computeDirection(direction);
-        this.color = CATS.Color(color);
+        if(color){
+        this.color = CATS.Color(color).slice(0,3);
+        } else {
+            this.color = [1,1,1]
+        }
         this.intensity = intensity;
     }
     computeDirection(dir){
@@ -742,7 +779,7 @@ class DirectionalLight{
         this.intensity = i;
     }
     changeColor(c){
-        this.color = CATS.Color(c);
+        this.color = CATS.Color(c).slice(0,3);
     }
     convertToData(){
         return {
@@ -752,16 +789,24 @@ class DirectionalLight{
         }
     }
 }
+class AmbientLight{
+    /**
+     * An ambient light effective to all objects.
+     * 
+     */
+    constructor(intensity,color){}
+}
 class PointLight{
-    constructor(position,color,intensity){
+    constructor(position,color,intensity,range){
         this.position = position;
-        this.color = CATS.Color(color);
+        this.color = CATS.Color(color).slice(0,3);
         this.intensity = intensity;
+        this.range = range;
     }
     convertToData(){
         return {
             pivector:[...this.position,this.intensity],
-            color:this.color,
+            color:[...this.color,this.range],
             type:CATS.enum.POINT_LIGHT
         }
     }
@@ -1107,15 +1152,15 @@ class UniformVector4{
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
-class UniformInt{
-    constructor(render,int,attribute){
-        this.value = int;
+class UniformFloat{
+    constructor(render,value,attribute){
+        this.value = value;
         this.attribute = attribute;
         this.render = render;
         this.tag = CATS.enum.UNIFORM;
     }
     enableForProgram(program){
-        this.render.gl.uniform1i(this.render.gl.getUniformLocation(program,this.attribute),this.value)
+        this.render.gl.uniform1f(this.render.gl.getUniformLocation(program,this.attribute),this.value)
     }
 }
 //This part is also useless but kinda useful...
@@ -1148,10 +1193,15 @@ class RenderablePackage{
 //#region 
 
 class Material{
-    constructor(params,buildFunction){
+    constructor(params,buildFunction,properties){
         this.lastCompiled = false;
         this.compiled = null;
         this.params = params;
+        if(properties){
+            for(const [key,value] of Object.entries(properties)){
+                this[key] = value;
+            }
+        }
         if(!buildFunction){
             buildFunction = function(renderer,mesh,scene,material){
                 if(!material.lastCompiled){
@@ -1206,7 +1256,7 @@ class Material{
 }
 
 class SingleColorMaterial extends Material{
-    constructor(color,inverseLightDirection){
+    constructor(color,shininess){
         /**
          * 
          * @param {Renderer} renderer 
@@ -1220,34 +1270,49 @@ class SingleColorMaterial extends Material{
                 let vertexShaderSource = `
 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
-precision mediump float;    
+
+precision mediump float;
+
 attribute vec3 vP;
 attribute vec3 vN;
+
 uniform mat4 wM;
 uniform mat4 vM;
 uniform mat4 pM;
 uniform mat4 nM;
-varying vec3 v_surfaceToLight;
+uniform vec3 viewPosition;
 uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+
 varying mediump vec3 fN;
 varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
 void main(void){
     vec4 position = wM*vec4(vP,1.0);
     gl_Position = pM*vM*position;
     fN = (wM*vec4(vN,0.0)).xyz;
     fP = position.xyz;
+    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
 }
 `;
                 let fragmentShaderSource = `
 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
 precision mediump float;
+
 varying mediump vec3 fN;
 varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
 uniform vec4 lightDirection[MAXDLIGHTSOURCES];
 uniform vec4 lightPosition[MAXPLIGHTSOURCES];
 uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
 uniform vec4 objectColor;
+uniform float shininess;
 void main(void){
     int ndLights = int(lightCounts.x);
     int npLights = int(lightCounts.y);
@@ -1259,6 +1324,7 @@ void main(void){
     }
     vec3 normal = normalize(fN);
     float light = 0.0;
+    float specular = 0.0;
     for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
@@ -1273,18 +1339,36 @@ void main(void){
         if(i>=npLights){
             break;
         }
-        vec3 surfaceToLight = lightPosition[i].xyz - fP;
+        vec3 surfaceToLight = normalize(lightPosition[i].xyz - fP);
+        vec3 surfaceToView = normalize(surfaceToView);
+        vec3 halfVector = normalize(surfaceToLight+surfaceToView);
         float distance = pow(
             surfaceToLight.x*surfaceToLight.x+
             surfaceToLight.y*surfaceToLight.y+
             surfaceToLight.z*surfaceToLight.z,0.5
         );
-        float increment = (dot(fN,normalize(surfaceToLight))-(distance*0.05))*lightPosition[i].w;
-        light+=increment;
+        float subtraction;
+        if(distance<=pointLightColors[i].w){
+            subtraction = 0.0;
+        } else {
+            subtraction = distance*(0.3/pointLightColors[i].w);
+        }
+        float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
         if(increment<0.0){
             increment = 0.0;
         }
-        //gl_FragColor = vec4(surfaceToLight,1.0);
+        light+=increment;
+        if(shininess <= 0.0){
+            break;
+        }
+        float specularIncrement = 0.0;
+        if(specularIncrement<0.0){
+            specularIncrement = 0.0;
+        }
+        if(increment>0.0){
+            specularIncrement = pow(dot(fN,halfVector),shininess);
+        }
+        specular+=specularIncrement;
     }
     if(light > 1.0){
         light = 1.0;
@@ -1293,7 +1377,14 @@ void main(void){
     }
     gl_FragColor = objectColor;
     gl_FragColor.rgb*=light;
+    gl_FragColor.rgb+=specular;
 }`;
+                if(material.shininess<=0){
+                    var shine=0
+                } else {
+                var shine = material.shininess*3
+                shine = 251-CATS.math.clamp(shine,0,250)
+                }
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
@@ -1303,9 +1394,14 @@ void main(void){
                     parameters:[
                         {
                             type:UniformVector4,
-                            value:CATS.Color(material.params[0]),
+                            value:CATS.Color(material.color),
                             attribute:"objectColor"
                         },
+                        {
+                            type:UniformFloat,
+                            value:shine,
+                            attribute:"shininess"
+                        }
                     ]
                 }
                 return material.compiled;
@@ -1313,7 +1409,10 @@ void main(void){
                 return material.compiled;
             }
         }
-        super([color,inverseLightDirection],buildFunction)
+        super([],buildFunction,{
+            "shininess":shininess,
+            "color":color
+        })
     }
 }
 //#endregion

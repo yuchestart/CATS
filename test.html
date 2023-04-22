@@ -13,16 +13,13 @@ TESTING HTML FILE OF THE LIBRARY
     <link rel="stylesheet" href="./page/css/noscript.css">
 </head>
 <body>
-    <noscript>
-    <div class="bruh"><pre>
-CATS Requires JavaScript to function.
-Sorry 
-    </pre>
-</noscript>
 </div>
     <canvas id="emotionalDamage" width="500" height="500">
         Get the heck out of here you don't even support canvas
     </canvas>
+    <div id="controlpanel">
+        Shininess: <span id="shininessvalue">70</span><input type="range" min="0" max="100" id="shininess" value="70" onchange="updateShininess()">
+    </div>
     <p><i id="buildString">WebGL Library Alpha 1<br>
         Milestone 2 | Generation: 1 | Day: <span id="date"></span>
     </i></p>
@@ -49,12 +46,12 @@ X - Completed
 [*] Add lighting support
  - [X] Add directional lighting
  - [X] Add point lighting
- - [*] Add spot lighting
- - [/] Add lighting colors
+ - [#] Add spot lighting
+ - [*] Add lighting colors
 
 {/} Goals for Milestone 3:
 [/] Add mesh reader
-[/] Add material file reader
+[!] Add material file reader
 [/] Add binary/json file formats
 </pre>
 </body>
