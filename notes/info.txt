@@ -1,7 +1,0 @@
-AMOGUS.png information:
-Well that's a bit sussy.
-Used for testing textures.
-
-JS information:
-Dependencies: Will be removed.
-Library: The actual code of the WebGL Library.

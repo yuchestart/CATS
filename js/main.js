@@ -569,8 +569,12 @@ class Scene{
         var pivector = [];
         var lightColors = {
             directional:[],
-            point:[]
+            point:[],
+            ambient:[]
         };
+        var specularLightColors = {
+            point:[]
+        }
         var otherUniforms = [];
         var lightCount = {
             directional:0,
@@ -588,6 +592,8 @@ class Scene{
                 case CATS.enum.POINT_LIGHT:
                     pivector.push(...processedLight.pivector)
                     lightColors.point.push(...processedLight.color)
+                    specularLightColors.point.push(...processedLight.specularColor)
+                    console.log(specularLightColors)
                     lightCount.point++;
                     break;
             }
@@ -607,6 +613,10 @@ class Scene{
         if(lightColors.point.length){
             var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors")
             otherUniforms.push(lcp)
+        }
+        if(specularLightColors.point.length){
+            var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors")
+            otherUniforms.push(scp)
         }
         var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
         var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
@@ -797,16 +807,26 @@ class AmbientLight{
     constructor(intensity,color){}
 }
 class PointLight{
-    constructor(position,color,intensity,range){
+    /**
+     * A light that emits from a single point in all directions.
+     * @param {Array<Number>} position 
+     * @param {Number} intensity 
+     * @param {Number} range 
+     * @param {Array<Number>|String} color 
+     * @param {Array<Number>|String} specularColor 
+     */
+    constructor(position,intensity,range,color,specularColor){
         this.position = position;
         this.color = CATS.Color(color).slice(0,3);
+        this.specularColor = CATS.Color(specularColor).slice(0,3);
         this.intensity = intensity;
         this.range = range;
     }
     convertToData(){
         return {
             pivector:[...this.position,this.intensity],
-            color:[...this.color,this.range],
+            color:[...this.color,this.range==1?1.0001:this.range],
+            specularColor:[...this.specularColor],
             type:CATS.enum.POINT_LIGHT
         }
     }
@@ -1325,6 +1345,7 @@ void main(void){
     vec3 normal = normalize(fN);
     float light = 0.0;
     float specular = 0.0;
+    vec3 lightColor;
     for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
@@ -1351,12 +1372,14 @@ void main(void){
         if(distance<=pointLightColors[i].w){
             subtraction = 0.0;
         } else {
-            subtraction = distance*(0.3/pointLightColors[i].w);
+            float range = pointLightColors[i].w;
+            subtraction = distance*(0.3/range);
         }
         float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
         if(increment<0.0){
             increment = 0.0;
         }
+        lightColor += pointLightColors[i].rgb;
         light+=increment;
         if(shininess <= 0.0){
             break;
@@ -1376,7 +1399,7 @@ void main(void){
         light = 0.0;
     }
     gl_FragColor = objectColor;
-    gl_FragColor.rgb*=light;
+    gl_FragColor.rgb*=light*lightColor;
     gl_FragColor.rgb+=specular;
 }`;
                 if(material.shininess<=0){
