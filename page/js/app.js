@@ -28,23 +28,29 @@ function updateShininess(){
     $("shininessvalue").id.innerText = $("shininess").id.value;
     mymaterial.shininess = parseInt($("shininess").id.value)
 }
+function updateBrightness(){
+    $("brightnessvalue").id.innerText = $("brightness").id.value;
+    mylight.range = parseFloat($("brightness").id.value)
+}
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#59a1cd",70)
-    mylight = new PointLight([0,0,0],"#FFFFFF",8,2)
+    mymaterial = new SingleColorMaterial("#51FF51",70)
+    mylight = new PointLight([0,0,0],"#FF9999",2,1.1)
+    //mylight2 = new PointLight([0,-4,0],"#FF0000",8,2)
     mymesh2 = new Cube(1,mymaterial)
     mymesh = new Sphere(1,90,mymaterial)
-    mymesh2.translate([2,0,1])
-    mymesh.translate([-0.5,0,-4])
+    mymesh2.translate([10,0,1])
+    mymesh.translate([-0.6,2,-4])
     mymesh.scale([1,1,1])
     //mymesh.rotate([180,0,0])
     scene.moveCamera([-4,0,4])
     scene.addLight(mylight);
-    scene.rotateCamera([0,45,0])
+    //scene.addLight(mylight2)
+    scene.rotateCamera([0,70,0])
     scene.addObject(mymesh)
     scene.addObject(mymesh2)
     scene.setFOV(45)
