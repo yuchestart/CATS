@@ -1296,8 +1296,7 @@ void main(void){
 }
 `;
                 let fragmentShaderSource = `
-
-                #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
 
 precision mediump float;
@@ -1314,15 +1313,6 @@ uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
 uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
 uniform vec4 objectColor;
 uniform float shininess;
-
-bool isnan(float val){
-    return (val<=0.0||0.0<=val)?false:true;
-}
-
-bool isinf(float val){
-    return (val!=0.0&&val*2.0==val)?true:false;
-}
-
 void main(void){
     int ndLights = int(lightCounts.x);
     int npLights = int(lightCounts.y);
@@ -1335,8 +1325,6 @@ void main(void){
     vec3 normal = normalize(fN);
     float light = 0.0;
     float specular = 0.0;
-    vec3 lightColor;
-    vec3 specularColor;
     for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
@@ -1359,25 +1347,17 @@ void main(void){
             surfaceToLight.y*surfaceToLight.y+
             surfaceToLight.z*surfaceToLight.z,0.5
         );
-        //gl_FragColor = vec4(surfaceToLight,1.0);
         float subtraction;
         if(distance<=pointLightColors[i].w){
             subtraction = 0.0;
         } else {
             subtraction = distance*(0.3/pointLightColors[i].w);
         }
-        //if(isnan(distance)||isinf(distance)){
-        //    subtraction = 0.0;
-        //}
         float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
         if(increment<0.0){
             increment = 0.0;
         }
         light+=increment;
-        if(increment>1.0){
-            increment=1.0;
-        }
-        lightColor+=increment*pointLightColors[i].xyz;
         if(shininess <= 0.0){
             break;
         }
@@ -1385,7 +1365,6 @@ void main(void){
         if(specularIncrement<0.0){
             specularIncrement = 0.0;
         }
-        
         if(increment>0.0){
             specularIncrement = pow(dot(fN,halfVector),shininess);
         }
