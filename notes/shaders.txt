@@ -1,20 +1,119 @@
 Shaders for color buffered objects with no lighting.
 Vertex Shader:
 
-attribute vec3 vertexPosition;
-attribute vec4 vertexColor;
-uniform mat4 projectionMatrix;
-uniform mat4 cameraMatrix;
-uniform mat4 transformationMatrix;
-varying lowp vec4 vColor;
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+attribute vec3 vP;
+attribute vec3 vN;
+
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
 void main(void){
-    gl_Position = vec4(vertexPosition,1.0);
-    vColor = aVertexColor;
+    vec4 position = wM*vec4(vP,1.0);
+    gl_Position = pM*vM*position;
+    fN = (wM*vec4(vN,0.0)).xyz;
+    fP = position.xyz;
+    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
 }
 
-Fragment Shader:
 
-varying lowp vec4 vColor;
-void main(void){
-    gl_FragColor = vColor;
+Fragment Shader(Contains lighting code):
+
+#### HEADER ####
+
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+uniform vec4 objectColor;
+uniform float shininess;
+
+#### MAIN FUNCTION ####
+
+int ndLights = int(lightCounts.x);
+int npLights = int(lightCounts.y);
+if(ndLights>MAXDLIGHTSOURCES){
+    ndLights = MAXDLIGHTSOURCES;
+}
+if(npLights>MAXPLIGHTSOURCES){
+    npLights = MAXPLIGHTSOURCES;
+}
+vec3 normal = normalize(fN);
+float light = 0.0;
+float specular = 0.0;
+vec3 lightColor,specularColor;
+for(int i=0; i<MAXDLIGHTSOURCES; i++){
+    if(i>=ndLights){
+        break;
+    }
+    float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
+    if(increment<0.0){
+        increment = 0.0;
+    }
+    light+=increment;
+}
+for(int i=0; i<MAXPLIGHTSOURCES; i++){
+    if(i>=npLights){
+        break;
+    }
+    vec3 surfaceToLight = normalize(lightPosition[i].xyz - fP);
+    vec3 surfaceToView = normalize(surfaceToView);
+    vec3 halfVector = normalize(surfaceToLight+surfaceToView);
+    float distance = pow(
+        surfaceToLight.x*surfaceToLight.x+
+        surfaceToLight.y*surfaceToLight.y+
+        surfaceToLight.z*surfaceToLight.z,0.5
+    );
+    float subtraction;
+    if(distance<=pointLightColors[i].w){
+        subtraction = 0.0;
+    } else {
+        float range = pointLightColors[i].w;
+        subtraction = distance*(0.3/range);
+    }
+    float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
+    if(increment<0.0){
+        increment = 0.0;
+    }
+    lightColor += pointLightColors[i].rgb;
+    light+=increment;
+    if(shininess <= 0.0){
+        break;
+    }
+    float specularIncrement = 0.0;
+    if(specularIncrement<0.0){
+        specularIncrement = 0.0;
+    }
+    if(increment>0.0){
+        specularIncrement = pow(dot(fN,halfVector),shininess);
+    }
+    specular+=specularIncrement;
+}
+if(light > 1.0){
+    light = 1.0;
+} else if(light<0.0){
+    light = 0.0;
 }

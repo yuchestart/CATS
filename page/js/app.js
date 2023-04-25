@@ -30,7 +30,7 @@ function main(){
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
     scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#33FF00",70)
+    mymaterial = new SingleColorMaterial("#00FF00",70)
     mylight = new PointLight([0,0,0],1,1,"#FF0000","#FF0000")
     mymesh2 = new Cube(1,mymaterial)
     mymesh = new Sphere(1,90,mymaterial)

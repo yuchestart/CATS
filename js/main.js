@@ -6,7 +6,15 @@
  * 
  * Created by Che Yu.
  * 
- * Now that's a lot of code.
+ * If you didn't download the whole repository then here you go:
+ * Copyright © 2023 Che Yu
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
  */
 //-----------MISC-----------
 //#region 
@@ -1213,6 +1221,12 @@ class RenderablePackage{
 //#region 
 
 class Material{
+    /**
+     * 
+     * @param {*} params 
+     * @param {*} buildFunction 
+     * @param {*} properties 
+     */
     constructor(params,buildFunction,properties){
         this.lastCompiled = false;
         this.compiled = null;
@@ -1226,22 +1240,47 @@ class Material{
             buildFunction = function(renderer,mesh,scene,material){
                 if(!material.lastCompiled){
                     let vertexShaderSource = `
-    precision mediump float;
-    attribute vec3 vP;
-    attribute vec3 vN;
-    uniform mat4 wM;
-    uniform mat4 vM;
-    uniform mat4 pM;
-    varying mediump vec3 fN;
-    void main(void){
-        vec3 newVN = (wM*vec4(vN,0.0)).xyz;
-        gl_Position = pM*vM*wM*vec4(vP,1.0);
-        fN = newVN;
-    }
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+precision mediump float;
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+void main(void){
+        vec4 position = wM*vec4(vP,1.0);
+        gl_Position = pM*vM*position;
+        fN = (wM*vec4(vN,0.0)).xyz;
+        fP = position.xyz;
+        surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
+}
+                    
     `
                     let fragmentShaderSource = `
-    precision mediump float;
-    varying mediump vec3 fN;
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+precision mediump float;
+precision mediump float;
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+uniform vec4 objectColor;
+uniform float shininess;
     void main(void){
         gl_FragColor = vec4(1.0,0.0,1.0,1.0);
     }
@@ -1345,7 +1384,7 @@ void main(void){
     vec3 normal = normalize(fN);
     float light = 0.0;
     float specular = 0.0;
-    vec3 lightColor;
+    vec3 lightColor,specularColor;
     for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
@@ -1398,8 +1437,9 @@ void main(void){
     } else if(light<0.0){
         light = 0.0;
     }
+
     gl_FragColor = objectColor;
-    gl_FragColor.rgb*=light*lightColor;
+    gl_FragColor.rgb*=light;
     gl_FragColor.rgb+=specular;
 }`;
                 if(material.shininess<=0){
@@ -1437,6 +1477,9 @@ void main(void){
             "color":color
         })
     }
+}
+class TexturedMaterial extends Material{
+    
 }
 //#endregion
 //-----------MATH-----------
