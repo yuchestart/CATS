@@ -9,7 +9,7 @@ function $(name,parent){
         class:document.getElementsByClassName(name)
     }
 }
-var render,scene,camera,mymesh,mymesh2,mymaterial,packagedmesh,mylight,mylight2;
+var render,scene,camera,mymesh,mymesh2,mymaterial,packagedmesh,mylight,mylight2,mytexture;
 var keybinds = {
     KeyW:false,
     KeyA:false,
@@ -29,27 +29,21 @@ function main(){
     //Wow now that's a lot of code gone.
     render = new Renderer($("emotionalDamage").id)
     scene = new Scene(render)
-    scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#00FF00",70)
-    mylight = new PointLight([0,0,0],1,1,"#FF0000","#FF0000")
-    mymesh2 = new Cube(1,mymaterial)
-    mymesh = new Sphere(1,90,mymaterial)
-    mymesh2.translate([2,0,1])
-    mymesh.translate([-0.5,0,-4])
+    scene.bgcolor = CATS.Color("#74d4bf")
+    mytexture = new Texture($("amogus").id)
+    mymaterial = new TexturedMaterial(mytexture)
+    mylight = new PointLight([0,0,6],1,1,"#FF0000","#FF0000")
+    mymesh = new Cube(1,mymaterial)
     mymesh.scale([1,1,1])
     //mymesh.rotate([180,0,0])
-    scene.moveCamera([-4,0,4])
+    scene.moveCamera([0,0,6])
     scene.addLight(mylight);
-    scene.rotateCamera([0,45,0])
     scene.addObject(mymesh)
-    scene.addObject(mymesh2)
     scene.setFOV(45)
     function cat(){
+        mymesh.rotate([1,1,0])
     scene.render()
-    mymaterial.resetBuild()
-    $("shininessvalue").id.innerText = $("shininess").id.value;
-    mymaterial.shininess = parseInt($("shininess").id.value)
-    //requestAnimationFrame(cat)
+    requestAnimationFrame(cat)
     }
     cat()
 }

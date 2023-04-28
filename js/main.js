@@ -216,7 +216,12 @@ const CATS = {
         MESH:18,
         LIGHT:19,
         DIRECTIONAL_LIGHT:20,
-        POINT_LIGHT:21
+        POINT_LIGHT:21,
+        REPEAT:22,
+        MIRRORED_REPEAT:23,
+        CLAMP_TO_EDGE:24,
+        CLAMP_TO_BORDER:25,
+        USES_TEXTURE:26
     },
     /**
      * Converts commonly used color formats to RGBA.
@@ -601,7 +606,6 @@ class Scene{
                     pivector.push(...processedLight.pivector)
                     lightColors.point.push(...processedLight.color)
                     specularLightColors.point.push(...processedLight.specularColor)
-                    console.log(specularLightColors)
                     lightCount.point++;
                     break;
             }
@@ -650,8 +654,9 @@ class Mesh{
      * @param {Material} material
      * @param {Boolean} manuallySpecifyNormals
      * @param {Array<Number>} normals
+     * @param {Array<Number>|Array<Array<Number>>} texCoords
      */
-    constructor(vertices,indices,material,manuallySpecifyNormals,normals){
+    constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords){
         if(manuallySpecifyNormals){
             this.normals = normals;
             this.vertices = vertices;
@@ -675,6 +680,15 @@ class Mesh{
                 this.indices.push(i*3,i*3+1,i*3+2)
             }   
         }
+        if(texCoords instanceof Array && texCoords[0] instanceof Array){
+            for(var i=0; i<texCoords; i++){
+                this.texCoords.push(texCoords[i][0],texCoords[i][1])
+            }
+        } else if (texCoords instanceof Array){
+            this.texCoords = texCoords;
+        } else {
+            this.texCoords = []
+        }
         this.material = material;
         this.visible = true;
         this.tags = undefined;
@@ -686,6 +700,7 @@ class Mesh{
             transformMatrix:null,
             normalMatrix:null
         }
+        
     }
     addTag(tag){
         this.tags.push(tag);
@@ -747,6 +762,9 @@ class Mesh{
         var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
         var indexBuffer = new IndexBuffer(renderer,this.indices);
         var normalBuffer = new PositionBuffer(renderer,this.normals,"vN")
+        if(this.texCoords?this.texCoords.length:0){
+            var textureBuffer
+        }
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
@@ -848,7 +866,7 @@ class Cube extends Mesh{
      * @param {Number} size The size of the cube.
      * @param {Material} material The material of the cube.
      */
-    constructor(size,material){
+    constructor(size,material,customTextureCoordinates){
         super([
             //Back
             -size,size,-size,
@@ -894,7 +912,14 @@ class Cube extends Mesh{
             19,18,16,
             21,23,20,
             23,22,20
-        ],material)
+        ],material,0,0,customTextureCoordinates?customTextureCoordinates:[
+            0.0,1.0,1.0,1.0,0.0,1.0,
+            0.0,1.0,1.0,1.0,0.0,1.0,
+            0.0,1.0,1.0,1.0,0.0,1.0,
+            0.0,1.0,1.0,1.0,0.0,1.0,
+            0.0,1.0,1.0,1.0,0.0,1.0,
+            0.0,1.0,1.0,1.0,0.0,1.0,
+        ])
     }
 }
 class Sphere extends Mesh{
@@ -1079,6 +1104,7 @@ class Buffer{
             usage?usage:gl.STATIC_DRAW
         );
         this.buffer = newBuffer;
+        gl.bindBuffer(this.usageType,null)
     }
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
@@ -1137,6 +1163,43 @@ class IndexBuffer extends Buffer{
             usageType:CATS.enum.ELEMENT_ARRAY_BUFFER,
             type:CATS.enum.NON_ATTRIBUTE
         })
+    }
+}
+class TextureBuffer{
+    /**
+     * Creates a texture buffer object. Used internally in CATS.
+     * @param {Renderer} renderer 
+     * @param {Texture} texture
+     */
+    constructor(renderer,texture){
+        this.renderer = renderer;
+        const gl = this.renderer.gl;
+        const textr = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D,textr)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture)
+        gl.bindTexture(gl.TEXTURE_2D,null)
+        this.texture = textr;
+    }
+    enableForProgram(){
+       this.renderer.gl.bindTexture(this.renderer.gl.TEXTURE_2D,this.texture)
+    }
+}
+class Texture{
+    /**
+     * Converts images into usable texture formats
+     */
+    constructor(data){
+        if(data instanceof String){
+            var myimage = new Image();
+            myimage.src=data;
+            return myimage;
+        } else {
+            return data;
+        }
     }
 }
 //#endregion
@@ -1418,7 +1481,7 @@ void main(void){
         if(increment<0.0){
             increment = 0.0;
         }
-        lightColor += pointLightColors[i].rgb;
+        lightColor = pointLightColors[i].rgb;
         light+=increment;
         if(shininess <= 0.0){
             break;
@@ -1479,7 +1542,80 @@ void main(void){
     }
 }
 class TexturedMaterial extends Material{
-    
+    constructor(texture){
+        function buildFunction(renderer,mesh,scene,material){
+            if(!mesh.texCoords){
+                throw Error("No texture coordinates are provided for this object!")
+            }
+            const vertexShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+attribute vec3 vP;
+attribute vec3 vN;
+attribute vec2 vTC;
+
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+varying mediump vec2 fTC;
+void main(void){
+    vec4 position = wM*vec4(vP,1.0);
+    gl_Position = pM*vM*position;
+    fN = (wM*vec4(vN,0.0)).xyz;
+    fP = position.xyz;
+    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
+    fTC = vTC;
+}`
+            const framgentShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+varying mediump vec2 fTC;
+
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+uniform vec4 objectColor;
+uniform sampler2D texSamp;
+uniform float shininess;
+void main(void){
+    gl_FragColor = texture2D(texSamp,fTC);
+}`
+            let vertexShader = new VertexShader(vertexShaderSource)
+            let fragmentShader = new FragmentShader(framgentShaderSource)
+            let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader)
+            material.lastCompiled = true;
+            material.compiled = {
+                shaderProgram:shaderProgram,
+                parameters:[
+                    {
+                        type:TextureBuffer,
+                        value:material.params[0],
+                    },
+                ]
+            }
+            return material.compiled
+        }
+        super([texture],buildFunction,{})
+    }
 }
 //#endregion
 //-----------MATH-----------
