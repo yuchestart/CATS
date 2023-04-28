@@ -772,6 +772,7 @@ class Mesh{
         if(this.texCoords?this.texCoords.length:0){
             var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
             shaderInput.push(textureBuffer)
+            console.log(textureBuffer)
         }
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
@@ -1179,7 +1180,7 @@ class TextureCoordinateBuffer extends Buffer{
             },
             usageType:CATS.enum.ARRAY_BUFFER,
             type:CATS.enum.ATTRIBUTE,
-            attibute:attribute
+            attribute:attribute
         })
     }
 }
