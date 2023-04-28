@@ -43,7 +43,7 @@ function main(){
     function cat(){
         mymesh.rotate([1,1,0])
     scene.render()
-    requestAnimationFrame(cat)
+    //requestAnimationFrame(cat)
     }
     cat()
 }

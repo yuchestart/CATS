@@ -762,9 +762,6 @@ class Mesh{
         var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
         var indexBuffer = new IndexBuffer(renderer,this.indices);
         var normalBuffer = new PositionBuffer(renderer,this.normals,"vN")
-        if(this.texCoords?this.texCoords.length:0){
-            var textureBuffer
-        }
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
@@ -772,6 +769,10 @@ class Mesh{
         var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform,normalUniform];
         shaderInput = shaderInput.concat(newParameters);
         shaderInput = shaderInput.concat(otherthings);
+        if(this.texCoords?this.texCoords.length:0){
+            var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
+            shaderInput.push(textureBuffer)
+        }
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
             numElements:this.indices.length,
@@ -1109,6 +1110,7 @@ class Buffer{
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
+            console.log(location)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
                 this.params.vertexAttribParams.numberOfComponents,
@@ -1162,6 +1164,22 @@ class IndexBuffer extends Buffer{
         super(render,data,Uint16Array,{
             usageType:CATS.enum.ELEMENT_ARRAY_BUFFER,
             type:CATS.enum.NON_ATTRIBUTE
+        })
+    }
+}
+class TextureCoordinateBuffer extends Buffer{
+    constructor(render,data,attribute){
+        super(render,data,Float32Array,{
+            vertexAttribParams:{
+                numberOfComponents:2,
+                type:render.gl.FLOAT,
+                normalize:render.gl.FALSE,
+                stride:2*Float32Array.BYTES_PER_ELEMENT,
+                offset:0
+            },
+            usageType:CATS.enum.ARRAY_BUFFER,
+            type:CATS.enum.ATTRIBUTE,
+            attibute:attribute
         })
     }
 }
@@ -1569,14 +1587,15 @@ varying mediump vec3 fP;
 varying mediump vec3 surfaceToView;
 varying mediump vec2 fTC;
 void main(void){
+    fTC = vTC;
     vec4 position = wM*vec4(vP,1.0);
     gl_Position = pM*vM*position;
     fN = (wM*vec4(vN,0.0)).xyz;
     fP = position.xyz;
     surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
-    fTC = vTC;
+    
 }`
-            const framgentShaderSource = `
+            const fragmentShaderSource = `
 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
 
@@ -1599,8 +1618,9 @@ uniform float shininess;
 void main(void){
     gl_FragColor = texture2D(texSamp,fTC);
 }`
+            console.log(vertexShaderSource,fragmentShaderSource)
             let vertexShader = new VertexShader(vertexShaderSource)
-            let fragmentShader = new FragmentShader(framgentShaderSource)
+            let fragmentShader = new FragmentShader(fragmentShaderSource)
             let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader)
             material.lastCompiled = true;
             material.compiled = {
