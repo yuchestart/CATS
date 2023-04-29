@@ -990,10 +990,10 @@ class Plane extends Mesh{
             0,-1,0,
             0,-1,0,
         ],[
-            0,0,
             1,0,
-            1,1,
+            0,0,
             0,1,
+            1,1,
         ])
     }
 }
@@ -1122,7 +1122,6 @@ class Buffer{
             usage?usage:gl.STATIC_DRAW
         );
         this.buffer = newBuffer;
-        gl.bindBuffer(this.usageType,null)
     }
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
