@@ -41,7 +41,7 @@ function main(){
     scene.addObject(mymesh)
     scene.setFOV(45)
     function cat(){
-        mymesh.rotate([1,1,0])
+        mymesh.rotate([0,0,0])
     scene.render()
     //requestAnimationFrame(cat)
     }

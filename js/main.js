@@ -661,6 +661,7 @@ class Mesh{
             this.normals = normals;
             this.vertices = vertices;
             this.indices = indices;
+            
             if(texCoords instanceof Array && texCoords[0] instanceof Array){
                 for(var i=0; i<texCoords; i++){
                     this.texCoords.push(texCoords[i][0],texCoords[i][1])
@@ -675,16 +676,15 @@ class Mesh{
             this.indices = [];
             this.normals = [];
             this.texCoords = [];
-            var oldTexCoords = []
             var vd = vertices;
             if(texCoords instanceof Array && texCoords[0] instanceof Array){
                 for(var i=0; i<texCoords; i++){
-                    oldTexCoords.push(texCoords[i][0],texCoords[i][1])
+                    this.texCoords.push(texCoords[i][0],texCoords[i][1])
                 }
             } else if (texCoords instanceof Array){
-                oldTexCoords = texCoords;
+                this.texCoords = texCoords;
             } else {
-                oldTexCoords = []
+                this.texCoords = []
             }
             for(var i=0; i<indices.length/3; i++){
                 var idx = [indices[i*3]*3,indices[i*3+1]*3,indices[i*3+2]*3]
@@ -694,21 +694,11 @@ class Mesh{
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
                 var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
-                
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(...[...normal,...normal,...normal])
                 this.indices.push(i*3,i*3+1,i*3+2)
-                if(oldTexCoords.length){
-                    var idx = [indices[i]*2,indices[i+1]*2,indices[i+2]*2]
-                    var texCoordTriangle = [
-                        [oldTexCoords[idx[0]],oldTexCoords[idx[0]+1]],
-                        [oldTexCoords[idx[1]],oldTexCoords[idx[1]+1]],
-                        [oldTexCoords[idx[2]],oldTexCoords[idx[2]+1]]
-                    ]
-                    this.texCoords.push(...[...texCoordTriangle[0],...texCoordTriangle[1],...texCoordTriangle[2]])
-                }
             }
-            console.log(this.texCoords)
+            //console.log(this.texCoords)
         }
         
         this.material = material;
@@ -792,11 +782,8 @@ class Mesh{
         shaderInput = shaderInput.concat(newParameters);
         shaderInput = shaderInput.concat(otherthings);
         if(this.texCoords?this.texCoords.length:0){
-            var textureBuffer = new TextureCoordinateBuffer(renderer,[
-                0.75,0.75,0.75,0.75,0.75,0.75,0.75,0.75
-            ],"vTC");
+            var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
             shaderInput.push(textureBuffer)
-            console.log(textureBuffer)
         }
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
@@ -939,13 +926,8 @@ class Cube extends Mesh{
             21,23,20,
             23,22,20
         ],material,0,0,customTextureCoordinates?customTextureCoordinates:[
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-            0.0,1.0,1.0,1.0,0.0,0.0,1.0,0.0
-        ])
+            
+        ],1)
     }
 }
 class Sphere extends Mesh{
@@ -1135,7 +1117,6 @@ class Buffer{
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
-            console.log(location)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
                 this.params.vertexAttribParams.numberOfComponents,
@@ -1587,7 +1568,7 @@ void main(void){
 class TexturedMaterial extends Material{
     constructor(texture){
         function buildFunction(renderer,mesh,scene,material){
-            if(!mesh.texCoords){
+            if(!mesh.texCoords?!mesh.texCoords.length:0){
                 throw Error("No texture coordinates are provided for this object!")
             }
             const vertexShaderSource = `
@@ -1643,7 +1624,6 @@ uniform float shininess;
 void main(void){
     gl_FragColor = texture2D(texSamp,fTC);
 }`
-            console.log(vertexShaderSource,fragmentShaderSource)
             let vertexShader = new VertexShader(vertexShaderSource)
             let fragmentShader = new FragmentShader(fragmentShaderSource)
             let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader)
