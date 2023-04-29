@@ -42,7 +42,7 @@ function main(){
     scene.bgcolor = CATS.Color("#74d4bf")
     mytexture = new Texture($("amogus").id)
     mymaterial = new TexturedMaterial(mytexture)
-    mymaterial2 = new SingleColorMaterial("#00FF00")
+    mymaterial2 = new SingleColorMaterial("#00FF00",10)
     mylight = new PointLight([0,0,0],1,1,"#FF0000","#FF0000")
     mymesh = new Plane(0.5,mymaterial)
     mymesh3 = new Plane(0.5,mymaterial)
@@ -62,7 +62,7 @@ function main(){
     function cat(){
         mymesh2.rotate([1,2,1])
         mymesh3.rotate([1,0,0])
-        mymesh4.rotate([1,2,1])
+        mymesh4.rotate([1,1,0])
         mymesh.rotate([1,0,0])
         if(keybinds.KeyW){
             scene.rotateCamera([-1,0,0])
