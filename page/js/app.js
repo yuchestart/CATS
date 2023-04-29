@@ -33,15 +33,15 @@ function main(){
     mytexture = new Texture($("amogus").id)
     mymaterial = new TexturedMaterial(mytexture)
     mylight = new PointLight([0,0,6],1,1,"#FF0000","#FF0000")
-    mymesh = new Cube(1,mymaterial)
+    mymesh = new Plane(1,mymaterial)
     mymesh.scale([1,1,1])
     //mymesh.rotate([180,0,0])
-    scene.moveCamera([0,0,6])
+    scene.moveCamera([0,2,6])
     scene.addLight(mylight);
     scene.addObject(mymesh)
     scene.setFOV(45)
     function cat(){
-        mymesh.rotate([0,0,0])
+        mymesh.rotate([180,0,0])
     scene.render()
     //requestAnimationFrame(cat)
     }

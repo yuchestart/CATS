@@ -926,7 +926,7 @@ class Cube extends Mesh{
             21,23,20,
             23,22,20
         ],material,0,0,customTextureCoordinates?customTextureCoordinates:[
-            
+
         ],1)
     }
 }
@@ -984,7 +984,17 @@ class Plane extends Mesh{
             0,1,3,
             1,2,3,
         ]
-        super(vertices,indices,material,false)
+        super(vertices,indices,material,true,[
+            0,-1,0,
+            0,-1,0,
+            0,-1,0,
+            0,-1,0,
+        ],[
+            0,0,
+            1,0,
+            1,1,
+            0,1,
+        ])
     }
 }
 //#endregion
