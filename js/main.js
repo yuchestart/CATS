@@ -1116,12 +1116,23 @@ class Buffer{
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
         this.params = params;
+        this.dataType = dataType?dataType:Float32Array
+        this.usage = usage?usage:gl.STATIC_DRAW
         gl.bindBuffer(this.usageType,newBuffer);
         gl.bufferData(this.usageType,
-            dataType?new dataType(data):new Float32Array(data),
-            usage?usage:gl.STATIC_DRAW
+            new this.dataType(data),
+            this.usage
         );
+        gl.bindBuffer(this.usageType,null);
         this.buffer = newBuffer;
+    }
+    setValue(data){
+        const gl = this.renderer.gl;
+        gl.bindBuffer(this.usageType,this.buffer)
+        gl.bufferData(this.usageType,
+            new this.dataType(data),
+            this.usage
+        );
     }
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
