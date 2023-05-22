@@ -247,7 +247,7 @@ const CATS = {
                     color[3]
                 ]
             } else {
-                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of you array is: ${color.length}`)
+                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of your array is: ${color.length}`)
             }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
@@ -712,6 +712,13 @@ class Mesh{
             transformMatrix:null,
             normalMatrix:null
         }
+        this.buffers = {
+            position:null,
+            index:null,
+            normal:null,
+            texcoord:null,
+            built:false
+        }
         
     }
     addTag(tag){
@@ -734,6 +741,9 @@ class Mesh{
     }
     setMaterial(material){
         this.material = material;
+    }
+    rebuildBuffers(){
+        this.buffers.built = false
     }
     /**
      * 
@@ -771,9 +781,18 @@ class Mesh{
             newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
             newParameters.push(newparameter)
         }
-        var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
-        var indexBuffer = new IndexBuffer(renderer,this.indices);
-        var normalBuffer = new PositionBuffer(renderer,this.normals,"vN")
+        if(this.buffers.built){
+            var positionBuffer = this.buffers.position;
+            var indexBuffer = this.buffers.index;
+            var normalBuffer = this.buffers.normal;
+        } else {
+            var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
+            var indexBuffer = new IndexBuffer(renderer,this.indices);
+            var normalBuffer = new PositionBuffer(renderer,this.normals,"vN");
+            this.buffers.position = positionBuffer;
+            this.buffers.index = indexBuffer;
+            this.buffers.normal = normalBuffer;
+        }
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
@@ -782,7 +801,12 @@ class Mesh{
         shaderInput = shaderInput.concat(newParameters);
         shaderInput = shaderInput.concat(otherthings);
         if(this.texCoords?this.texCoords.length:0){
-            var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
+            if(this.buffers.built){
+                var textureBuffer = this.buffers.texcoord;
+            } else {
+                var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
+                this.buffers.texcoord = textureBuffer;
+            }
             shaderInput.push(textureBuffer)
         }
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
