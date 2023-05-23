@@ -7,3 +7,4 @@ It can draw things 3D, and you can move the camera around, add lighting, and mor
 
 ## Download
 At the moment I haven't created a distribution file. Once I do though, you can download it [here](https://yuchestart.github.io/CATS)
+A distribution file will be created after Milestone 2
