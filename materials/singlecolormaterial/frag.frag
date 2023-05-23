@@ -77,7 +77,7 @@ void main(void){
         if(increment>0.0){
             specularIncrement = pow(dot(fN,halfVector),shininess);
         }
-        specularColor += pointLightSpecularColors[i].rgb
+        specularColor += pointLightSpecularColors[i].rgb;
         specular+=specularIncrement;
     }
     //Spot
@@ -92,5 +92,5 @@ void main(void){
 
     gl_FragColor = objectColor;
     gl_FragColor.rgb*=light*lightColor;
-    gl_FragColor.rgb+=specular;
+    gl_FragColor.rgb+=specular*specularColor;
 }
