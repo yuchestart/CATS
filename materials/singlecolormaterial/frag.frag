@@ -14,6 +14,7 @@ uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
 uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
 uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
 uniform vec3 ambientLightColors[MAXDLIGHTSOURCES];
+uniform vec3 spotLightColors
 uniform vec4 objectColor;
 uniform float shininess;
 void main(void){
@@ -29,6 +30,7 @@ void main(void){
     float light = 0.0;
     float specular = 0.0;
     vec3 lightColor,specularColor;
+    //Directional
     for(int i=0; i<MAXDLIGHTSOURCES; i++){
         if(i>=ndLights){
             break;
@@ -39,6 +41,7 @@ void main(void){
         }
         light+=increment;
     }
+    //Point
     for(int i=0; i<MAXPLIGHTSOURCES; i++){
         if(i>=npLights){
             break;
@@ -62,7 +65,7 @@ void main(void){
         if(increment<0.0){
             increment = 0.0;
         }
-        lightColor = pointLightColors[i].rgb;
+        lightColor += pointLightColors[i].rgb;
         light+=increment;
         if(shininess <= 0.0){
             break;
@@ -74,7 +77,12 @@ void main(void){
         if(increment>0.0){
             specularIncrement = pow(dot(fN,halfVector),shininess);
         }
+        specularColor += pointLightSpecularColors[i].rgb
         specular+=specularIncrement;
+    }
+    //Spot
+    for(int i=0; i<MAXPLIGHTSOURCES; i++){
+        if(i>=)
     }
     if(light > 1.0){
         light = 1.0;
@@ -83,6 +91,6 @@ void main(void){
     }
 
     gl_FragColor = objectColor;
-    gl_FragColor.rgb*=light;
+    gl_FragColor.rgb*=light*lightColor;
     gl_FragColor.rgb+=specular;
 }

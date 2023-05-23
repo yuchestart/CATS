@@ -872,7 +872,7 @@ class AmbientLight{
 class PointLight{
     /**
      * A light that emits from a single point in all directions.
-     * @param {Array<Number>} position 
+     * @param {Array<Number>} position The position of the point light
      * @param {Number} intensity 
      * @param {Number} range 
      * @param {Array<Number>|String} color 
@@ -880,10 +880,13 @@ class PointLight{
      */
     constructor(position,intensity,range,color,specularColor){
         this.position = position;
-        this.color = CATS.Color(color).slice(0,3);
-        this.specularColor = CATS.Color(specularColor).slice(0,3);
+        this.color = color?[1,1,1]:CATS.Color(color).slice(0,3);
+        this.specularColor = color?[1,1,1]:CATS.Color(specularColor).slice(0,3);
         this.intensity = intensity;
         this.range = range;
+    }
+    translate(v){
+        this.position = CATS.math.vec3.add(this.position,v)
     }
     convertToData(){
         return {
