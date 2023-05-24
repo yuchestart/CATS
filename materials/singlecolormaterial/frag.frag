@@ -14,7 +14,8 @@ uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
 uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
 uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
 uniform vec3 ambientLightColors[MAXDLIGHTSOURCES];
-uniform vec3 spotLightColors
+uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
+uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
 uniform vec4 objectColor;
 uniform float shininess;
 void main(void){
@@ -89,7 +90,6 @@ void main(void){
     } else if(light<0.0){
         light = 0.0;
     }
-
     gl_FragColor = objectColor;
     gl_FragColor.rgb*=light*lightColor;
     gl_FragColor.rgb+=specular*specularColor;
