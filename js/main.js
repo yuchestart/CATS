@@ -231,6 +231,7 @@ const CATS = {
      * * RGBA32*: "rgba(r,g,b,a)" or [r,g,b,a]
      * * HEX: "#rrggbb"
      * @param {Array|String} color 
+     * @returns {Array<Number>}
      */
     Color(color){
         if(color instanceof Array){
@@ -304,6 +305,9 @@ const CATS = {
         } else {
             throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type: ${color.constructor}`)
         }
+    },
+    shaderReference:{
+        phonglighting:``
     }
 }
 Object.freeze(CATS)
@@ -608,6 +612,7 @@ class Scene{
                     specularLightColors.point.push(...processedLight.specularColor)
                     lightCount.point++;
                     break;
+                
             }
         }
         if(divector.length){
@@ -873,17 +878,17 @@ class PointLight{
     /**
      * A light that emits from a single point in all directions.
      * @param {Array<Number>} position The position of the point light
-     * @param {Number} intensity 
-     * @param {Number} range 
-     * @param {Array<Number>|String} color 
-     * @param {Array<Number>|String} specularColor 
+     * @param {Number} intensity The intensity of light - how bright is it
+     * @param {Number} range The range of light - how far away can it go
+     * @param {Array<Number>|String} color - The color of the light
+     * @param {Array<Number>|String} specularColor - The color of the specular highlight
      */
     constructor(position,intensity,range,color,specularColor){
         this.position = position;
-        this.color = color?[1,1,1]:CATS.Color(color).slice(0,3);
-        this.specularColor = color?[1,1,1]:CATS.Color(specularColor).slice(0,3);
-        this.intensity = intensity;
-        this.range = range;
+        this.color = color?CATS.Color(color).slice(0,3):?[1,1,1];
+        this.specularColor = color?CATS.Color(specularColor).slice(0,3):[1,1,1];
+        this.intensity = intensity?intensity:1;
+        this.range = range?range:2;
     }
     translate(v){
         this.position = CATS.math.vec3.add(this.position,v)
@@ -895,6 +900,21 @@ class PointLight{
             specularColor:[...this.specularColor],
             type:CATS.enum.POINT_LIGHT
         }
+    }
+}
+class SpotLight{
+    /**
+     * A light that lights up a cone shaped area.
+     * @param {Array<Number>} position
+     */
+    constructor(position,direction,limit,intensity,range,color,specularColor){
+        this.position = position;
+        this.direction = direction;
+        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
+        this.specularColor = specularColor?CATS.Color.slice(0,3):[1,1,1];
+        this.limit = limit;
+        this.intensity = intensity?intensity:1;
+        this.range = range?range:2;
     }
 }
 //-------Easy to initialize primitives-------
