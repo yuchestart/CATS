@@ -851,8 +851,18 @@ class Mesh{
         var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
-            newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
-            newParameters.push(newparameter)
+            if(!parameters[i].reusable){
+                newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
+                newParameters.push(newparameter);
+            } else {
+                if(this.material[parameters[i].paramname]){
+                    newParameters.push(this.material[parameters[i].paramname]);
+                } else {
+                    newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
+                    newParameters.push(newparameter);
+                    this.material[parameters[i].paramname] = newparameter
+                }
+            }
         }
         if(this.buffers.built){
             var positionBuffer = this.buffers.position;
@@ -1767,10 +1777,7 @@ uniform vec4 objectColor;
 uniform sampler2D texSamp;
 uniform float shininess;
 void main(void){
-    ${CATS.shaderReference.phonglighting}
     gl_FragColor = texture2D(texSamp,fTC);
-    gl_FragColor.rgb *= light*lightColor;
-    gl_FragColor.rgb *= specular*specularColor;
 }`
             let vertexShader = new VertexShader(vertexShaderSource)
             let fragmentShader = new FragmentShader(fragmentShaderSource)
@@ -1782,12 +1789,15 @@ void main(void){
                     {
                         type:TextureBuffer,
                         value:material.params[0],
+                        reusable:1,
+                        paramname:"texureBuffer"
                     },
                 ]
             }
             return material.compiled
         }
         super([texture],buildFunction,{})
+        this.textureBuffer = null
     }
 }
 //#endregion

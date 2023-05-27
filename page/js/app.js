@@ -47,8 +47,9 @@ function main(){
     scene.addLight(mylight)
     scene.addObject(mymesh)
     scene.moveCamera([0,1,5])
-    mymesh.rotate([90,0,0])
+    
     function cat(){
+        mymesh.rotate([1,0,0])
     scene.render()
     requestAnimationFrame(cat)
     }
