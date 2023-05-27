@@ -40,9 +40,9 @@ function main(){
     }
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
-    mymaterial = new TexturedMaterial($("amogus").id)
+    mymaterial = new SingleColorMaterial("#FF0000")
     mylight = new PointLight([0,3,0],1,2,"#FFFFFF","#FFFFFF")
-    mymesh = new Plane(1,mymaterial)
+    mymesh = new Cube(1,mymaterial)
     mymesh.rotate([45,0,0])
     scene.addLight(mylight)
     scene.addObject(mymesh)

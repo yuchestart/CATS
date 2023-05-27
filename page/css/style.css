@@ -5,3 +5,12 @@
     left:0px;
     z-index:-100000;
 }
+#emotionalDamage{
+    /*width:100%;
+    height:100%;
+    position:absolute;*/
+    top:0px;
+    left:0px;
+    background:white;
+    z-index:10000;
+}

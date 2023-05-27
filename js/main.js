@@ -427,6 +427,8 @@ class Renderer{
         }
         if(!disableAutoAdjustAspectRatio){
             this.autoAdjust = false;
+        } else {
+            this.autoAdjust = true;
         }
     }
     /**
@@ -436,8 +438,16 @@ class Renderer{
      * @param {Number} b 
      * @param {Number} a 
      */
+    updateAspectRatio(){
+        if(this.autoAdjust){
+            this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
+        }
+    }
     clear(r,g,b,a){
         //Clear rendering surface
+        this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
+        this.canvas.width = this.canvas.clientWidth;
+        this.canvas.height = this.canvas.clientHeight;
         this.gl.clearColor(r,g,b,a);
         this.gl.clearDepth(1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
@@ -600,6 +610,7 @@ class Scene{
         } else {
             var viewMatrix = this.camera.lastViewMatrix;
         }
+        this.renderer.updateAspectRatio()
         var projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
