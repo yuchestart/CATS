@@ -82,6 +82,7 @@ void main(void){
         specular+=specularIncrement;
     }
     //Spot
+    /*
     for(int i=0; i<MAXPLIGHTSOURCES; i++){
         if(i>=)
     }
@@ -89,7 +90,7 @@ void main(void){
         light = 1.0;
     } else if(light<0.0){
         light = 0.0;
-    }
+    }*/
     gl_FragColor = objectColor;
     gl_FragColor.rgb*=light*lightColor;
     gl_FragColor.rgb+=specular*specularColor;

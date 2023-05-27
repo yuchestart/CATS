@@ -39,10 +39,10 @@ function main(){
         keybinds[e.code] = false;
     }
     scene = new Scene(render)
-    scene.bgcolor = CATS.Color("#FFFFFF")
-    mymaterial = new SingleColorMaterial("#FF0000",3)
-    mylight = new PointLight([0,3,0],1,2,"#FFFFFF","#FF0000")
-    mymesh = new Cube(1,mymaterial)
+    scene.bgcolor = [0,0,0,0]
+    mymaterial = new SingleColorMaterial("#FF0000",50)
+    mylight = new PointLight([0,3,0],1,2,"#FFFFFF","#00FF00")
+    mymesh = new Plane(1,mymaterial)
     mymesh.rotate([45,0,0])
     scene.addLight(mylight)
     scene.addObject(mymesh)
