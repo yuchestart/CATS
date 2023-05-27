@@ -40,15 +40,15 @@ function main(){
     }
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
-    mymaterial = new SingleColorMaterial("#FF0000",50)
-    mylight = new PointLight([0,3,0],1,2,"#FFFFFF","#00FF00")
+    mymaterial = new TexturedMaterial($("amogus").id)
+    mylight = new PointLight([0,3,0],1,2,"#FFFFFF","#FFFFFF")
     mymesh = new Plane(1,mymaterial)
     mymesh.rotate([45,0,0])
     scene.addLight(mylight)
     scene.addObject(mymesh)
-    scene.moveCamera([0,0,5])
+    scene.moveCamera([0,1,5])
+    mymesh.rotate([90,0,0])
     function cat(){
-    mymesh.rotate([1,2,1])
     scene.render()
     requestAnimationFrame(cat)
     }
