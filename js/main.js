@@ -426,9 +426,9 @@ class Renderer{
             height:canvas.clientHeight
         }
         if(!disableAutoAdjustAspectRatio){
-            this.autoAdjust = false;
-        } else {
             this.autoAdjust = true;
+        } else {
+            this.autoAdjust = false;
         }
     }
     /**
@@ -445,9 +445,6 @@ class Renderer{
     }
     clear(r,g,b,a){
         //Clear rendering surface
-        this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
-        this.canvas.width = this.canvas.clientWidth;
-        this.canvas.height = this.canvas.clientHeight;
         this.gl.clearColor(r,g,b,a);
         this.gl.clearDepth(1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT|this.gl.DEPTH_BUFFER_BIT);
@@ -660,6 +657,12 @@ class Scene{
     }
     render(){
         this.renderer.clear(...this.bgcolor);
+        if(!(this.renderer.canvas.width==this.renderer.prevCanvasDimensions.width && 
+            this.renderer.canvas.height==this.renderer.prevCanvasDimensions.height)){
+            this.renderer.prevCanvasDimensions.width = this.renderer.canvas.width;
+            this.renderer.prevCanvasDimensions.height = this.renderer.canvas.height;
+            this.renderer.canvas.width = this.renderer.canvas.clientWidth;
+        }
         var matrices = this.projectCamera();
         var divector = [];
         var pivector = [];
