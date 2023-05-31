@@ -50,7 +50,7 @@ function CATSmain()
     themesh = new Cube(1, mymaterial);
     themesh.translate([0, 3, 0])
     scene.moveCamera([-1,2,6]);
-    var light = new DirectionalLight([-40, 20, -10], [1.0, 0.5, 1.0], 1);
+    var light = new DirectionalLight([-40, 20, -10], 1, [1.0, 0.5, 1.0]);
     scene.addLight(light);
     
     function cat()
