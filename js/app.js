@@ -44,18 +44,17 @@ function CATSmain()
     render = new Renderer($("glCanvas").id);
     scene = new Scene(render);
     scene.bgcolor = CATS.Color("#FFFFFF");
-    mymaterial = new SingleColorMaterial("#59a1cd",[0,1,1,2]);
+    mymaterial = new SingleColorMaterial("#59a1cd", 25);
     floor = new Cube(1,mymaterial);
     floor.scale([100,1,100]);
     themesh = new Cube(1, mymaterial);
     themesh.translate([0, 3, 0])
     scene.moveCamera([-1,2,6]);
-    var light = new DirectionalLight([-40, 20, -10], 1, [1.0, 0.5, 1.0]);
+    var light = new PointLight([0,3,0],1,2,"#FFFFFF","#FFFFFF")
     scene.addLight(light);
     
     function cat()
     {
-
         scene.render();
         requestAnimationFrame(cat);
     }
