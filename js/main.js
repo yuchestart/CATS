@@ -221,7 +221,8 @@ const CATS = {
         MIRRORED_REPEAT:23,
         CLAMP_TO_EDGE:24,
         CLAMP_TO_BORDER:25,
-        USES_TEXTURE:26
+        USES_TEXTURE:26,
+        AMBIENT_LIGHT:27
     },
     /**
      * Converts commonly used color formats to RGBA.
@@ -522,7 +523,8 @@ class Scene{
         this.bgcolor = [0,0,0,1];
         this.lighting = {
             maxDirectionalLightSourcesPerMesh:10,
-            maxPointLightSourcesPerMesh:20
+            maxPointLightSourcesPerMesh:20,
+            defaultAmbientLight:new AmbientLight(0.1,"#FFFFFF")
         }
         this.built = false;
     }
@@ -964,7 +966,16 @@ class AmbientLight{
      * An ambient light effective to all objects.
      * 
      */
-    constructor(intensity,color){}
+    constructor(intensity,color){
+        this.intensity = intensity;
+        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
+    }
+    convertToData(){
+        return {
+            vec:[...this.color,this.intensity],
+            type:CATS.enum.AMBIENT_LIGHT
+        }
+    }
 }
 class PointLight{
     /**
