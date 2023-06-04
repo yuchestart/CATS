@@ -6,7 +6,15 @@
  * 
  * Created by Che Yu.
  * 
- * Now that's a lot of code.
+ * If you didn't download the whole repository then here you go:
+ * Copyright © 2023 Che Yu
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
  */
 //-----------MISC-----------
 //#region 
@@ -14,11 +22,26 @@
  * CATS Functions & Variables
  */
 const CATS = {
+    /**
+     * Store of CATS math functions.
+     */
     math:{
+        /**
+         * Converts degrees to radians
+         * @param {Number} degrees 
+         * @returns 
+         */
         toRadians:function(degrees){
             return degrees*(Math.PI/180)
         },
+        /**
+         * A small number for CATS to use
+         */
         EPSILON:1e-4,
+        /**
+         * Prints out an inputted 4x4 matrix
+         * @param {Mat4} matrix 
+         */
         printAsMatrix:function(matrix){
             var m = matrix.data;
             console.log(m[0],m[4],m[8],m[12])
@@ -26,7 +49,29 @@ const CATS = {
             console.log(m[2],m[6],m[10],m[14])
             console.log(m[3],m[7],m[11],m[15])
         },
+        /**
+         * Clamps a value between min and max
+         * @param {Number} value 
+         * @param {Number} min 
+         * @param {Number} max 
+         * @returns 
+         */
+        clamp:function(value,min,max){
+            if(value<min)
+                return min
+            else if(value>max)
+                return max
+            return value
+        },
+        /**
+         * Contains math functions for Vector3s
+         */
         vec3:{
+            /**
+             * Normalizes a vector
+             * @param {Array} vector 
+             * @returns 
+             */
             normalize:function(vector){
                 thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
                 if(!thing){
@@ -35,12 +80,30 @@ const CATS = {
                     return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
                 }
             },
+            /**
+             * Adds two vectors together into one
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             add:function(a,b){
                 return [a[0]+b[0],a[1]+b[1],a[2]+b[2]]
             },
+            /**
+             * Subtracts two vectors together into one
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             subtract:function(a,b){
                 return [a[0]-b[0],a[1]-b[1],a[2]-b[2]]
             },
+            /**
+             * Gets the cross product of two vectors
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             cross:function(a,b){
                 return [
                     a[1] * b[2] - a[2] * b[1],
@@ -48,34 +111,83 @@ const CATS = {
                     a[0] * b[1] - a[1] * b[0]
                 ]
             },
+            /**
+             * Gets the dot product of two vectors
+             * @param {Array} a 
+             * @param {Array} b 
+             * @returns 
+             */
             dot:function(a,b){
                 return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
             },
+            /**
+             * Hypot of a vector
+             * @param {Array} vector 
+             * @returns 
+             */
             hypot:function(vector){
                 return Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
             },
+            /**
+             * Multiplies a vector by a number
+             * @param {Array} a 
+             * @param {Number} b 
+             * @returns 
+             */
             multiplyByNumber:function(a,b){
                 return [a[0]*b,a[1]*b,a[2]*b]
             },
+            /**
+             * Divides a vector by a number
+             * @param {Array} a 
+             * @param {Number} b 
+             * @returns 
+             */
             divideByNumber:function(a,b){
                 return [a[0]/b,a[1]/b,a[2]/b]
             },
+            /**
+             * Reverses a vector
+             * @param {Array} v 
+             * @returns 
+             */
             invert:function(v){
                 return [v[0]*-1,v[1]*-1,v[2]*-1]
             },
+            /**
+             * Gets the length of a vector
+             * @param {Array} v 
+             * @returns 
+             */
             lengthOf:function(v){
                 return Math.sqrt(v[0]**2+v[1]**2+v[2]**2)
             }
         },
+        /**
+         * Holds triangle functions
+         */
         triangle:{
+            /**
+             * Gets the surface normal of a triangle
+             * @param {Array} v1 
+             * @param {Array} v2 
+             * @param {Array} v3 
+             * @returns 
+             */
             getSurfaceNormal:function(v1,v2,v3){
                 var u = CATS.math.vec3.subtract(v2,v1)
                 var v = CATS.math.vec3.subtract(v3,v1)
                 return CATS.math.vec3.normalize(CATS.math.vec3.cross(u,v))
             }
         },
+        /**
+         * 1/255
+         */
         oneOver255:1/255,
     },
+    /**
+     * CATS enumerals
+     */
     enum:{
         TRIANGLE_STRIP:0,
         TRIANGLES:1,
@@ -103,11 +215,23 @@ const CATS = {
         DISABLE_ALPHA_BLEND:26,
         MESH:18,
         LIGHT:19,
-        DIRECTIONAL_LIGHT:20,  
+        DIRECTIONAL_LIGHT:20,
+        POINT_LIGHT:21,
+        REPEAT:22,
+        MIRRORED_REPEAT:23,
+        CLAMP_TO_EDGE:24,
+        CLAMP_TO_BORDER:25,
+        USES_TEXTURE:26
     },
     /**
-     * 
+     * Converts commonly used color formats to RGBA.
+     * Formats include:
+     * * HSV: "hsv(h,s,v)"
+     * * RGB32: "rgb(r,g,b)" or [r,g,b]
+     * * RGBA32*: "rgba(r,g,b,a)" or [r,g,b,a]
+     * * HEX: "#rrggbb"
      * @param {Array|String} color 
+     * @returns {Array<Number>}
      */
     Color(color){
         if(color instanceof Array){
@@ -124,7 +248,7 @@ const CATS = {
                     color[3]
                 ]
             } else {
-                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of you array is: ${color.length}`)
+                throw new TypeError(`Oops! It looks like CATS does not know what kind of color you are using.\nThe length of your array is: ${color.length}`)
             }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
@@ -181,6 +305,75 @@ const CATS = {
         } else {
             throw new TypeError(`Oops! It looks like CATS cannot parse this data type.\nData type: ${color.constructor}`)
         }
+    },
+    shaderReference:{
+        phonglighting:`int ndLights = int(lightCounts.x);
+        int npLights = int(lightCounts.y);
+        if(ndLights>MAXDLIGHTSOURCES){
+            ndLights = MAXDLIGHTSOURCES;
+        }
+        if(npLights>MAXPLIGHTSOURCES){
+            npLights = MAXPLIGHTSOURCES;
+        }
+        vec3 normal = normalize(fN);
+        float light = 0.0;
+        float specular = 0.0;
+        vec3 lightColor,specularColor;
+        //Directional
+        for(int i=0; i<MAXDLIGHTSOURCES; i++){
+            if(i>=ndLights){
+                break;
+            }
+            float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
+            if(increment<0.0){
+                increment = 0.0;
+            }
+            light+=increment;
+        }
+        //Point
+        for(int i=0; i<MAXPLIGHTSOURCES; i++){
+            if(i>=npLights){
+                break;
+            }
+            vec3 surfaceToLight = normalize(lightPosition[i].xyz - fP);
+            vec3 surfaceToView = normalize(surfaceToView);
+            vec3 halfVector = normalize(surfaceToLight+surfaceToView);
+            float distance = pow(
+                surfaceToLight.x*surfaceToLight.x+
+                surfaceToLight.y*surfaceToLight.y+
+                surfaceToLight.z*surfaceToLight.z,0.5
+            );
+            float subtraction;
+            if(distance<=pointLightColors[i].w){
+                subtraction = 0.0;
+            } else {
+                float range = pointLightColors[i].w;
+                subtraction = distance*(0.3/range);
+            }
+            float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
+            if(increment<0.0){
+                increment = 0.0;
+            }
+            lightColor += pointLightColors[i].rgb;
+            light+=increment;
+            if(shininess <= 0.0){
+                break;
+            }
+            float specularIncrement = 0.0;
+            if(specularIncrement<0.0){
+                specularIncrement = 0.0;
+            }
+            if(increment>0.0){
+                specularIncrement = pow(dot(fN,halfVector),shininess);
+            }
+            specularColor += pointLightSpecularColors[i].rgb;
+            specular+=specularIncrement;
+        }
+        if(light > 1.0){
+            light = 1.0;
+        } else if(light<0.0){
+            light = 0.0;
+        }`
     }
 }
 Object.freeze(CATS)
@@ -228,19 +421,28 @@ class Renderer{
             this.gl.blendFunc(this.gl.SRC_ALPHA,this.gl.ONE_MINUS_SRC_ALPHA)
         }
         this.aspect = canvas.clientWidth/canvas.clientHeight;
+        this.prevCanvasDimensions = {
+            width:canvas.clientWidth,
+            height:canvas.clientHeight
+        }
         if(!disableAutoAdjustAspectRatio){
-            this.canvas.addEventListener("resize",function(){
-                this.aspect = canvas.clientWidth/canvas.clientHeight;
-            });
+            this.autoAdjust = true;
+        } else {
+            this.autoAdjust = false;
         }
     }
     /**
-     * 
+     * Clears the rendering surface
      * @param {Number} r 
      * @param {Number} g 
      * @param {Number} b 
      * @param {Number} a 
      */
+    updateAspectRatio(){
+        if(this.autoAdjust){
+            this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
+        }
+    }
     clear(r,g,b,a){
         //Clear rendering surface
         this.gl.clearColor(r,g,b,a);
@@ -297,7 +499,7 @@ class Renderer{
 //#region 
 class Scene{
     /**
-     * A space where 3D objects are placed. 
+     * Creates a space where 3D objects are placed. 
      * The viewer views a scene through the camera which is placed inside.
      * @param {Renderer} renderer 
      */
@@ -314,25 +516,62 @@ class Scene{
         };
         this.objects = [];
         /**
-         * @type {Array<DirectionalLight>}
+         * @type {Array<DirectionalLight|PointLight>}
          */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
         this.lighting = {
-            maxLightSourcesPerMesh:1000
+            maxDirectionalLightSourcesPerMesh:10,
+            maxPointLightSourcesPerMesh:20
         }
+        this.built = false;
     }
+    /**
+     * Moves the camera by a vector.
+     * @param {Array} vector 
+     */
     moveCamera(vector){
         this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
     }
+    /**
+     * Rotates the camera by specified angles in the vector.
+     * The angles in the vectors are specified as:
+     * [X,Y,Z]
+     * @param {Array} vector 
+     */
     rotateCamera(vector){
         this.camera.direction = CATS.math.vec3.add(this.camera.direction,vector);
         this.camera.viewMatrixInitialized = false;
     }
+    /**
+     * Sets the field of view angle for the camera.
+     * Range:
+     * 1 degree to 179 degrees
+     * @param {Number} fov 
+     */
     setFOV(fov){
         this.camera.fovy = fov;
     }
+    /**
+     * Makes all of the meshes in the scene rebuild their materials.
+     */
+    rebuild(){
+        this.built = false;
+    }
+    /**
+     * Set a lighting attribute.
+     * @param {String} attributeName 
+     * @param {*} value 
+     */
+    adjustLightingAttribute(attributeName,value){
+        this.lighting[attributeName] = value;
+        this.rebuild()
+    }
+    /**
+     * Used internally by CATS to generate a view matrix
+     * @returns 
+     */
     projectCamera(){
         if(!this.camera.viewMatrixInitialized){
             //Ugh I hate math so much
@@ -368,6 +607,7 @@ class Scene{
         } else {
             var viewMatrix = this.camera.lastViewMatrix;
         }
+        this.renderer.updateAspectRatio()
         var projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
@@ -380,18 +620,27 @@ class Scene{
         };
     }
     /**
-     * 
-     * @param {Mesh|DirectionalLight} object 
-     * @returns 
+     * Adds an object to the scene
+     * @param {Mesh} object 
+     * @returns {Number} The ID of the object
      */
     addObject(object){
         this.objects.push(object);
         return this.objects.length - 1;
     }
+    /**
+     * Adds a light to the scene
+     * @param {DirectionalLight|PointLight} light 
+     * @returns {Number} The ID of the light.
+     */
     addLight(light){
         this.lights.push(light)
         return this.lights.length-1
     }
+    /**
+     * 
+     * @param {Number} id 
+     */
     removeObject(id){
         this.objects.splice(id,1)
     }
@@ -408,29 +657,70 @@ class Scene{
     }
     render(){
         this.renderer.clear(...this.bgcolor);
+        if(!(this.renderer.canvas.width==this.renderer.prevCanvasDimensions.width && 
+            this.renderer.canvas.height==this.renderer.prevCanvasDimensions.height)){
+            this.renderer.prevCanvasDimensions.width = this.renderer.canvas.width;
+            this.renderer.prevCanvasDimensions.height = this.renderer.canvas.height;
+            this.renderer.canvas.width = this.renderer.canvas.clientWidth;
+        }
         var matrices = this.projectCamera();
-        var divector = []
-        var otherUniforms = []
+        var divector = [];
+        var pivector = [];
+        var lightColors = {
+            directional:[],
+            point:[],
+            ambient:[]
+        };
+        var specularLightColors = {
+            point:[]
+        }
+        var otherUniforms = [];
         var lightCount = {
             directional:0,
             point:0,
             spot:0
-        }
+        };
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
                 case CATS.enum.DIRECTIONAL_LIGHT:
                     divector.push(...processedLight.divector)
+                    lightColors.directional.push(...processedLight.color)
                     lightCount.directional++;
                     break;
+                case CATS.enum.POINT_LIGHT:
+                    pivector.push(...processedLight.pivector)
+                    lightColors.point.push(...processedLight.color)
+                    specularLightColors.point.push(...processedLight.specularColor)
+                    lightCount.point++;
+                    break;
+                
             }
         }
         if(divector.length){
             var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection")
             otherUniforms.push(divectoruniform)
         }
+        if(pivector.length){
+            var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
+            otherUniforms.push(pivectoruniform);
+        }
+        if(lightColors.directional.length){
+            var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors")
+            otherUniforms.push(lcd)
+        }
+        if(lightColors.point.length){
+            var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors")
+            otherUniforms.push(lcp)
+        }
+        if(specularLightColors.point.length){
+            var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors")
+            otherUniforms.push(scp)
+        }
         var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
+        var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
+        otherUniforms.push(viewPosVector);
         for(var i=0; i<this.objects.length; i++){
             try{
             var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
@@ -451,17 +741,38 @@ class Mesh{
      * @param {Material} material
      * @param {Boolean} manuallySpecifyNormals
      * @param {Array<Number>} normals
+     * @param {Array<Number>|Array<Array<Number>>} texCoords
      */
-    constructor(vertices,indices,material,manuallySpecifyNormals,normals){
+    constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords){
         if(manuallySpecifyNormals){
             this.normals = normals;
             this.vertices = vertices;
             this.indices = indices;
+            
+            if(texCoords instanceof Array && texCoords[0] instanceof Array){
+                for(var i=0; i<texCoords; i++){
+                    this.texCoords.push(texCoords[i][0],texCoords[i][1])
+                }
+            } else if (texCoords instanceof Array){
+                this.texCoords = texCoords;
+            } else {
+                this.texCoords = []
+            }
         } else {
             this.vertices = [];
             this.indices = [];
             this.normals = [];
+            this.texCoords = [];
             var vd = vertices;
+            if(texCoords instanceof Array && texCoords[0] instanceof Array){
+                for(var i=0; i<texCoords; i++){
+                    this.texCoords.push(texCoords[i][0],texCoords[i][1])
+                }
+            } else if (texCoords instanceof Array){
+                this.texCoords = texCoords;
+            } else {
+                this.texCoords = []
+            }
             for(var i=0; i<indices.length/3; i++){
                 var idx = [indices[i*3]*3,indices[i*3+1]*3,indices[i*3+2]*3]
                 var triangle = [
@@ -470,12 +781,13 @@ class Mesh{
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
                 var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
-                
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(...[...normal,...normal,...normal])
                 this.indices.push(i*3,i*3+1,i*3+2)
-            }   
+            }
+            //console.log(this.texCoords)
         }
+        
         this.material = material;
         this.visible = true;
         this.tags = undefined;
@@ -486,6 +798,13 @@ class Mesh{
             transformStayedSame:false,
             transformMatrix:null,
             normalMatrix:null
+        }
+        this.buffers = {
+            position:null,
+            index:null,
+            normal:null,
+            texcoord:null,
+            built:false
         }
         
     }
@@ -510,6 +829,18 @@ class Mesh{
     setMaterial(material){
         this.material = material;
     }
+    rebuildBuffers(){
+        this.buffers.built = false
+    }
+    /**
+     * 
+     * @param {Renderer} renderer 
+     * @param {Mat4} viewMatrix 
+     * @param {Mat4} projectionMatrix 
+     * @param {Array} otherthings 
+     * @param {Scene} scene 
+     * @returns 
+     */
     convertToPackage(renderer,viewMatrix,projectionMatrix,otherthings,scene){
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
@@ -524,18 +855,41 @@ class Mesh{
             normalMatrix.transpose()
             this.transform.normalMatrix = normalMatrix;
         }
+        const rebuild = scene.built;
+        if(rebuild){
+            this.material.resetBuild();
+        }
         var builtMaterial = this.material.build(renderer,this,scene);
         var shaderProgram = builtMaterial.shaderProgram
         var parameters = builtMaterial.parameters;
         var newParameters = [];
         var newparameter;
         for(var i=0; i<parameters.length; i++){
-            newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
-            newParameters.push(newparameter)
+            if(!parameters[i].reusable){
+                newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
+                newParameters.push(newparameter);
+            } else {
+                if(this.material[parameters[i].paramname]){
+                    newParameters.push(this.material[parameters[i].paramname]);
+                } else {
+                    newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
+                    newParameters.push(newparameter);
+                    this.material[parameters[i].paramname] = newparameter
+                }
+            }
         }
-        var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
-        var indexBuffer = new IndexBuffer(renderer,this.indices);
-        var normalBuffer = new PositionBuffer(renderer,this.normals,"vN")
+        if(this.buffers.built){
+            var positionBuffer = this.buffers.position;
+            var indexBuffer = this.buffers.index;
+            var normalBuffer = this.buffers.normal;
+        } else {
+            var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
+            var indexBuffer = new IndexBuffer(renderer,this.indices);
+            var normalBuffer = new PositionBuffer(renderer,this.normals,"vN");
+            this.buffers.position = positionBuffer;
+            this.buffers.index = indexBuffer;
+            this.buffers.normal = normalBuffer;
+        }
         var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
         var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
         var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
@@ -543,6 +897,15 @@ class Mesh{
         var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform,normalUniform];
         shaderInput = shaderInput.concat(newParameters);
         shaderInput = shaderInput.concat(otherthings);
+        if(this.texCoords?this.texCoords.length:0){
+            if(this.buffers.built){
+                var textureBuffer = this.buffers.texcoord;
+            } else {
+                var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
+                this.buffers.texcoord = textureBuffer;
+            }
+            shaderInput.push(textureBuffer)
+        }
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,CATS.enum.TRIANGLES,{
             numElements:this.indices.length,
@@ -554,44 +917,96 @@ class Mesh{
 class DirectionalLight{
     /**
      * A directional light effective to all objects.
-     * @param {Array<Number>} direction Direction in angles. Directions are ordered in XYZ
-     * @param {Array<Number>|String} color Color of light
+     * @param {Array<Number>} direction Direction in angles. Directions are ordered X,Y
+     * @param {Array<Number>|String} color Color of light. Default is white.
      * @param {Number} intensity Intensity of light
      */
-    constructor(direction,color,intensity){
-        this.direction = direction;
-        this.color = CATS.Color(color);
+    constructor(direction,intensity,color){
+        this.direction = this.computeDirection(direction);
+        if(color){
+        this.color = CATS.Color(color).slice(0,3);
+        } else {
+            this.color = [1,1,1]
+        }
         this.intensity = intensity;
     }
     computeDirection(dir){
-        var v,r,sin,cos,a,b
-        v = [0,0,-1];
-        r = {
-            x:dir[0],
-            y:dir[1],
-            z:dir[2]
-        };
-        sin = Math.sin(CATS.math.toRadians(r.z)),cos=Math.cos(CATS.math.toRadians(r.z));
-        a=v[0],b=[1];
+        var v = [0,-1,0]
+        var sin = Math.sin(CATS.math.toRadians(dir[0])), cos = Math.cos(CATS.math.toRadians(dir[0]))
+        var a=v[1],b=v[2]
+        v[1] = a*cos - b*sin;
+        v[2] = a*sin + b*cos;
+        sin = Math.sin(CATS.math.toRadians(dir[1])), cos = Math.cos(CATS.math.toRadians(dir[1]))
+        a=v[0],b=v[2]
         v[0] = a*cos - b*sin;
-        v[1] = a*sin + b*cos;
-        a = v[0],b=v[2]
-        v[0] = a*cos-b*sin
-        v[2] = a*sin+b*cos;
-        a = v[2],b=v[1]
-        v[2] = a*cos-b*sin;
-        v[0] = a*sin+b*cos
-        this.direction = v;
+        v[2] = a*sin + b*cos;
+        return v;
     }
     changeDirection(dir){
-        this.computeDirection(dir);
+        this.direction = this.computeDirection(dir);
+    }
+    changeIntensity(i){
+        this.intensity = i;
+    }
+    changeColor(c){
+        this.color = CATS.Color(c).slice(0,3);
     }
     convertToData(){
         return {
-            divector:[...this.direction,this.intensity],
+            divector:[...CATS.math.vec3.invert(this.direction),this.intensity],
             color:this.color,
             type:CATS.enum.DIRECTIONAL_LIGHT
         }
+    }
+}
+class AmbientLight{
+    /**
+     * An ambient light effective to all objects.
+     * 
+     */
+    constructor(intensity,color){}
+}
+class PointLight{
+    /**
+     * A light that emits from a single point in all directions.
+     * @param {Array<Number>} position The position of the point light
+     * @param {Number} intensity The intensity of light - how bright is it
+     * @param {Number} range The range of light - how far away can it go
+     * @param {Array<Number>|String} color - The color of the light
+     * @param {Array<Number>|String} specularColor - The color of the specular highlight
+     */
+    constructor(position,intensity,range,color,specularColor){
+        this.position = position;
+        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
+        this.specularColor = color?CATS.Color(specularColor).slice(0,3):[1,1,1];
+        this.intensity = intensity?intensity:1;
+        this.range = range?range:2;
+    }
+    translate(v){
+        this.position = CATS.math.vec3.add(this.position,v)
+    }
+    convertToData(){
+        return {
+            pivector:[...this.position,this.intensity],
+            color:[...this.color,this.range==1?1.0001:this.range],
+            specularColor:[...this.specularColor],
+            type:CATS.enum.POINT_LIGHT
+        }
+    }
+}
+class SpotLight{
+    /**
+     * A light that lights up a cone shaped area.
+     * @param {Array<Number>} position
+     */
+    constructor(position,direction,limit,intensity,range,color,specularColor){
+        this.position = position;
+        this.direction = direction;
+        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
+        this.specularColor = specularColor?CATS.Color.slice(0,3):[1,1,1];
+        this.limit = limit;
+        this.intensity = intensity?intensity:1;
+        this.range = range?range:2;
     }
 }
 //-------Easy to initialize primitives-------
@@ -603,7 +1018,7 @@ class Cube extends Mesh{
      * @param {Number} size The size of the cube.
      * @param {Material} material The material of the cube.
      */
-    constructor(size,material){
+    constructor(size,material,customTextureCoordinates){
         super([
             //Back
             -size,size,-size,
@@ -649,7 +1064,9 @@ class Cube extends Mesh{
             19,18,16,
             21,23,20,
             23,22,20
-        ],material)
+        ],material,0,0,customTextureCoordinates?customTextureCoordinates:[
+
+        ],1)
     }
 }
 class Sphere extends Mesh{
@@ -700,13 +1117,23 @@ class Plane extends Mesh{
             size,0,size,
             -size,0,size,
             -size,0,-size,
-            size,0,-size            
+            size,0,-size           
         ];
         var indices = [
-            0,1,2,
-            1,3,2,
+            0,1,3,
+            1,2,3,
         ]
-        super(vertices,indices,material,false)
+        super(vertices,indices,material,true,[
+            0,-1,0,
+            0,-1,0,
+            0,-1,0,
+            0,-1,0,
+        ],[
+            1,0,
+            0,0,
+            0,1,
+            1,1,
+        ])
     }
 }
 //#endregion
@@ -828,12 +1255,23 @@ class Buffer{
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
         this.params = params;
+        this.dataType = dataType?dataType:Float32Array
+        this.usage = usage?usage:gl.STATIC_DRAW
         gl.bindBuffer(this.usageType,newBuffer);
         gl.bufferData(this.usageType,
-            dataType?new dataType(data):new Float32Array(data),
-            usage?usage:gl.STATIC_DRAW
+            new this.dataType(data),
+            this.usage
         );
+        gl.bindBuffer(this.usageType,null);
         this.buffer = newBuffer;
+    }
+    setValue(data){
+        const gl = this.renderer.gl;
+        gl.bindBuffer(this.usageType,this.buffer)
+        gl.bufferData(this.usageType,
+            new this.dataType(data),
+            this.usage
+        );
     }
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
@@ -894,6 +1332,59 @@ class IndexBuffer extends Buffer{
         })
     }
 }
+class TextureCoordinateBuffer extends Buffer{
+    constructor(render,data,attribute){
+        super(render,data,Float32Array,{
+            vertexAttribParams:{
+                numberOfComponents:2,
+                type:render.gl.FLOAT,
+                normalize:render.gl.FALSE,
+                stride:2*Float32Array.BYTES_PER_ELEMENT,
+                offset:0
+            },
+            usageType:CATS.enum.ARRAY_BUFFER,
+            type:CATS.enum.ATTRIBUTE,
+            attribute:attribute
+        })
+    }
+}
+class TextureBuffer{
+    /**
+     * Creates a texture buffer object. Used internally in CATS.
+     * @param {Renderer} renderer 
+     * @param {Texture} texture
+     */
+    constructor(renderer,texture){
+        this.renderer = renderer;
+        const gl = this.renderer.gl;
+        const textr = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D,textr)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR)
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture)
+        gl.bindTexture(gl.TEXTURE_2D,null)
+        this.texture = textr;
+    }
+    enableForProgram(){
+       this.renderer.gl.bindTexture(this.renderer.gl.TEXTURE_2D,this.texture)
+    }
+}
+class Texture{
+    /**
+     * Converts images into usable texture formats
+     */
+    constructor(data){
+        if(data instanceof String){
+            var myimage = new Image();
+            myimage.src=data;
+            return myimage;
+        } else {
+            return data;
+        }
+    }
+}
 //#endregion
 //-----Uniforms-----
 //#region 
@@ -935,15 +1426,15 @@ class UniformVector4{
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
     }
 }
-class UniformInt{
-    constructor(render,int,attribute){
-        this.value = int;
+class UniformFloat{
+    constructor(render,value,attribute){
+        this.value = value;
         this.attribute = attribute;
         this.render = render;
         this.tag = CATS.enum.UNIFORM;
     }
     enableForProgram(program){
-        this.render.gl.uniform1i(this.render.gl.getUniformLocation(program,this.attribute),this.value)
+        this.render.gl.uniform1f(this.render.gl.getUniformLocation(program,this.attribute),this.value)
     }
 }
 //This part is also useless but kinda useful...
@@ -976,33 +1467,68 @@ class RenderablePackage{
 //#region 
 
 class Material{
-    constructor(params,buildFunction){
+    /**
+     * 
+     * @param {*} params 
+     * @param {*} buildFunction 
+     * @param {*} properties 
+     */
+    constructor(params,buildFunction,properties){
         this.lastCompiled = false;
         this.compiled = null;
         this.params = params;
+        if(properties){
+            for(const [key,value] of Object.entries(properties)){
+                this[key] = value;
+            }
+        }
         if(!buildFunction){
             buildFunction = function(renderer,mesh,scene,material){
                 if(!material.lastCompiled){
                     let vertexShaderSource = `
-    precision mediump float;
-    attribute vec3 vP;
-    attribute vec3 vN;
-    uniform mat4 wM;
-    uniform mat4 vM;
-    uniform mat4 pM;
-    uniform mat4 nM;
-    varying mediump vec3 fN;
-    void main(void){
-        vec3 newVN = vec3(nM*vec4(vN,1.0));
-        gl_Position = pM*vM*wM*vec4(vP,1.0);
-        fN = newVN;
-    }
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+precision mediump float;
+attribute vec3 vP;
+attribute vec3 vN;
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+void main(void){
+        vec4 position = wM*vec4(vP,1.0);
+        gl_Position = pM*vM*position;
+        fN = (wM*vec4(vN,0.0)).xyz;
+        fP = position.xyz;
+        surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
+}
+                    
     `
                     let fragmentShaderSource = `
-    precision mediump float;
-    varying mediump vec3 fN;
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+precision mediump float;
+precision mediump float;
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+uniform vec4 objectColor;
+uniform float shininess;
     void main(void){
-        gl_FragColor = vec3(1.0,0.0,1.0,1.0);
+        gl_FragColor = vec4(1.0,0.0,1.0,1.0);
     }
     `
                     let vertexShader = new VertexShader(vertexShaderSource);
@@ -1035,7 +1561,7 @@ class Material{
 }
 
 class SingleColorMaterial extends Material{
-    constructor(color,inverseLightDirection){
+    constructor(color,shininess){
         /**
          * 
          * @param {Renderer} renderer 
@@ -1046,51 +1572,138 @@ class SingleColorMaterial extends Material{
          */
         function buildFunction(renderer,mesh,scene,material){
             if(!material.lastCompiled){
-                let vertexShaderSource = `precision mediump float;
+                let vertexShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
 attribute vec3 vP;
 attribute vec3 vN;
+
 uniform mat4 wM;
 uniform mat4 vM;
 uniform mat4 pM;
 uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+
 varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+
 void main(void){
-    gl_Position = pM*vM*wM*vec4(vP,1.0);
+    vec4 position = wM*vec4(vP,1.0);
+    gl_Position = pM*vM*position;
     fN = (wM*vec4(vN,0.0)).xyz;
+    fP = position.xyz;
+    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
 }
 `;
                 let fragmentShaderSource = `
-#define MAXLIGHTSOURCES ${scene.lighting.maxLightSourcesPerMesh}
-precision mediump float;
-varying mediump vec3 fN;
-uniform vec4 lightDirection[MAXLIGHTSOURCES];
-uniform vec3 lightCounts;
-uniform vec4 objectColor;
-void main(void){
-    int ndLights = int(lightCounts.x);
-    if(ndLights>8){
-        ndLights = 8;
-    }
-    vec3 normal = normalize(fN);
-    float light = 0.0;
-    for(int i=0; i<MAXLIGHTSOURCES; i++){
-        if(i>=ndLights){
-            break;
-        }
-        float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
-        if(increment<0.0){
-            increment = 0.0;
-        }
-        light+=increment;
-    }
-    if(light > 1.0){
-        light = 1.0;
-    } else if(light<0.0){
-        light = 0.0;
-    }
-    gl_FragColor = objectColor;
-    gl_FragColor.rgb*=light;
-}`;
+                #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+                #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+                
+                precision mediump float;
+                
+                varying mediump vec3 fN;
+                varying mediump vec3 fP;
+                varying mediump vec3 surfaceToView;
+                
+                uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+                uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+                uniform vec3 lightCounts;
+                uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+                uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+                uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+                uniform vec3 ambientLightColors[MAXDLIGHTSOURCES];
+                uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
+                uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
+                uniform vec4 objectColor;
+                uniform float shininess;
+                void main(void){
+                    int ndLights = int(lightCounts.x);
+                    int npLights = int(lightCounts.y);
+                    if(ndLights>MAXDLIGHTSOURCES){
+                        ndLights = MAXDLIGHTSOURCES;
+                    }
+                    if(npLights>MAXPLIGHTSOURCES){
+                        npLights = MAXPLIGHTSOURCES;
+                    }
+                    vec3 normal = normalize(fN);
+                    float light = 0.0;
+                    float specular = 0.0;
+                    vec3 lightColor,specularColor;
+                    //Directional
+                    for(int i=0; i<MAXDLIGHTSOURCES; i++){
+                        if(i>=ndLights){
+                            break;
+                        }
+                        float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
+                        if(increment<0.0){
+                            increment = 0.0;
+                        }
+                        light+=increment;
+                    }
+                    //Point
+                    for(int i=0; i<MAXPLIGHTSOURCES; i++){
+                        if(i>=npLights){
+                            break;
+                        }
+                        vec3 surfaceToLight = normalize(lightPosition[i].xyz - fP);
+                        vec3 surfaceToView = normalize(surfaceToView);
+                        vec3 halfVector = normalize(surfaceToLight+surfaceToView);
+                        float distance = pow(
+                            surfaceToLight.x*surfaceToLight.x+
+                            surfaceToLight.y*surfaceToLight.y+
+                            surfaceToLight.z*surfaceToLight.z,0.5
+                        );
+                        float subtraction;
+                        if(distance<=pointLightColors[i].w){
+                            subtraction = 0.0;
+                        } else {
+                            float range = pointLightColors[i].w;
+                            subtraction = distance*(0.3/range);
+                        }
+                        float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
+                        if(increment<0.0){
+                            increment = 0.0;
+                        }
+                        lightColor += pointLightColors[i].rgb;
+                        light+=increment;
+                        if(shininess <= 0.0){
+                            break;
+                        }
+                        float specularIncrement = 0.0;
+                        if(specularIncrement<0.0){
+                            specularIncrement = 0.0;
+                        }
+                        if(increment>0.0){
+                            specularIncrement = pow(dot(fN,halfVector),shininess);
+                        }
+                        specularColor += pointLightSpecularColors[i].rgb;
+                        specular+=specularIncrement;
+                    }
+                    //Spot
+                    /*
+                    for(int i=0; i<MAXPLIGHTSOURCES; i++){
+                        if(i>=)
+                    }*/
+                    if(light > 1.0){
+                        light = 1.0;
+                    } else if(light<0.0){
+                        light = 0.0;
+                    }
+                    gl_FragColor = objectColor;
+                    gl_FragColor.rgb*=light*lightColor;
+                    gl_FragColor.rgb+=specular*specularColor;
+                }`;
+                if(material.shininess<=0){
+                    var shine=0
+                } else {
+                var shine = material.shininess*3
+                shine = 251-CATS.math.clamp(shine,0,250)
+                }
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
                 let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
@@ -1100,9 +1713,14 @@ void main(void){
                     parameters:[
                         {
                             type:UniformVector4,
-                            value:CATS.Color(material.params[0]),
+                            value:CATS.Color(material.color),
                             attribute:"objectColor"
                         },
+                        {
+                            type:UniformFloat,
+                            value:shine,
+                            attribute:"shininess"
+                        }
                     ]
                 }
                 return material.compiled;
@@ -1110,7 +1728,90 @@ void main(void){
                 return material.compiled;
             }
         }
-        super([color,inverseLightDirection],buildFunction)
+        super([],buildFunction,{
+            "shininess":shininess,
+            "color":color
+        })
+    }
+}
+class TexturedMaterial extends Material{
+    constructor(texture){
+        function buildFunction(renderer,mesh,scene,material){
+            if(!mesh.texCoords?!mesh.texCoords.length:0){
+                throw Error("No texture coordinates are provided for this object!")
+            }
+            const vertexShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+attribute vec3 vP;
+attribute vec3 vN;
+attribute vec2 vTC;
+
+uniform mat4 wM;
+uniform mat4 vM;
+uniform mat4 pM;
+uniform mat4 nM;
+uniform vec3 viewPosition;
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+varying mediump vec2 fTC;
+void main(void){
+    fTC = vTC;
+    vec4 position = wM*vec4(vP,1.0);
+    gl_Position = pM*vM*position;
+    fN = (wM*vec4(vN,0.0)).xyz;
+    fP = position.xyz;
+    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
+    
+}`
+            const fragmentShaderSource = `
+#define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+#define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+
+precision mediump float;
+
+varying mediump vec3 fN;
+varying mediump vec3 fP;
+varying mediump vec3 surfaceToView;
+varying mediump vec2 fTC;
+
+uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+uniform vec3 lightCounts;
+uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+uniform vec4 objectColor;
+uniform sampler2D texSamp;
+uniform float shininess;
+void main(void){
+    gl_FragColor = texture2D(texSamp,fTC);
+}`
+            let vertexShader = new VertexShader(vertexShaderSource)
+            let fragmentShader = new FragmentShader(fragmentShaderSource)
+            let shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader)
+            material.lastCompiled = true;
+            material.compiled = {
+                shaderProgram:shaderProgram,
+                parameters:[
+                    {
+                        type:TextureBuffer,
+                        value:material.params[0],
+                        reusable:1,
+                        paramname:"texureBuffer"
+                    },
+                ]
+            }
+            return material.compiled
+        }
+        super([texture],buildFunction,{})
+        this.textureBuffer = null
     }
 }
 //#endregion
