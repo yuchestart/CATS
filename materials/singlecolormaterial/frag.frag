@@ -16,6 +16,7 @@ uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
 uniform vec3 ambientLightColors[MAXDLIGHTSOURCES];
 uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
 uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
+uniform vec4 ambientLights[MAXDLIGHTSOURCES];
 uniform vec4 objectColor;
 uniform float shininess;
 void main(void){

@@ -222,15 +222,17 @@ const CATS = {
         CLAMP_TO_EDGE:24,
         CLAMP_TO_BORDER:25,
         USES_TEXTURE:26,
-        AMBIENT_LIGHT:27
+        AMBIENT_LIGHT:27,
+        PHONG_LIGHTING:28,
+        BASIC_LIGHTING:29
     },
     /**
      * Converts commonly used color formats to RGBA.
      * Formats include:
-     * * HSV: "hsv(h,s,v)"
-     * * RGB32: "rgb(r,g,b)" or [r,g,b]
-     * * RGBA32*: "rgba(r,g,b,a)" or [r,g,b,a]
-     * * HEX: "#rrggbb"
+     * * HSV: "hsv(h,s,v)" 0 - 255 H 0 - 100 S & V
+     * * RGB32: "rgb(r,g,b)" or [r,g,b] 0 - 255 all values
+     * * RGBA32: "rgba(r,g,b,a)" or [r,g,b,a] 0 - 255 RGB 0 - 1 A
+     * * HEX: "#rrggbb" 0 - FF all values
      * @param {Array|String} color 
      * @returns {Array<Number>}
      */
@@ -308,7 +310,7 @@ const CATS = {
         }
     },
     shaderReference:{
-        phonglighting:`int ndLights = int(lightCounts.x);
+        PHONG_LIGHTING:`int ndLights = int(lightCounts.x);
         int npLights = int(lightCounts.y);
         if(ndLights>MAXDLIGHTSOURCES){
             ndLights = MAXDLIGHTSOURCES;
@@ -374,7 +376,24 @@ const CATS = {
             light = 1.0;
         } else if(light<0.0){
             light = 0.0;
-        }`
+        }`,
+        BASIC_LIGHTING:
+        `
+        float light = 1.0;
+        float specular = 0.0;
+        vec3 lightColor = vec3(1.0,1.0,1.0);
+        vec3 specularColor = vec3(1.0,1.0,1.0);
+        `,
+        setLightingShader:function(type){
+            switch(type){
+                case CATS.enum.PHONG_LIGHTING:
+                    return CATS.shaderReference.PHONG_LIGHTING;
+                case CATS.enum.BASIC_LIGHTING:
+                    return CATS.shaderReference.BASIC_LIGHTING
+                default:
+                    return CATS.shaderReference.BASIC_LIGHTING
+            }
+        }
     }
 }
 Object.freeze(CATS)
@@ -1572,7 +1591,7 @@ uniform float shininess;
 }
 
 class SingleColorMaterial extends Material{
-    constructor(color,shininess){
+    constructor(color,shininess,lightingType=CATS.enum.PHONG_LIGHTING){
         /**
          * 
          * @param {Renderer} renderer 
@@ -1627,88 +1646,18 @@ void main(void){
                 uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
                 uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
                 uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
-                uniform vec3 ambientLightColors[MAXDLIGHTSOURCES];
+                uniform vec4 ambientLights[MAXDLIGHTSOURCES];
                 uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
                 uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
                 uniform vec4 objectColor;
                 uniform float shininess;
                 void main(void){
-                    int ndLights = int(lightCounts.x);
-                    int npLights = int(lightCounts.y);
-                    if(ndLights>MAXDLIGHTSOURCES){
-                        ndLights = MAXDLIGHTSOURCES;
-                    }
-                    if(npLights>MAXPLIGHTSOURCES){
-                        npLights = MAXPLIGHTSOURCES;
-                    }
-                    vec3 normal = normalize(fN);
-                    float light = 0.0;
-                    float specular = 0.0;
-                    vec3 lightColor,specularColor;
-                    //Directional
-                    for(int i=0; i<MAXDLIGHTSOURCES; i++){
-                        if(i>=ndLights){
-                            break;
-                        }
-                        float increment = dot(normal,lightDirection[i].xyz*lightDirection[i].w);
-                        if(increment<0.0){
-                            increment = 0.0;
-                        }
-                        light+=increment;
-                    }
-                    //Point
-                    for(int i=0; i<MAXPLIGHTSOURCES; i++){
-                        if(i>=npLights){
-                            break;
-                        }
-                        vec3 surfaceToLight = normalize(lightPosition[i].xyz - fP);
-                        vec3 surfaceToView = normalize(surfaceToView);
-                        vec3 halfVector = normalize(surfaceToLight+surfaceToView);
-                        float distance = pow(
-                            surfaceToLight.x*surfaceToLight.x+
-                            surfaceToLight.y*surfaceToLight.y+
-                            surfaceToLight.z*surfaceToLight.z,0.5
-                        );
-                        float subtraction;
-                        if(distance<=pointLightColors[i].w){
-                            subtraction = 0.0;
-                        } else {
-                            float range = pointLightColors[i].w;
-                            subtraction = distance*(0.3/range);
-                        }
-                        float increment = (dot(fN,surfaceToLight)-subtraction)*lightPosition[i].w;
-                        if(increment<0.0){
-                            increment = 0.0;
-                        }
-                        lightColor += pointLightColors[i].rgb;
-                        light+=increment;
-                        if(shininess <= 0.0){
-                            break;
-                        }
-                        float specularIncrement = 0.0;
-                        if(specularIncrement<0.0){
-                            specularIncrement = 0.0;
-                        }
-                        if(increment>0.0){
-                            specularIncrement = pow(dot(fN,halfVector),shininess);
-                        }
-                        specularColor += pointLightSpecularColors[i].rgb;
-                        specular+=specularIncrement;
-                    }
-                    //Spot
-                    /*
-                    for(int i=0; i<MAXPLIGHTSOURCES; i++){
-                        if(i>=)
-                    }*/
-                    if(light > 1.0){
-                        light = 1.0;
-                    } else if(light<0.0){
-                        light = 0.0;
-                    }
+                    ${CATS.shaderReference.setLightingShader(material.lightingType)}
                     gl_FragColor = objectColor;
                     gl_FragColor.rgb*=light*lightColor;
                     gl_FragColor.rgb+=specular*specularColor;
                 }`;
+                console.log(material.lightingType)
                 if(material.shininess<=0){
                     var shine=0
                 } else {
@@ -1741,7 +1690,8 @@ void main(void){
         }
         super([],buildFunction,{
             "shininess":shininess,
-            "color":color
+            "color":color,
+            "lightingType":lightingType
         })
     }
 }
