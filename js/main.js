@@ -312,8 +312,12 @@ const CATS = {
     shaderReference:{
         PHONG_LIGHTING:`int ndLights = int(lightCounts.x);
         int npLights = int(lightCounts.y);
+        int naLights = int(lightCounts.z);
         if(ndLights>MAXDLIGHTSOURCES){
             ndLights = MAXDLIGHTSOURCES;
+        }
+        if(naLights>MAXDLIGHTSOURCES){
+            naLights = MAXDLIGHTSOURCES;
         }
         if(npLights>MAXPLIGHTSOURCES){
             npLights = MAXPLIGHTSOURCES;
@@ -331,6 +335,7 @@ const CATS = {
             if(increment<0.0){
                 increment = 0.0;
             }
+            lightColor+=directionalLightColors[i];
             light+=increment;
         }
         //Point
@@ -372,6 +377,20 @@ const CATS = {
             specularColor += pointLightSpecularColors[i].rgb;
             specular+=specularIncrement;
         }
+        //Spot
+        /*
+        for(int i=0; i<MAXPLIGHTSOURCES; i++){
+            if(i>=)
+        }
+        */
+        //Ambient
+        for(int i=0; i<MAXDLIGHTSOURCES; i++){
+            if(i>=naLights){
+                break;
+            }
+            lightColor += ambientLights[i].rgb;
+            light+=ambientLights[i].w;
+        }
         if(light > 1.0){
             light = 1.0;
         } else if(light<0.0){
@@ -402,7 +421,7 @@ Object.freeze(CATS)
 //-----------RENDERER OBJECT-----------
 //The object that the user will initiate at the start
 //The user won't interact with this much
-//#region 
+//#region
 class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
@@ -1657,7 +1676,6 @@ void main(void){
                     gl_FragColor.rgb*=light*lightColor;
                     gl_FragColor.rgb+=specular*specularColor;
                 }`;
-                console.log(material.lightingType)
                 if(material.shininess<=0){
                     var shine=0
                 } else {
