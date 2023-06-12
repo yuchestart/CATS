@@ -1422,14 +1422,14 @@ class TextureBuffer{
 }
 class Texture{
     /**
-     * Converts images into usable texture formats
+     * Converts an image source URL to a usable image.
      */
     constructor(data){
         if(data instanceof String){
             var myimage = new Image();
             myimage.src=data;
             return myimage;
-        } else {
+        } else if(da){
             return data;
         }
     }
@@ -1714,7 +1714,7 @@ void main(void){
     }
 }
 class TexturedMaterial extends Material{
-    constructor(texture){
+    constructor(texture,shininess,lightingType=CATS.enum.PHONG_LIGHTING){
         function buildFunction(renderer,mesh,scene,material){
             if(!mesh.texCoords?!mesh.texCoords.length:0){
                 throw Error("No texture coordinates are provided for this object!")
@@ -1770,6 +1770,7 @@ uniform vec4 objectColor;
 uniform sampler2D texSamp;
 uniform float shininess;
 void main(void){
+    ${CATS.shaderReference.setLightingShader(material.lightingType)}
     gl_FragColor = texture2D(texSamp,fTC);
 }`
             let vertexShader = new VertexShader(vertexShaderSource)
@@ -1783,13 +1784,21 @@ void main(void){
                         type:TextureBuffer,
                         value:material.params[0],
                         reusable:1,
-                        paramname:"texureBuffer"
+                        paramname:"textureBuffer"
                     },
+                    {
+                        type:UniformFloat,
+                        value:shine,
+                        attribute:"shininess"
+                    }
                 ]
             }
             return material.compiled
         }
-        super([texture],buildFunction,{})
+        super([texture],buildFunction,{
+            "shininess":shininess,
+            "lightingType":lightingType
+        })
         this.textureBuffer = null
     }
 }
