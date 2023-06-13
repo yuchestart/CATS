@@ -384,13 +384,13 @@ const CATS = {
         }
         */
         //Ambient
-        for(int i=0; i<MAXDLIGHTSOURCES; i++){
-            if(i>=naLights){
-                break;
-            }
-            lightColor += ambientLights[i].rgb;
-            light+=ambientLights[i].w;
-        }
+        //for(int i=0; i<MAXDLIGHTSOURCES; i++){
+        //    if(i>=naLights){
+        //        break;
+        //    }
+        //    lightColor += ambientLights[i].rgb;
+        //    light+=ambientLights[i].w;
+        //}
         if(light > 1.0){
             light = 1.0;
         } else if(light<0.0){
