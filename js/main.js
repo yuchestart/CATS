@@ -384,13 +384,13 @@ const CATS = {
         }
         */
         //Ambient
-        //for(int i=0; i<MAXDLIGHTSOURCES; i++){
-        //    if(i>=naLights){
-        //        break;
-        //    }
-        //    lightColor += ambientLights[i].rgb;
-        //    light+=ambientLights[i].w;
-        //}
+        for(int i=0; i<MAXDLIGHTSOURCES; i++){
+            if(i>=naLights){
+                break;
+            }
+            lightColor += ambientLights[i].rgb;
+            light+=ambientLights[i].w;
+        }
         if(light > 1.0){
             light = 1.0;
         } else if(light<0.0){
@@ -402,6 +402,25 @@ const CATS = {
         float specular = 0.0;
         vec3 lightColor = vec3(1.0,1.0,1.0);
         vec3 specularColor = vec3(1.0,1.0,1.0);
+        `,
+        FRAG_ATTR:`
+        precision mediump float;
+
+        varying mediump vec3 fN;
+        varying mediump vec3 fP;
+        varying mediump vec3 surfaceToView;
+
+        uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+        uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+        uniform vec3 lightCounts;
+        uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+        uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+        uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+        uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
+        uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
+        uniform vec4 ambientLights[MAXDLIGHTSOURCES];
+        uniform vec4 objectColor;
+        uniform float shininess;
         `,
         setLightingShader:function(type){
             switch(type){
@@ -1321,6 +1340,7 @@ class Buffer{
             new this.dataType(data),
             this.usage
         );
+        gl.bindBuffer(this.usageType,null);
     }
     enableForProgram(program){
         if(this.type == CATS.enum.ATTRIBUTE){
@@ -1652,24 +1672,7 @@ void main(void){
                 let fragmentShaderSource = `
                 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
                 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
-                
-                precision mediump float;
-                
-                varying mediump vec3 fN;
-                varying mediump vec3 fP;
-                varying mediump vec3 surfaceToView;
-                
-                uniform vec4 lightDirection[MAXDLIGHTSOURCES];
-                uniform vec4 lightPosition[MAXPLIGHTSOURCES];
-                uniform vec3 lightCounts;
-                uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
-                uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
-                uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
-                uniform vec4 ambientLights[MAXDLIGHTSOURCES];
-                uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
-                uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
-                uniform vec4 objectColor;
-                uniform float shininess;
+                ${CATS.shaderReference.FRAG_ATTR}
                 void main(void){
                     ${CATS.shaderReference.setLightingShader(material.lightingType)}
                     gl_FragColor = objectColor;
