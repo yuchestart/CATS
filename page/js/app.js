@@ -40,11 +40,13 @@ function main(){
     }
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
-    mymaterial = new SingleColorMaterial("#FFFF00")
+    mymaterial = new SingleColorMaterial("#3b609d")
     mylight = new DirectionalLight([0,0],1,"#FFFFFF")
+    mylight2 = new AmbientLight(50,"#FFFFFF")
     mymesh = new Cube(1,mymaterial)
     mymesh.rotate([45,0,0])
     scene.addLight(mylight)
+    scene.addLight(mylight2)
     scene.addObject(mymesh)
     scene.moveCamera([0,1,5])
     

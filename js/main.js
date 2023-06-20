@@ -312,7 +312,7 @@ const CATS = {
     shaderReference:{
         PHONG_LIGHTING:`int ndLights = int(lightCounts.x);
         int npLights = int(lightCounts.y);
-        int naLights = int(lightCounts.z);
+        int naLights = int(lightCounts.w);
         if(ndLights>MAXDLIGHTSOURCES){
             ndLights = MAXDLIGHTSOURCES;
         }
@@ -391,9 +391,10 @@ const CATS = {
             lightColor += ambientLights[i].rgb;
             light+=ambientLights[i].w;
         }
+        //light+=float(naLights);
         if(light > 1.0){
             light = 1.0;
-        } else if(light<0.0){
+        }else if(light < 0.0){
             light = 0.0;
         }`,
         BASIC_LIGHTING:
@@ -419,7 +420,6 @@ const CATS = {
         uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
         uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
         uniform vec4 ambientLights[MAXDLIGHTSOURCES];
-        uniform vec4 objectColor;
         uniform float shininess;
         `,
         setLightingShader:function(type){
@@ -756,7 +756,8 @@ class Scene{
                     lightCount.point++;
                     break;
                 case CATS.enum.AMBIENT_LIGHT:
-                    amvector.push(...processedLight.vec)
+                    amvector.push(...processedLight.vec);
+                    lightCount.ambient++;
             }
         }
         if(divector.length){
@@ -766,6 +767,10 @@ class Scene{
         if(pivector.length){
             var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
             otherUniforms.push(pivectoruniform);
+        }
+        if(amvector.length){
+            var amvectoruniform = new UniformVector4(this.renderer,amvector,"ambientLights");
+            otherUniforms.push(amvectoruniform);
         }
         if(lightColors.directional.length){
             var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors")
@@ -1027,7 +1032,7 @@ class AmbientLight{
      * 
      */
     constructor(intensity,color){
-        this.intensity = intensity;
+        this.intensity = intensity/100;
         this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
     }
     convertToData(){
@@ -1676,10 +1681,11 @@ void main(void){
                 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
                 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
                 ${CATS.shaderReference.FRAG_ATTR}
+                uniform vec4 objectColor;
                 void main(void){
                     ${CATS.shaderReference.setLightingShader(material.lightingType)}
                     gl_FragColor = objectColor;
-                    gl_FragColor.rgb*=light*lightColor;
+                    gl_FragColor.rgb*=light*(lightColor * objectColor.rgb);
                     gl_FragColor.rgb+=specular*specularColor;
                 }`;
                 if(material.shininess<=0){
@@ -1758,26 +1764,13 @@ void main(void){
             const fragmentShaderSource = `
 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
-
-precision mediump float;
-
-varying mediump vec3 fN;
-varying mediump vec3 fP;
-varying mediump vec3 surfaceToView;
-varying mediump vec2 fTC;
-
-uniform vec4 lightDirection[MAXDLIGHTSOURCES];
-uniform vec4 lightPosition[MAXPLIGHTSOURCES];
-uniform vec3 lightCounts;
-uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
-uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
-uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
-uniform vec4 objectColor;
+${CATS.shaderReference.FRAG_ATTR}
 uniform sampler2D texSamp;
-uniform float shininess;
 void main(void){
     ${CATS.shaderReference.setLightingShader(material.lightingType)}
     gl_FragColor = texture2D(texSamp,fTC);
+    gl_FragColor *= light*(lightColor*gl_FragColor.rgb);
+    gl_FragColor += specular*specularColor;
 }`
             let vertexShader = new VertexShader(vertexShaderSource)
             let fragmentShader = new FragmentShader(fragmentShaderSource)
