@@ -412,7 +412,7 @@ const CATS = {
 
         uniform vec4 lightDirection[MAXDLIGHTSOURCES];
         uniform vec4 lightPosition[MAXPLIGHTSOURCES];
-        uniform vec3 lightCounts;
+        uniform vec4 lightCounts;
         uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
         uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
         uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
@@ -689,7 +689,7 @@ class Scene{
     }
     /**
      * Adds a light to the scene
-     * @param {DirectionalLight|PointLight} light 
+     * @param {DirectionalLight|PointLight|AmbientLight|SpotLight} light 
      * @returns {Number} The ID of the light.
      */
     addLight(light){
@@ -725,6 +725,7 @@ class Scene{
         var matrices = this.projectCamera();
         var divector = [];
         var pivector = [];
+        var amvector = [];
         var lightColors = {
             directional:[],
             point:[],
@@ -737,7 +738,8 @@ class Scene{
         var lightCount = {
             directional:0,
             point:0,
-            spot:0
+            spot:0,
+            ambient:0
         };
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
@@ -753,7 +755,8 @@ class Scene{
                     specularLightColors.point.push(...processedLight.specularColor)
                     lightCount.point++;
                     break;
-                
+                case CATS.enum.AMBIENT_LIGHT:
+                    amvector.push(...processedLight.vec)
             }
         }
         if(divector.length){
@@ -776,7 +779,7 @@ class Scene{
             var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors")
             otherUniforms.push(scp)
         }
-        var lightCountVector = new UniformVector3(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot],"lightCounts")
+        var lightCountVector = new UniformVector4(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot,lightCount.ambient],"lightCounts")
         var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
         otherUniforms.push(viewPosVector);
