@@ -399,7 +399,7 @@ const CATS = {
         }`,
         BASIC_LIGHTING:
         `
-        float light = 1.0;
+        float light = 2.0;
         float specular = 0.0;
         vec3 lightColor = vec3(1.0,1.0,1.0);
         vec3 specularColor = vec3(1.0,1.0,1.0);

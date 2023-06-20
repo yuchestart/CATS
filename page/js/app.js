@@ -40,7 +40,7 @@ function main(){
     }
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
-    mymaterial = new SingleColorMaterial("#3b609d")
+    mymaterial = new SingleColorMaterial("#3b609d",0,CATS.enum.BASIC_LIGHTING)
     mylight = new DirectionalLight([0,0],1,"#FFFFFF")
     mylight2 = new AmbientLight(50,"#FFFFFF")
     mymesh = new Cube(1,mymaterial)
