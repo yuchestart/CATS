@@ -499,6 +499,13 @@ class Renderer{
     updateAspectRatio(){
         if(this.autoAdjust){
             this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
+            this.prevCanvasDimensions = {
+                width:canvas.clientWidth,
+                height:canvas.clientHeight
+            }
+            this.canvas.width = this.canvas.clientWidth;
+            this.canvas.height = this.canvas.clientHeight;
+            this.gl.viewport(0,0,this.canvas.width,this.canvas.height)
         }
     }
     clear(r,g,b,a){
@@ -513,6 +520,9 @@ class Renderer{
      * @param {RenderablePackage} package The package to draw.
      */
     drawPackage(renderPackage){
+        if(this.autoAdjust){
+            this.updateAspectRatio()
+        }
         var renderTypes = {
             0:this.gl.TRIANGLE_STRIP,
             1:this.gl.TRIANGLES,
