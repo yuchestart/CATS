@@ -711,13 +711,14 @@ class Scene{
      * @param {Number} id 
      */
     removeObject(id){
-        this.objects.splice(id,1)
+        delete this.objects[id]
     }
     removeLight(id){
-        this.lights.splice(id,1)
+        delete this.objects[id]
     }
     clear(){
         this.objects = [];
+        this.lights = [];
     }
     setBackground(color){
         if(color.startsWith("#")){
