@@ -47,11 +47,11 @@ function main(){
     mymesh.rotate([45,0,0])
     scene.addLight(mylight)
     scene.addLight(mylight2)
-    scene.addObject(mymesh)
+    var mymeshid = scene.addObject(mymesh)
     scene.moveCamera([0,1,5])
     
     function cat(){
-        mymesh.rotate([1,0,0])
+        scene.objects[mymeshid].rotate([1,0,0])
     scene.render()
     requestAnimationFrame(cat)
     }

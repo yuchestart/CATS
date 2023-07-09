@@ -500,8 +500,8 @@ class Renderer{
         if(this.autoAdjust){
             this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
             this.prevCanvasDimensions = {
-                width:canvas.clientWidth,
-                height:canvas.clientHeight
+                width:this.canvas.clientWidth,
+                height:this.canvas.clientHeight
             }
             this.canvas.width = this.canvas.clientWidth;
             this.canvas.height = this.canvas.clientHeight;
