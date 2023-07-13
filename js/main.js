@@ -489,13 +489,7 @@ class Renderer{
             this.autoAdjust = false;
         }
     }
-    /**
-     * Clears the rendering surface
-     * @param {Number} r 
-     * @param {Number} g 
-     * @param {Number} b 
-     * @param {Number} a 
-     */
+    
     updateAspectRatio(){
         if(this.autoAdjust){
             this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
@@ -508,6 +502,13 @@ class Renderer{
             this.gl.viewport(0,0,this.canvas.width,this.canvas.height)
         }
     }
+    /**
+     * Clears the rendering surface
+     * @param {Number} r 
+     * @param {Number} g 
+     * @param {Number} b 
+     * @param {Number} a 
+     */
     clear(r,g,b,a){
         //Clear rendering surface
         this.gl.clearColor(r,g,b,a);
@@ -582,9 +583,12 @@ class Scene{
             lastViewMatrix:new Mat4(),
             viewMatrixInitialized:false
         };
+        /**
+         * @type {Array<Mesh>}
+         */
         this.objects = [];
         /**
-         * @type {Array<DirectionalLight|PointLight>}
+         * @type {Array<DirectionalLight|PointLight|AmbientLight>}
          */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
