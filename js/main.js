@@ -224,7 +224,8 @@ const CATS = {
         USES_TEXTURE:26,
         AMBIENT_LIGHT:27,
         PHONG_LIGHTING:28,
-        BASIC_LIGHTING:29
+        BASIC_LIGHTING:29,
+        SPOT_LIGHT:30
     },
     /**
      * Converts commonly used color formats to RGBA.
@@ -419,7 +420,9 @@ const CATS = {
         uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
         uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
         uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
+        uniform vec4 spotLightDirection[MAXPLIGHTSOURCES];
         uniform vec4 ambientLights[MAXDLIGHTSOURCES];
+        
         uniform float shininess;
         `,
         setLightingShader:function(type){
@@ -588,7 +591,7 @@ class Scene{
          */
         this.objects = [];
         /**
-         * @type {Array<DirectionalLight|PointLight|AmbientLight>}
+         * @type {Array<DirectionalLight|PointLight|AmbientLight|SpotLight>}
          */
         this.lights = [];
         this.bgcolor = [0,0,0,1];
@@ -599,6 +602,8 @@ class Scene{
         }
         this.built = false;
     }
+    //Camera controls
+    //#region 
     /**
      * Moves the camera by a vector.
      * @param {Array} vector 
@@ -626,6 +631,7 @@ class Scene{
     setFOV(fov){
         this.camera.fovy = fov;
     }
+    //#endregion
     /**
      * Makes all of the meshes in the scene rebuild their materials.
      */
@@ -741,13 +747,15 @@ class Scene{
         var divector = [];
         var pivector = [];
         var amvector = [];
+        var sivector = [];
         var lightColors = {
             directional:[],
             point:[],
-            ambient:[]
+            spot:[]
         };
         var specularLightColors = {
-            point:[]
+            point:[],
+            spot:[]
         }
         var otherUniforms = [];
         var lightCount = {
@@ -756,6 +764,7 @@ class Scene{
             spot:0,
             ambient:0
         };
+        var spotvectors = []
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
@@ -773,11 +782,35 @@ class Scene{
                 case CATS.enum.AMBIENT_LIGHT:
                     amvector.push(...processedLight.vec);
                     lightCount.ambient++;
+                case CATS.enum.SPOT_LIGHT:
+                    sivector.push(...processedLight.sivector);
+                    lightColors.spot.push(...processedLight.color)
+                    specularLightColors.spot.push(...processedLight.specularColor)
+                    spotvectors.push(...processedLight.direction)
+                    lightCount.spot++;
             }
         }
+        var vectors = {
+            "lightDirection":[divector,UniformVector4],
+            "lightPosition":[pivector,UniformVector4],
+            "ambientLights":[amvector,UniformVector4],
+            "spotLightPosition":[sivector,UniformVector4],
+            "directionalLightColors":[lightColors.directional,UniformVector3],
+            "pointLightColors":[lightColors.point,UniformVector4],
+            "spotLightColors":[lightColors.spot,UniformVector4],
+            "pointLightSpecularColors":[specularLightColors.point,UniformVector4],
+            "spotLightSpecularColors":[specularLightColors.spot,UniformVector3],
+            "spotLightDirections":[spotvectors,UniformVector4]
+        }
+        for (const [key,value] of Object.entries(vectors)){
+            if(value[0].length){
+                var uniform = new value[1](this.renderer,value[0],key)
+                otherUniforms.push(uniform)
+            }
+        }/*
         if(divector.length){
-            var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection")
-            otherUniforms.push(divectoruniform)
+            var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection");
+            otherUniforms.push(divectoruniform);
         }
         if(pivector.length){
             var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
@@ -787,18 +820,27 @@ class Scene{
             var amvectoruniform = new UniformVector4(this.renderer,amvector,"ambientLights");
             otherUniforms.push(amvectoruniform);
         }
+        if(sivector.length){
+            var sivectoruniform = new UniformVector4(this.renderer,sivector,"spotLightPosition")
+            otherUniforms.push(sivectoruniform)
+        }
         if(lightColors.directional.length){
-            var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors")
-            otherUniforms.push(lcd)
+            var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors");
+            otherUniforms.push(lcd);
         }
         if(lightColors.point.length){
-            var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors")
-            otherUniforms.push(lcp)
+            var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors");
+            otherUniforms.push(lcp);
         }
+        
         if(specularLightColors.point.length){
-            var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors")
-            otherUniforms.push(scp)
+            var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors");
+            otherUniforms.push(scp);
         }
+        if(spotvectors.length){
+            var slv = new UniformVector4(this.renderer,spotvectors,"spotLightDirections");
+            otherUniforms.push(slv);
+        }*/
         var lightCountVector = new UniformVector4(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot,lightCount.ambient],"lightCounts")
         var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
@@ -838,7 +880,7 @@ class Mesh{
             } else if (texCoords instanceof Array){
                 this.texCoords = texCoords;
             } else {
-                this.texCoords = []
+                
             }
         } else {
             this.vertices = [];
@@ -1098,6 +1140,18 @@ class SpotLight{
         this.limit = limit;
         this.intensity = intensity?intensity:1;
         this.range = range?range:2;
+    }
+    translate(v){
+        this.position = CATS.math.vec3.add(this.position,v)
+    }
+    convertToData(){
+        return {
+            sivector:[...this.position,this.intensity],
+            color:[...this.color,this.range==1?1.0001:this.range],
+            specularColor:[...this.specularColor],
+            direction:[...this.direction,this.limit],
+            type:CATS.enum.SPOT_LIGHT
+        }
     }
 }
 //-------Easy to initialize primitives-------
