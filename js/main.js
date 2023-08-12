@@ -782,6 +782,7 @@ class Scene{
                 case CATS.enum.AMBIENT_LIGHT:
                     amvector.push(...processedLight.vec);
                     lightCount.ambient++;
+                    break;
                 case CATS.enum.SPOT_LIGHT:
                     sivector.push(...processedLight.sivector);
                     lightColors.spot.push(...processedLight.color)
@@ -807,40 +808,7 @@ class Scene{
                 var uniform = new value[1](this.renderer,value[0],key)
                 otherUniforms.push(uniform)
             }
-        }/*
-        if(divector.length){
-            var divectoruniform = new UniformVector4(this.renderer,divector,"lightDirection");
-            otherUniforms.push(divectoruniform);
         }
-        if(pivector.length){
-            var pivectoruniform = new UniformVector4(this.renderer,pivector,"lightPosition");
-            otherUniforms.push(pivectoruniform);
-        }
-        if(amvector.length){
-            var amvectoruniform = new UniformVector4(this.renderer,amvector,"ambientLights");
-            otherUniforms.push(amvectoruniform);
-        }
-        if(sivector.length){
-            var sivectoruniform = new UniformVector4(this.renderer,sivector,"spotLightPosition")
-            otherUniforms.push(sivectoruniform)
-        }
-        if(lightColors.directional.length){
-            var lcd = new UniformVector3(this.renderer,lightColors.directional,"directionalLightColors");
-            otherUniforms.push(lcd);
-        }
-        if(lightColors.point.length){
-            var lcp = new UniformVector4(this.renderer,lightColors.point,"pointLightColors");
-            otherUniforms.push(lcp);
-        }
-        
-        if(specularLightColors.point.length){
-            var scp = new UniformVector3(this.renderer,specularLightColors.point,"pointLightSpecularColors");
-            otherUniforms.push(scp);
-        }
-        if(spotvectors.length){
-            var slv = new UniformVector4(this.renderer,spotvectors,"spotLightDirections");
-            otherUniforms.push(slv);
-        }*/
         var lightCountVector = new UniformVector4(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot,lightCount.ambient],"lightCounts")
         var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
