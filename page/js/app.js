@@ -41,16 +41,15 @@ function main(){
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
     mymaterial = new SingleColorMaterial("#FF0000",0,CATS.enum.PHONG_LIGHTING)
-    mylight = new SpotLight([0,5,0],[180,0],1,1,1,"#FFFFFF")
+    mylight = new DirectionalLight([0,0],1)
     mylight2 = new AmbientLight(50,"#FFFFFF")
-    mymesh = new Plane(10,mymaterial)
     mymesh2 = new Plane(10,mymaterial)
-    mymesh.rotate([180,0,0])
-    mymesh2.translate([0,6,0])
+    //mymesh.rotate([180,0,0])
+    //mymesh2.translate([0,6,0])
     scene.addLight(mylight)
     //scene.addLight(mylight2)
-    var mymeshid = scene.addObject(mymesh)
-    var mymeshid2 = scene.addObject(mymesh2)
+    //var mymeshid = scene.addObject(mymesh)
+    //var mymeshid2 = scene.addObject(mymesh2)
     scene.moveCamera([0, 4.200000000000002, 10.899999999999979])
     
     function cat(){
@@ -81,7 +80,7 @@ function main(){
     } else if(keybinds.ArrowRight){
         scene.rotateCamera([0,2,0])
     }
-    //requestAnimationFrame(cat)
+    requestAnimationFrame(cat)
     }
     cat()
 }
