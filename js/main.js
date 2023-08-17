@@ -443,6 +443,24 @@ const CATS = {
                     return CATS.shaderReference.BASIC_LIGHTING
             }
         }
+    },
+    /**
+     * 
+     * @param {String} URL
+     * @param {String} vertexAttribute
+     * @param {String} indexAttribute
+     * @param {String} normalsAttribute
+     * @param {String} textureCoordinateAttribute
+     * @param {Array<String>} tree
+     */
+    loadMesh:async function(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree){
+        const response = await fetch(URL).then(data=>data.json())
+        var thejson = response;
+        for(var i=0; i<tree.length; i++){
+            thejson = thejson[tree[i]]
+        }
+        var mymesh = new Mesh(thejson[vertexAttribute],thejson[indexAttribute],null,normalsAttribute?true:false,thejson[normalsAttribute],textureCoordinateAttribute?thejson[textureCoordinateAttribute]:undefined)
+        return mymesh;
     }
 }
 Object.freeze(CATS)
@@ -848,15 +866,19 @@ class Mesh{
             this.normals = normals;
             this.vertices = vertices;
             this.indices = indices;
-            
+            if(this.indices[0] instanceof Array){
+                var newindices = []
+                for(var i=0; i<this.indices.length; i++){
+                    newindices.push(...this.indices[i]);
+                }
+                this.indices = newindices;
+            }
             if(texCoords instanceof Array && texCoords[0] instanceof Array){
-                for(var i=0; i<texCoords; i++){
+                for(var i=0; i<texCoords.length; i++){
                     this.texCoords.push(texCoords[i][0],texCoords[i][1])
                 }
             } else if (texCoords instanceof Array){
                 this.texCoords = texCoords;
-            } else {
-                
             }
         } else {
             this.vertices = [];
