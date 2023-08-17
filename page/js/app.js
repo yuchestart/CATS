@@ -40,20 +40,48 @@ function main(){
     }
     scene = new Scene(render)
     scene.bgcolor = [0,0,0,0]
-    mymaterial = new SingleColorMaterial("#3b609d",0,CATS.enum.BASIC_LIGHTING)
-    mylight = new DirectionalLight([0,0],1,"#FFFFFF")
+    mymaterial = new SingleColorMaterial("#FF0000",0,CATS.enum.PHONG_LIGHTING)
+    mylight = new SpotLight([0,5,0],[180,0],1,1,1,"#FFFFFF")
     mylight2 = new AmbientLight(50,"#FFFFFF")
-    mymesh = new Cube(1,mymaterial)
-    mymesh.rotate([45,0,0])
+    mymesh = new Plane(10,mymaterial)
+    mymesh2 = new Plane(10,mymaterial)
+    mymesh.rotate([180,0,0])
+    mymesh2.translate([0,6,0])
     scene.addLight(mylight)
-    scene.addLight(mylight2)
+    //scene.addLight(mylight2)
     var mymeshid = scene.addObject(mymesh)
-    scene.moveCamera([0,1,5])
+    var mymeshid2 = scene.addObject(mymesh2)
+    scene.moveCamera([0, 4.200000000000002, 10.899999999999979])
     
     function cat(){
-        scene.objects[mymeshid].rotate([1,0,0])
+        //scene.objects[mymeshid].rotate([1,0,0])
     scene.render()
-    requestAnimationFrame(cat)
+    if(keybinds.KeyW){
+        scene.moveCamera([0,0,-0.1])
+    } else if(keybinds.KeyS){
+        scene.moveCamera([0,0,0.1])
+    }
+    if(keybinds.KeyA){
+        scene.moveCamera([-0.1,0,0])
+    } else if(keybinds.KeyD){
+        scene.moveCamera([0.1,0,0])
+    }
+    if(keybinds.KeyQ){
+        scene.moveCamera([0,0.1,0])
+    } else if(keybinds.KeyE){
+        scene.moveCamera([0,-0.1,0])
+    }
+    if(keybinds.ArrowUp){
+        scene.rotateCamera([-2,0,0])
+    } else if(keybinds.ArrowDown){
+        scene.rotateCamera([2,0,0])
+    }
+    if(keybinds.ArrowLeft){
+        scene.rotateCamera([0,-2,0])
+    } else if(keybinds.ArrowRight){
+        scene.rotateCamera([0,2,0])
+    }
+    //requestAnimationFrame(cat)
     }
     cat()
 }

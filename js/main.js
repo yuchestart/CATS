@@ -314,6 +314,7 @@ const CATS = {
         PHONG_LIGHTING:`int ndLights = int(lightCounts.x);
         int npLights = int(lightCounts.y);
         int naLights = int(lightCounts.w);
+        int nsLights = int(lightCounts.z);
         if(ndLights>MAXDLIGHTSOURCES){
             ndLights = MAXDLIGHTSOURCES;
         }
@@ -322,6 +323,9 @@ const CATS = {
         }
         if(npLights>MAXPLIGHTSOURCES){
             npLights = MAXPLIGHTSOURCES;
+        }
+        if(nsLights>MAXPLIGHTSOURCES){
+            nsLights = MAXPLIGHTSOURCES;
         }
         vec3 normal = normalize(fN);
         float light = 0.0;
@@ -366,24 +370,27 @@ const CATS = {
             lightColor += pointLightColors[i].rgb;
             light+=increment;
             if(shininess <= 0.0){
-                break;
+                continue;
             }
             float specularIncrement = 0.0;
-            if(specularIncrement<0.0){
-                specularIncrement = 0.0;
-            }
             if(increment>0.0){
                 specularIncrement = pow(dot(fN,halfVector),shininess);
+            }
+            if(specularIncrement<0.0){
+                specularIncrement = 0.0;
             }
             specularColor += pointLightSpecularColors[i].rgb;
             specular+=specularIncrement;
         }
         //Spot
-        /*
+        
         for(int i=0; i<MAXPLIGHTSOURCES; i++){
-            if(i>=)
+            if(i>=nsLights){
+                break;
+            }
+            
         }
-        */
+        
         //Ambient
         for(int i=0; i<MAXDLIGHTSOURCES; i++){
             if(i>=naLights){
@@ -418,8 +425,9 @@ const CATS = {
         uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
         uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
         uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
-        uniform vec3 spotLightColors[MAXPLIGHTSOURCES];
+        uniform vec4 spotLightColors[MAXPLIGHTSOURCES];
         uniform vec4 spotLightPosition[MAXPLIGHTSOURCES];
+        uniform vec3 spotLightSpecularColors[MAXPLIGHTSOURCES];
         uniform vec4 spotLightDirection[MAXPLIGHTSOURCES];
         uniform vec4 ambientLights[MAXDLIGHTSOURCES];
         
@@ -473,7 +481,7 @@ class Renderer{
         }
         if(!disableDepthTest){
             this.gl.enable(this.gl.DEPTH_TEST);
-            this.gl.depthFunc(this.gl.LEQUAL);
+            this.gl.depthFunc(this.gl.LEQUAL); // Change this to gl.LESS when adding cubemaps
         }
         if(!disableCullFace)
             this.gl.enable(this.gl.CULL_FACE);
@@ -1241,11 +1249,6 @@ class Plane extends Mesh{
             0,-1,0,
             0,-1,0,
             0,-1,0,
-        ],[
-            1,0,
-            0,0,
-            0,1,
-            1,1,
         ])
     }
 }
