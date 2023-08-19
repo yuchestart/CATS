@@ -452,16 +452,26 @@ const CATS = {
      * @param {String} normalsAttribute
      * @param {String} textureCoordinateAttribute
      * @param {Array<String>} tree
+     * @param {String} texture
      */
-    loadMesh:async function(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree){
-        const response = await fetch(URL).then(data=>data.json())
+    loadMesh:async function(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree,texture){
+        if(texture instanceof String){
+            var myimage = new Image()
+            myimage.src=texture;
+        } else if(typeof texture != "undefined" && texture !== null){
+            var myimage = texture;
+        }
+        const response = await fetch(URL).then(data=>data.json());
         var thejson = response;
         for(var i=0; i<tree.length; i++){
             thejson = thejson[tree[i]]
         }
-        var mymesh = new Mesh(thejson[vertexAttribute],thejson[indexAttribute],null,normalsAttribute?true:false,thejson[normalsAttribute],textureCoordinateAttribute?thejson[textureCoordinateAttribute]:undefined)
+        if(texture){
+            var mymaterial = new TexturedMaterial(myimage);
+        }
+        var mymesh = new Mesh(thejson[vertexAttribute],thejson[indexAttribute],texture?mymaterial:null,normalsAttribute?true:false,thejson[normalsAttribute],textureCoordinateAttribute?thejson[textureCoordinateAttribute]:undefined)
         return mymesh;
-    }
+    },
 }
 Object.freeze(CATS)
 

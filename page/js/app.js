@@ -50,7 +50,7 @@ function main(){
     //scene.addLight(mylight2)
     //var mymeshid = scene.addObject(mymesh)
     //var mymeshid2 = scene.addObject(mymesh2)
-    scene.moveCamera([0, 4.200000000000002, 10.899999999999979])
+    scene.moveCamera([0, 4.2, 10.9])
     
     function cat(){
         //scene.objects[mymeshid].rotate([1,0,0])
