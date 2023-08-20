@@ -501,7 +501,7 @@ const CATS = {
         }
         console.log(stuff)
         if(texture){
-            var mymaterial = new TexturedMaterial(myimage);
+            var mymaterial = new TexturedMaterial(myimage,0,CATS.enum.BASIC_LIGHTING);
         }
         var mymesh = new Mesh(stuff.va,stuff.ia,texture?mymaterial:null,normalsAttribute?1:0,normalsAttribute?stuff.na:null,textureCoordinateAttribute?stuff.tc:null)
         return mymesh;
@@ -1858,6 +1858,7 @@ varying mediump vec3 fN;
 varying mediump vec3 fP;
 varying mediump vec3 surfaceToView;
 varying mediump vec2 fTC;
+
 void main(void){
     fTC = vTC;
     vec4 position = wM*vec4(vP,1.0);
@@ -1872,11 +1873,12 @@ void main(void){
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
 ${CATS.shaderReference.FRAG_ATTR}
 uniform sampler2D texSamp;
+varying mediump vec2 fTC;
 void main(void){
     ${CATS.shaderReference.setLightingShader(material.lightingType)}
-    gl_FragColor = texture2D(texSamp,fTC);
-    gl_FragColor *= light*(lightColor*gl_FragColor.rgb);
-    gl_FragColor += specular*specularColor;
+    gl_FragColor = vec4(texture2D(texSamp,fTC));
+    gl_FragColor.rgb *= light*(lightColor*gl_FragColor.rgb);
+    gl_FragColor.rgb += specular*specularColor;
 }`
             let vertexShader = new VertexShader(vertexShaderSource)
             let fragmentShader = new FragmentShader(fragmentShaderSource)
@@ -1893,7 +1895,7 @@ void main(void){
                     },
                     {
                         type:UniformFloat,
-                        value:shine,
+                        value:material.shininess,
                         attribute:"shininess"
                     }
                 ]

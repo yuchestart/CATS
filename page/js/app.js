@@ -51,10 +51,10 @@ function main(){
     scene.bgcolor = [0,0,0,0]
     mymaterial = new SingleColorMaterial("#FF0000",0,CATS.enum.PHONG_LIGHTING)
     mylight = new DirectionalLight([0,0],1)
-    mylight2 = new AmbientLight(50,"#FFFFFF")
+    mylight2 = new AmbientLight(100,"#FFFFFF")
     mymesh2 = new Plane(10,mymaterial)
 
-    //mymesh.rotate([180,0,0])
+    mymesh.rotate([90,0,0])
     //mymesh2.translate([0,6,0])
     scene.addLight(mylight)
     //scene.addLight(mylight2)
