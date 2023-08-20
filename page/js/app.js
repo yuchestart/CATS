@@ -28,6 +28,15 @@ function changeFOV(me){
     scene.setFOV(parseInt(me.value))
     $("fovvalue").id.innerHTML = me.value
 }
+
+async function preload(callback){
+    await CATS.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
+        mymesh=data;
+        console.log(data)
+    })
+    callback()
+}
+
 function main(){
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
@@ -44,6 +53,7 @@ function main(){
     mylight = new DirectionalLight([0,0],1)
     mylight2 = new AmbientLight(50,"#FFFFFF")
     mymesh2 = new Plane(10,mymaterial)
+
     //mymesh.rotate([180,0,0])
     //mymesh2.translate([0,6,0])
     scene.addLight(mylight)
@@ -51,7 +61,7 @@ function main(){
     //var mymeshid = scene.addObject(mymesh)
     //var mymeshid2 = scene.addObject(mymesh2)
     scene.moveCamera([0, 4.2, 10.9])
-    
+    scene.addObject(mymesh)
     function cat(){
         //scene.objects[mymeshid].rotate([1,0,0])
     scene.render()
@@ -84,4 +94,6 @@ function main(){
     }
     cat()
 }
-window.onload = main;
+window.onload = function(){
+    preload(main);
+};

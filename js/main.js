@@ -446,16 +446,16 @@ const CATS = {
     },
     /**
      * 
-     * @param {String} URL
-     * @param {String} vertexAttribute
-     * @param {String} indexAttribute
-     * @param {String} normalsAttribute
-     * @param {String} textureCoordinateAttribute
-     * @param {Array<String>} tree
+     * @param {String} URL The URL of the mesh
+     * @param {Array<String|Number>} vertexAttribute A path to the vertex attribute
+     * @param {Array<String|Number>} indexAttribute A path to the index attribute
+     * @param {Array<String|Number>} normalsAttribute A path to the normals attribute
+     * @param {Array<String|Number>} textureCoordinateAttribute A path to the texture coordinate attribute
+     * @param {Array<String|Number>} tree A path that is used by all paths, i.e. ["rootnode"] -> ["vertexAttrib"] is the same as ["rootnode","vertexAttrib"]
      * @param {String} texture
      */
-    loadMesh:async function(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree,texture){
-        if(texture instanceof String){
+    async loadMesh(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree,texture){
+        if(typeof texture == "string"){
             var myimage = new Image()
             myimage.src=texture;
         } else if(typeof texture != "undefined" && texture !== null){
@@ -463,13 +463,47 @@ const CATS = {
         }
         const response = await fetch(URL).then(data=>data.json());
         var thejson = response;
+        
         for(var i=0; i<tree.length; i++){
             thejson = thejson[tree[i]]
         }
+        console.log(vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute)
+        var stuff = {
+            "va":thejson,
+            "ia":thejson,
+            "na":thejson,
+            "tc":thejson
+        }
+        for(var attrib in stuff){
+            var target = ""
+            switch(attrib){
+                case "va":
+                    target = vertexAttribute
+                    break;
+                case "ia":
+                    target = indexAttribute
+                    break;
+                case "na":
+                    target = normalsAttribute
+                    break;
+                case "tc":
+                    target = textureCoordinateAttribute
+                    break;
+            }
+            
+            if(typeof target == "string"){
+                target = [target]
+            }
+            
+            for(var i=0; i<target.length; i++){
+                stuff[attrib] = stuff[attrib][target[i]]
+            }
+        }
+        console.log(stuff)
         if(texture){
             var mymaterial = new TexturedMaterial(myimage);
         }
-        var mymesh = new Mesh(thejson[vertexAttribute],thejson[indexAttribute],texture?mymaterial:null,normalsAttribute?true:false,thejson[normalsAttribute],textureCoordinateAttribute?thejson[textureCoordinateAttribute]:undefined)
+        var mymesh = new Mesh(stuff.va,stuff.ia,texture?mymaterial:null,normalsAttribute?1:0,normalsAttribute?stuff.na:null,textureCoordinateAttribute?stuff.tc:null)
         return mymesh;
     },
 }
