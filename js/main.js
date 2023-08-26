@@ -501,7 +501,7 @@ const CATS = {
         }
         console.log(stuff)
         if(texture){
-            var mymaterial = new TexturedMaterial(myimage,0,CATS.enum.BASIC_LIGHTING);
+            var mymaterial = new TextureCoordinatesDebug()
         }
         var mymesh = new Mesh(stuff.va,stuff.ia,texture?mymaterial:null,normalsAttribute?1:0,normalsAttribute?stuff.na:null,textureCoordinateAttribute?stuff.tc:null)
         return mymesh;
@@ -904,9 +904,12 @@ class Mesh{
      * @param {Boolean} manuallySpecifyNormals
      * @param {Array<Number>} normals
      * @param {Array<Number>|Array<Array<Number>>} texCoords
+     * @param {Boolean} texSflipped
+     * @param {Boolean} texTflipped
      */
-    constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords){
+    constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords,texSflipped=false,texTflipped=false){
         if(manuallySpecifyNormals){
+            console.log("Not interpolated")
             this.normals = normals;
             this.vertices = vertices;
             this.indices = indices;
@@ -923,6 +926,9 @@ class Mesh{
                 }
             } else if (texCoords instanceof Array){
                 this.texCoords = texCoords;
+                if(texSflipped||texTflipped){
+
+                }
             }
         } else {
             this.vertices = [];
@@ -1026,7 +1032,7 @@ class Mesh{
             this.material.resetBuild();
         }
         var builtMaterial = this.material.build(renderer,this,scene);
-        var shaderProgram = builtMaterial.shaderProgram
+        var shaderProgram = builtMaterial.shaderProgram;
         var parameters = builtMaterial.parameters;
         var newParameters = [];
         var newparameter;
@@ -1206,6 +1212,7 @@ class Cube extends Mesh{
      * @param {Material} material The material of the cube.
      */
     constructor(size,material,customTextureCoordinates){
+        size *= 0.5
         super([
             //Back
             -size,size,-size,
@@ -1252,7 +1259,7 @@ class Cube extends Mesh{
             21,23,20,
             23,22,20
         ],material,0,0,customTextureCoordinates?customTextureCoordinates:[
-
+            
         ],1)
     }
 }
@@ -1264,6 +1271,7 @@ class Sphere extends Mesh{
      * @param {Material} material The material applied to the sphere
      */
     constructor(radius,div,material){
+        radius *= 0.5
         var points = [],indices = [];
         for(var j=0; j<=div; j++){
             var anglej = j*Math.PI / div;
@@ -1300,6 +1308,7 @@ class Plane extends Mesh{
      * @param {Material} material The material applied to the plane.
      */
     constructor(size,material){
+        size*=0.5
         var vertices = [
             size,0,size,
             -size,0,size,
@@ -1832,8 +1841,11 @@ void main(void){
     }
 }
 class TexturedMaterial extends Material{
-    constructor(texture,shininess,lightingType=CATS.enum.PHONG_LIGHTING){
+    constructor(texture,shininess=0,lightingType=CATS.enum.BASIC_LIGHTING){
         function buildFunction(renderer,mesh,scene,material){
+            if(material.lastCompiled){
+                return material.compiled
+            }
             if(!mesh.texCoords?!mesh.texCoords.length:0){
                 throw Error("No texture coordinates are provided for this object!")
             }
@@ -1907,6 +1919,72 @@ void main(void){
             "lightingType":lightingType
         })
         this.textureBuffer = null
+    }
+}
+class TextureCoordinatesDebug extends Material{
+    constructor(){
+        function buildFunction(render,mesh,scene,material){
+            const vshadersource = `
+            #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+            #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+            precision mediump float;
+            attribute vec3 vP;
+            attribute vec3 vN;
+            attribute vec2 vTC;
+            uniform mat4 wM;
+            uniform mat4 vM;
+            uniform mat4 pM;
+            uniform mat4 nM;
+            uniform vec3 viewPosition;
+            uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+            varying mediump vec3 fN;
+            varying mediump vec3 fP;
+            varying mediump vec2 fTC;
+            varying mediump vec3 surfaceToView;
+            void main(void){
+                    fTC = vTC;
+                    vec4 position = wM*vec4(vP,1.0);
+                    gl_Position = pM*vM*position;
+                    fN = (wM*vec4(vN,0.0)).xyz;
+                    fP = position.xyz;
+                    surfaceToView = (vec4(viewPosition,1.0) - position).xyz;
+            }
+            `
+            const fshadersource = `
+            #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
+            #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
+            precision mediump float;
+            precision mediump float;
+            
+            varying mediump vec3 fN;
+            varying mediump vec3 fP;
+            varying mediump vec2 fTC;
+            varying mediump vec3 surfaceToView;
+            
+            uniform vec4 lightDirection[MAXDLIGHTSOURCES];
+            uniform vec4 lightPosition[MAXPLIGHTSOURCES];
+            uniform vec3 lightCounts;
+            uniform vec4 pointLightColors[MAXPLIGHTSOURCES];
+            uniform vec3 pointLightSpecularColors[MAXPLIGHTSOURCES];
+            uniform vec3 directionalLightColors[MAXDLIGHTSOURCES];
+            uniform vec4 objectColor;
+            uniform float shininess;
+                void main(void){
+
+                    gl_FragColor = vec4(fTC,0.0,1.0);
+                }
+            `
+            const vshader = new VertexShader(vshadersource)
+            const fshader = new FragmentShader(fshadersource)
+            const shaderProgram = new ShaderProgram(render,vshader,fshader)
+            material.lastCompiled = true
+            material.compiled = {
+                shaderProgram:shaderProgram,
+                parameters:[]
+            }
+            return material.compiled
+        }
+        super([],buildFunction,{})
     }
 }
 //#endregion

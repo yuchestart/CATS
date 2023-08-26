@@ -30,8 +30,10 @@ function changeFOV(me){
 }
 
 async function preload(callback){
-    await CATS.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
+    await CATS.loadMesh("./models/soviet.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
         mymesh=data;
+        var mymaterial = new TexturedMaterial($("amogus").id)
+        mymesh.setMaterial(mymaterial)
         console.log(data)
     })
     callback()
@@ -51,17 +53,19 @@ function main(){
     scene.bgcolor = [0,0,0,0]
     mymaterial = new SingleColorMaterial("#FF0000",0,CATS.enum.PHONG_LIGHTING)
     mylight = new DirectionalLight([0,0],1)
-    mylight2 = new AmbientLight(100,"#FFFFFF")
-    mymesh2 = new Plane(10,mymaterial)
-
-    mymesh.rotate([90,0,0])
+    mylight2 = new AmbientLight(20,"#FFFFFF")
+    mymesh2 = new Cube(1,mymaterial)
+    //mymaterial = new Texture
+    mymesh.rotate([0,0,0])
     //mymesh2.translate([0,6,0])
     scene.addLight(mylight)
-    //scene.addLight(mylight2)
+    scene.addLight(mylight2)
     //var mymeshid = scene.addObject(mymesh)
     //var mymeshid2 = scene.addObject(mymesh2)
-    scene.moveCamera([0, 4.2, 10.9])
+    scene.moveCamera([0, 0, 3])
+    //scene.rotateCamera([-56, -168, 0])
     scene.addObject(mymesh)
+    //scene.objects[mymeshid2].rotate([1,1,0])
     function cat(){
         //scene.objects[mymeshid].rotate([1,0,0])
     scene.render()
