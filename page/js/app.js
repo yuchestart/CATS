@@ -30,8 +30,11 @@ function changeFOV(me){
 }
 
 async function preload(callback){
-    await CATS.loadMesh("./models/soviet.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
+    await CATS.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
         mymesh=data;
+        console.log(mymesh.texCoords);
+        mymesh.flipTCoordinate()
+        console.log(mymesh.texCoords)
         var mymaterial = new TexturedMaterial($("amogus").id)
         mymesh.setMaterial(mymaterial)
         console.log(data)
@@ -50,7 +53,7 @@ function main(){
         keybinds[e.code] = false;
     }
     scene = new Scene(render)
-    scene.bgcolor = [0,0,0,0]
+    scene.setBackground("#000000")
     mymaterial = new SingleColorMaterial("#FF0000",0,CATS.enum.PHONG_LIGHTING)
     mylight = new DirectionalLight([0,0],1)
     mylight2 = new AmbientLight(20,"#FFFFFF")

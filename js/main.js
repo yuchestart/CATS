@@ -801,9 +801,7 @@ class Scene{
         this.lights = [];
     }
     setBackground(color){
-        if(color.startsWith("#")){
-            this.bgcolor = CATS.hex2rgb(color)
-        }
+        this.bgcolor = CATS.Color(color)
     }
     render(){
         this.renderer.clear(...this.bgcolor);
@@ -901,10 +899,10 @@ class Mesh{
      * @param {Array<Number>} vertices
      * @param {Array<Number>} indices
      * @param {Material} material
-     * @param {Boolean} manuallySpecifyNormals
+     * @param {Boolean} manuallySpecifyNormals Do not auto-generate normals
      * @param {Array<Number>} normals
      * @param {Array<Number>|Array<Array<Number>>} texCoords
-     * @param {Boolean} texSflipped
+     * @param {Boolean} texSflipped If Texture
      * @param {Boolean} texTflipped
      */
     constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords,texSflipped=false,texTflipped=false){
@@ -927,7 +925,16 @@ class Mesh{
             } else if (texCoords instanceof Array){
                 this.texCoords = texCoords;
                 if(texSflipped||texTflipped){
-
+                    if(texSflipped){
+                        for(var i=0; i<this.texCoords.length; i+=2){
+                            this.texCoords[i] = 1-this.texCoords[i]
+                        }
+                    }
+                    if(texTflipped){
+                        for(var i=0; i<this.texCoords.length; i+=2){
+                            this.texCoords[i+1] = 1-this.texCoords[i]
+                        }
+                    }
                 }
             }
         } else {
@@ -979,6 +986,22 @@ class Mesh{
             built:false
         }
         
+    }
+    /**
+     * Flips the S(U) texture coordinate of the mesh
+     */
+    flipSCoordinate(){
+        for(var i=0; i<this.texCoords.length; i+=2){
+            this.texCoords[i] = 1-this.texCoords[i]
+        }
+    }
+    /**
+     * Flips the T(V) texture coordinate of the mesh
+     */
+    flipTCoordinate(){
+        for(var i=0; i<this.texCoords.length; i+=2){
+            this.texCoords[i+1] = 1-this.texCoords[i+1]
+        }
     }
     addTag(tag){
         this.tags.push(tag);
