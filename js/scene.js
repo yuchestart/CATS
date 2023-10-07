@@ -1,5 +1,5 @@
 import { Renderer } from "./renderer.js";
-import { CATS } from "./core.js";
+import { CORE } from "./core.js";
 import { Mat4 } from "./math.js";
 import { Mesh } from "./mesh.js";
 import { SpotLight, AmbientLight, DirectionalLight, PointLight } from "./light.js";
@@ -16,7 +16,7 @@ export class Scene{
             position:[0,0,0],
             direction:[0,0,0],
             fovy:70,
-            near:CATS.math.EPSILON,
+            near:CORE.math.EPSILON,
             far:100,
             lastViewMatrix:new Mat4(),
             viewMatrixInitialized:false
@@ -44,7 +44,7 @@ export class Scene{
      * @param {Array} vector 
      */
     moveCamera(vector){
-        this.camera.position = CATS.math.vec3.add(this.camera.position,vector);
+        this.camera.position = CORE.math.vec3.add(this.camera.position,vector);
         this.camera.viewMatrixInitialized = false;
     }
     /**
@@ -54,7 +54,7 @@ export class Scene{
      * @param {Array} vector 
      */
     rotateCamera(vector){
-        this.camera.direction = CATS.math.vec3.add(this.camera.direction,vector);
+        this.camera.direction = CORE.math.vec3.add(this.camera.direction,vector);
         this.camera.viewMatrixInitialized = false;
     }
     /**
@@ -91,7 +91,7 @@ export class Scene{
             //Ugh I hate math so much
             var v = [0,0,-1], vector=[0,1,0];
             //ROTATE Z
-            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[2])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[2]))
+            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[2])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[2]))
             var a = v[0],b=v[1]
             v[0] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
@@ -99,7 +99,7 @@ export class Scene{
             vector[0] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             //ROTATE X
-            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[0])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[0]))
+            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[0])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[0]))
             var a = v[2],b=v[1]
             v[2] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
@@ -107,7 +107,7 @@ export class Scene{
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             //ROTATE Y
-            var sin = Math.sin(CATS.math.toRadians(this.camera.direction[1])),cos=Math.cos(CATS.math.toRadians(this.camera.direction[1]))
+            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[1])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[1]))
             var a = v[0],b=v[2]
             v[0] = a*cos - b*sin;
             v[2] = a*sin + b*cos;
@@ -115,7 +115,7 @@ export class Scene{
             vector[0] = a*cos - b*sin;
             vector[2] = a*sin + b*cos;
             var viewMatrix = new Mat4();
-            viewMatrix.lookAt(this.camera.position,CATS.math.vec3.add(this.camera.position,v),vector);
+            viewMatrix.lookAt(this.camera.position,CORE.math.vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
         } else {
@@ -166,7 +166,7 @@ export class Scene{
         this.lights = [];
     }
     setBackground(color){
-        this.bgcolor = CATS.Color(color)
+        this.bgcolor = CORE.Color(color)
     }
     render(){
         this.renderer.clear(...this.bgcolor);
@@ -201,22 +201,22 @@ export class Scene{
         for(var i=0; i<this.lights.length; i++){
             var processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
-                case CATS.enum.DIRECTIONAL_LIGHT:
+                case CORE.enum.DIRECTIONAL_LIGHT:
                     divector.push(...processedLight.divector)
                     lightColors.directional.push(...processedLight.color)
                     lightCount.directional++;
                     break;
-                case CATS.enum.POINT_LIGHT:
+                case CORE.enum.POINT_LIGHT:
                     pivector.push(...processedLight.pivector)
                     lightColors.point.push(...processedLight.color)
                     specularLightColors.point.push(...processedLight.specularColor)
                     lightCount.point++;
                     break;
-                case CATS.enum.AMBIENT_LIGHT:
+                case CORE.enum.AMBIENT_LIGHT:
                     amvector.push(...processedLight.vec);
                     lightCount.ambient++;
                     break;
-                case CATS.enum.SPOT_LIGHT:
+                case CORE.enum.SPOT_LIGHT:
                     sivector.push(...processedLight.sivector);
                     lightColors.spot.push(...processedLight.color)
                     specularLightColors.spot.push(...processedLight.specularColor)

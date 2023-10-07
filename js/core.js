@@ -1,6 +1,6 @@
 import { Mat4 } from "./math.js";
 import { Mesh } from "./mesh.js";
-export const CATS = {
+export const CORE = {
     /**
      * Store of CATS math functions.
      */
@@ -154,9 +154,9 @@ export const CATS = {
              * @returns 
              */
             getSurfaceNormal:function(v1,v2,v3){
-                var u = CATS.math.vec3.subtract(v2,v1)
-                var v = CATS.math.vec3.subtract(v3,v1)
-                return CATS.math.vec3.normalize(CATS.math.vec3.cross(u,v))
+                var u = CORE.math.vec3.subtract(v2,v1)
+                var v = CORE.math.vec3.subtract(v3,v1)
+                return CORE.math.vec3.normalize(CORE.math.vec3.cross(u,v))
             }
         },
         /**
@@ -414,12 +414,12 @@ export const CATS = {
         `,
         setLightingShader:function(type){
             switch(type){
-                case CATS.enum.PHONG_LIGHTING:
-                    return CATS.shaderReference.PHONG_LIGHTING;
-                case CATS.enum.BASIC_LIGHTING:
-                    return CATS.shaderReference.BASIC_LIGHTING
+                case CORE.enum.PHONG_LIGHTING:
+                    return CORE.shaderReference.PHONG_LIGHTING;
+                case CORE.enum.BASIC_LIGHTING:
+                    return CORE.shaderReference.BASIC_LIGHTING
                 default:
-                    return CATS.shaderReference.BASIC_LIGHTING
+                    return CORE.shaderReference.BASIC_LIGHTING
             }
         }
     },
@@ -476,4 +476,4 @@ export const CATS = {
         return mymesh;
     }
 }
-Object.freeze(CATS)
+Object.freeze(CORE)

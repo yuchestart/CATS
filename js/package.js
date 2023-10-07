@@ -1,11 +1,11 @@
-import { CATS } from "./core.js"
+import { CORE } from "./core.js"
 export class RenderablePackage{
     constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params){
         this.shaderProgram = shaderProgram;
         this.bufferList = [];
         this.uniformList = [];
         for(var i=0; i<shaderInputs.length; i++){
-            if(shaderInputs[i].tag === CATS.enum.UNIFORM){
+            if(shaderInputs[i].tag === CORE.enum.UNIFORM){
                 this.uniformList.push(shaderInputs[i])
             } else if (!shaderInputs[i].tag){
                 this.bufferList.push(shaderInputs[i])

@@ -1,5 +1,5 @@
 import { RenderablePackage } from "./package.js";
-import {CATS} from "./core.js"
+import {CORE} from "./core.js"
 export class Renderer{
     //The actual rendering code, scene code will follow this.
     /**
@@ -109,10 +109,10 @@ export class Renderer{
             }
         }
         switch(renderPackage.drawingMethod){
-            case CATS.enum.ELEMENTS:
+            case CORE.enum.ELEMENTS:
                 this.gl.drawElements(renderType,renderPackage.params.numElements,this.gl.UNSIGNED_SHORT,renderPackage.params.offset);
                 break;
-            case CATS.enum.ARRAYS:
+            case CORE.enum.ARRAYS:
                 this.gl.drawArrays(renderType,0,renderPackage.params.numElements)
                 break;
         }

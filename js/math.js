@@ -1,4 +1,4 @@
-import { CATS } from "./core.js"
+import { CORE } from "./core.js"
 class Mat4{
     constructor(){
         this.data = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
@@ -147,7 +147,7 @@ class Mat4{
      */
     perspective(fovy,aspect,near,far){
         var top,bottom,left,right;
-        top = near*Math.tan(CATS.math.toRadians(fovy)/2)
+        top = near*Math.tan(CORE.math.toRadians(fovy)/2)
         bottom = -top;
         right = top*aspect;
         left = -right
@@ -187,9 +187,9 @@ class Mat4{
     rotate(vector){
         //Please don't run slowly, even though I did 6 sin and cos.
         var [x,y,z] = vector;
-        x=CATS.math.toRadians(x)
-        y=CATS.math.toRadians(y)
-        z=CATS.math.toRadians(z)
+        x=CORE.math.toRadians(x)
+        y=CORE.math.toRadians(y)
+        z=CORE.math.toRadians(z)
         var zrm = new Mat4();
         var cos,sin;
         cos=Math.cos(z);
@@ -237,18 +237,18 @@ class Mat4{
      */
     lookAt(position,target,up){
         let x,y,z,out,len
-        z = CATS.math.vec3.subtract(position,target)
+        z = CORE.math.vec3.subtract(position,target)
         if(
-            Math.abs(position[0]-target[0])<CATS.math.EPSILON &&
-            Math.abs(position[1]-target[1])<CATS.math.EPSILON &&
-            Math.abs(position[2]-target[2])<CATS.math.EPSILON
+            Math.abs(position[0]-target[0])<CORE.math.EPSILON &&
+            Math.abs(position[1]-target[1])<CORE.math.EPSILON &&
+            Math.abs(position[2]-target[2])<CORE.math.EPSILON
         ){
             this.identity()
         }
         len = 1/Math.hypot(z[0],z[1],z[2])
-        z = CATS.math.vec3.multiplyByNumber(z,len)
-        x = CATS.math.vec3.cross(up,z)
-        y = CATS.math.vec3.cross(z,x)
+        z = CORE.math.vec3.multiplyByNumber(z,len)
+        x = CORE.math.vec3.cross(up,z)
+        y = CORE.math.vec3.cross(z,x)
         out = new Mat4()
         out.data[0] = x[0]
         out.data[1] = y[0]
@@ -262,9 +262,9 @@ class Mat4{
         out.data[9] = y[2]
         out.data[10] = z[2]
         out.data[11] = 0;
-        out.data[12] = -CATS.math.vec3.dot(x,position)
-        out.data[13] = -CATS.math.vec3.dot(y,position)
-        out.data[14] = -CATS.math.vec3.dot(z,position)
+        out.data[12] = -CORE.math.vec3.dot(x,position)
+        out.data[13] = -CORE.math.vec3.dot(y,position)
+        out.data[14] = -CORE.math.vec3.dot(z,position)
         out.data[15] = 1
         this.multiply(out)
     }

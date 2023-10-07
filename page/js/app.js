@@ -32,13 +32,13 @@ function changeFOV(me){
 }
 
 async function preload(callback){
-    await CATS.CATS.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
+    await CATS.CORE.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
         mymesh=data;
         console.log(mymesh.texCoords);
         mymesh.rotate([90,0,0])
         mymesh.flipTCoordinate()
         console.log(mymesh.texCoords)
-        var mymaterial = new CATS.TexturedMaterial($("amogus").id,3,CATS.enum.PHONG_LIGHTING)
+        var mymaterial = new CATS.TexturedMaterial($("amogus").id,3,CATS.CORE.enum.PHONG_LIGHTING)
         mymesh.setMaterial(mymaterial)
         console.log(data)
     })

@@ -1,6 +1,7 @@
-import { CATS } from "./core.js";
+import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
+import { Mat4 } from "./math.js"
 export class Mesh{
     /**
      * A 3D Object made of several triangles
@@ -68,7 +69,7 @@ export class Mesh{
                     [vd[idx[1]],vd[idx[1]+1],vd[idx[1]+2]],
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
-                var normal = CATS.math.triangle.getSurfaceNormal(...triangle)
+                var normal = CORE.math.triangle.getSurfaceNormal(...triangle)
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(...[...normal,...normal,...normal])
                 this.indices.push(i*3,i*3+1,i*3+2)
@@ -124,11 +125,11 @@ export class Mesh{
         this.transform.transformStayedSame = false;
     }
     rotate(vector){
-        this.transform.rotation = CATS.math.vec3.add(vector,this.transform.rotation)
+        this.transform.rotation = CORE.math.vec3.add(vector,this.transform.rotation)
         this.transform.transformStayedSame = false;
     }
     translate(vector){
-        this.transform.position = CATS.math.vec3.add(vector,this.transform.position)
+        this.transform.position = CORE.math.vec3.add(vector,this.transform.position)
         this.transform.transformStayedSame = false;
     }
     setMaterial(material){
@@ -212,9 +213,9 @@ export class Mesh{
             }
             shaderInput.push(textureBuffer)
         }
-        var renderType = builtMaterial.renderType?builtMaterial.renderType:CATS.enum.TRIANGLES
+        var renderType = builtMaterial.renderType?builtMaterial.renderType:CORE.enum.TRIANGLES
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
-        var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CATS.enum.ELEMENTS,renderType,{
+        var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CORE.enum.ELEMENTS,renderType,{
             numElements:this.indices.length,
             offset:0
         })

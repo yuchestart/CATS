@@ -1,4 +1,4 @@
-import { CATS } from "./core.js"
+import { CORE } from "./core.js"
 export class DirectionalLight{
     /**
      * A directional light effective to all objects.
@@ -9,7 +9,7 @@ export class DirectionalLight{
     constructor(direction,intensity,color){
         this.direction = this.computeDirection(direction);
         if(color){
-        this.color = CATS.Color(color).slice(0,3);
+        this.color = CORE.Color(color).slice(0,3);
         } else {
             this.color = [1,1,1]
         }
@@ -17,11 +17,11 @@ export class DirectionalLight{
     }
     computeDirection(dir){
         var v = [0,-1,0]
-        var sin = Math.sin(CATS.math.toRadians(dir[0])), cos = Math.cos(CATS.math.toRadians(dir[0]))
+        var sin = Math.sin(CORE.math.toRadians(dir[0])), cos = Math.cos(CORE.math.toRadians(dir[0]))
         var a=v[1],b=v[2]
         v[1] = a*cos - b*sin;
         v[2] = a*sin + b*cos;
-        sin = Math.sin(CATS.math.toRadians(dir[1])), cos = Math.cos(CATS.math.toRadians(dir[1]))
+        sin = Math.sin(CORE.math.toRadians(dir[1])), cos = Math.cos(CORE.math.toRadians(dir[1]))
         a=v[0],b=v[2]
         v[0] = a*cos - b*sin;
         v[2] = a*sin + b*cos;
@@ -34,13 +34,13 @@ export class DirectionalLight{
         this.intensity = i;
     }
     changeColor(c){
-        this.color = CATS.Color(c).slice(0,3);
+        this.color = CORE.Color(c).slice(0,3);
     }
     convertToData(){
         return {
-            divector:[...CATS.math.vec3.invert(this.direction),this.intensity],
+            divector:[...CORE.math.vec3.invert(this.direction),this.intensity],
             color:this.color,
-            type:CATS.enum.DIRECTIONAL_LIGHT
+            type:CORE.enum.DIRECTIONAL_LIGHT
         }
     }
 }
@@ -51,12 +51,12 @@ export class AmbientLight{
      */
     constructor(intensity,color){
         this.intensity = intensity/100;
-        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
+        this.color = color?CORE.Color(color).slice(0,3):[1,1,1];
     }
     convertToData(){
         return {
             vec:[...this.color,this.intensity],
-            type:CATS.enum.AMBIENT_LIGHT
+            type:CORE.enum.AMBIENT_LIGHT
         }
     }
 }
@@ -71,20 +71,20 @@ export class PointLight{
      */
     constructor(position,intensity,range,color,specularColor){
         this.position = position;
-        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
-        this.specularColor = color?CATS.Color(specularColor).slice(0,3):[1,1,1];
+        this.color = color?CORE.Color(color).slice(0,3):[1,1,1];
+        this.specularColor = color?CORE.Color(specularColor).slice(0,3):[1,1,1];
         this.intensity = intensity?intensity:1;
         this.range = range?range:2;
     }
     translate(v){
-        this.position = CATS.math.vec3.add(this.position,v)
+        this.position = CORE.math.vec3.add(this.position,v)
     }
     convertToData(){
         return {
             pivector:[...this.position,this.intensity],
             color:[...this.color,this.range==1?1.0001:this.range],
             specularColor:[...this.specularColor],
-            type:CATS.enum.POINT_LIGHT
+            type:CORE.enum.POINT_LIGHT
         }
     }
 }
@@ -96,14 +96,14 @@ export class SpotLight{
     constructor(position,direction,limit,intensity,range,color,specularColor){
         this.position = position;
         this.direction = direction;
-        this.color = color?CATS.Color(color).slice(0,3):[1,1,1];
-        this.specularColor = specularColor?CATS.Color.slice(0,3):[1,1,1];
+        this.color = color?CORE.Color(color).slice(0,3):[1,1,1];
+        this.specularColor = specularColor?CORE.Color.slice(0,3):[1,1,1];
         this.limit = limit;
         this.intensity = intensity?intensity:1;
         this.range = range?range:2;
     }
     translate(v){
-        this.position = CATS.math.vec3.add(this.position,v)
+        this.position = CORE.math.vec3.add(this.position,v)
     }
     convertToData(){
         return {
@@ -111,7 +111,7 @@ export class SpotLight{
             color:[...this.color,this.range==1?1.0001:this.range],
             specularColor:[...this.specularColor],
             direction:[...this.direction,this.limit],
-            type:CATS.enum.SPOT_LIGHT
+            type:CORE.enum.SPOT_LIGHT
         }
     }
 }

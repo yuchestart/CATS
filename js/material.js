@@ -1,4 +1,4 @@
-import {CATS} from "./core.js"
+import {CORE} from "./core.js"
 
 class Material{
     /**
@@ -97,7 +97,7 @@ uniform float shininess;
 }
 
 class SingleColorMaterial extends Material{
-    constructor(color,shininess,lightingType=CATS.enum.PHONG_LIGHTING){
+    constructor(color,shininess,lightingType=CORE.enum.PHONG_LIGHTING){
         /**
          * 
          * @param {Renderer} renderer 
@@ -138,10 +138,10 @@ void main(void){
                 let fragmentShaderSource = `
                 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
                 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
-                ${CATS.shaderReference.FRAG_ATTR}
+                ${CORE.shaderReference.FRAG_ATTR}
                 uniform vec4 objectColor;
                 void main(void){
-                    ${CATS.shaderReference.setLightingShader(material.lightingType)}
+                    ${CORE.shaderReference.setLightingShader(material.lightingType)}
                     gl_FragColor = objectColor;
                     gl_FragColor.rgb*=light*(lightColor * objectColor.rgb);
                     gl_FragColor.rgb+=specular*specularColor;
@@ -150,7 +150,7 @@ void main(void){
                     var shine=0
                 } else {
                 var shine = material.shininess*3
-                shine = 251-CATS.math.clamp(shine,0,250)
+                shine = 251-CORE.math.clamp(shine,0,250)
                 }
                 let vertexShader = new VertexShader(vertexShaderSource);
                 let fragmentShader = new FragmentShader(fragmentShaderSource);
@@ -161,7 +161,7 @@ void main(void){
                     parameters:[
                         {
                             type:UniformVector4,
-                            value:CATS.Color(material.color),
+                            value:CORE.Color(material.color),
                             attribute:"objectColor"
                         },
                         {
@@ -181,7 +181,7 @@ void main(void){
     }
 }
 class TexturedMaterial extends Material{
-    constructor(texture,shininess=0,lightingType=CATS.enum.BASIC_LIGHTING){
+    constructor(texture,shininess=0,lightingType=CORE.enum.BASIC_LIGHTING){
         function buildFunction(renderer,mesh,scene,material){
             if(!mesh.texCoords?!mesh.texCoords.length:0){
                 throw Error("No texture coordinates are provided for this object!")
@@ -220,11 +220,11 @@ void main(void){
             const fragmentShaderSource = `
 #define MAXDLIGHTSOURCES ${scene.lighting.maxDirectionalLightSourcesPerMesh}
 #define MAXPLIGHTSOURCES ${scene.lighting.maxPointLightSourcesPerMesh}
-${CATS.shaderReference.FRAG_ATTR}
+${CORE.shaderReference.FRAG_ATTR}
 uniform sampler2D texSamp;
 varying mediump vec2 fTC;
 void main(void){
-    ${CATS.shaderReference.setLightingShader(material.lightingType)}
+    ${CORE.shaderReference.setLightingShader(material.lightingType)}
     gl_FragColor = vec4(texture2D(texSamp,fTC));
     gl_FragColor.rgb *= light*(lightColor*gl_FragColor.rgb);
     gl_FragColor.rgb += specular*specularColor;
@@ -380,11 +380,11 @@ class WireframeMaterial extends Material{
             material.lastCompiled = true;
             material.compiled = {
                 shaderProgram:shaderProgram,
-                renderType:CATS.enum.LINES,
+                renderType:CORE.enum.LINES,
                 parameters:[
                     {
                         type:UniformVector4,
-                        value:CATS.Color(material.color),
+                        value:CORE.Color(material.color),
                         attribute:"objectColor"
                     }
                 ]

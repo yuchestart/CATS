@@ -1,4 +1,4 @@
-import { CATS } from "./core.js"
+import { CORE } from "./core.js"
 //BUFFERS
 //#region
 export class Buffer{
@@ -13,10 +13,10 @@ export class Buffer{
      */
     constructor(renderer,data,dataType,params,usage){
         if(!params.usageType){
-            this.usageType = CATS.enum.ARRAY_BUFFER;
+            this.usageType = CORE.enum.ARRAY_BUFFER;
         }
         if(!params.type){
-            this.type = CATS.enum.ATTRIBUTE
+            this.type = CORE.enum.ATTRIBUTE
         } else {
             this.type = params.type
         }
@@ -50,7 +50,7 @@ export class Buffer{
         gl.bindBuffer(this.usageType,null);
     }
     enableForProgram(program){
-        if(this.type == CATS.enum.ATTRIBUTE){
+        if(this.type == CORE.enum.ATTRIBUTE){
             var location = this.renderer.gl.getAttribLocation(program,this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
@@ -76,7 +76,7 @@ export class PositionBuffer extends Buffer{
      */
     constructor(render,data,attribute){
         /*
-        super(render,data,attribute,null,CATS.enum.ATTRIBUTE,[
+        super(render,data,attribute,null,CORE.enum.ATTRIBUTE,[
             3,
             render.gl.FLOAT,
             render.gl.FALSE,
@@ -91,8 +91,8 @@ export class PositionBuffer extends Buffer{
                 stride:3*Float32Array.BYTES_PER_ELEMENT,
                 offset:0
             },
-            usageType:CATS.enum.ARRAY_BUFFER,
-            type:CATS.enum.ATTRIBUTE,
+            usageType:CORE.enum.ARRAY_BUFFER,
+            type:CORE.enum.ATTRIBUTE,
             attribute:attribute
         },)
     }
@@ -100,11 +100,11 @@ export class PositionBuffer extends Buffer{
 export class IndexBuffer extends Buffer{
     constructor(render,data){
         /*
-        super(render,data,"",null,CATS.enum.NON_ATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
+        super(render,data,"",null,CORE.enum.NON_ATTRIBUTE,[],render.gl.ELEMENT_ARRAY_BUFFER,Uint16Array);
         */
         super(render,data,Uint16Array,{
-            usageType:CATS.enum.ELEMENT_ARRAY_BUFFER,
-            type:CATS.enum.NON_ATTRIBUTE
+            usageType:CORE.enum.ELEMENT_ARRAY_BUFFER,
+            type:CORE.enum.NON_ATTRIBUTE
         })
     }
 }
@@ -118,8 +118,8 @@ export class TextureCoordinateBuffer extends Buffer{
                 stride:2*Float32Array.BYTES_PER_ELEMENT,
                 offset:0
             },
-            usageType:CATS.enum.ARRAY_BUFFER,
-            type:CATS.enum.ATTRIBUTE,
+            usageType:CORE.enum.ARRAY_BUFFER,
+            type:CORE.enum.ATTRIBUTE,
             attribute:attribute
         })
     }
@@ -169,7 +169,7 @@ export class Uniform4x4Matrix{
         this.matrix = matrix;
         this.attribute = attribute;
         this.render = render;
-        this.tag = CATS.enum.UNIFORM;
+        this.tag = CORE.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniformMatrix4fv(this.render.gl.getUniformLocation(program,this.attribute),
@@ -182,7 +182,7 @@ export class UniformVector3{
         this.vector = vector;
         this.attribute = attribute;
         this.render = render;
-        this.tag = CATS.enum.UNIFORM;
+        this.tag = CORE.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniform3fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
@@ -193,7 +193,7 @@ export class UniformVector4{
         this.vector = vector;
         this.attribute = attribute;
         this.render = render;
-        this.tag = CATS.enum.UNIFORM;
+        this.tag = CORE.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniform4fv(this.render.gl.getUniformLocation(program,this.attribute),new Float32Array(this.vector));
@@ -204,7 +204,7 @@ export class UniformFloat{
         this.value = value;
         this.attribute = attribute;
         this.render = render;
-        this.tag = CATS.enum.UNIFORM;
+        this.tag = CORE.enum.UNIFORM;
     }
     enableForProgram(program){
         this.render.gl.uniform1f(this.render.gl.getUniformLocation(program,this.attribute),this.value)
