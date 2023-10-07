@@ -1,5 +1,7 @@
 import {CORE} from "./core.js"
-
+import { VertexShader,FragmentShader,ShaderProgram } from "./shaders.js";
+import { UniformVector4,UniformFloat } from "./buffers.js";
+import { TextureBuffer } from "./buffers.js";
 class Material{
     /**
      * 

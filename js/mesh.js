@@ -2,6 +2,9 @@ import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
 import { Mat4 } from "./math.js"
+import { PositionBuffer,IndexBuffer } from "./buffers.js";
+import { Uniform4x4Matrix } from "./buffers.js";
+import { RenderablePackage } from "./package.js";
 export class Mesh{
     /**
      * A 3D Object made of several triangles
