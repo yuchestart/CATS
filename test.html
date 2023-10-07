@@ -8,8 +8,8 @@ TESTING HTML FILE OF THE LIBRARY
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CATS - Demo</title>
-    <script src="./js/main.js"></script>
-    <script src="./page/js/app.js"></script>
+    <script src="./js/main.js" type="module"></script>
+    <script src="./page/js/app.js" type="module"></script>
     <link rel="stylesheet" href="./page/css/noscript.css">
     <link rel="stylesheet" href="./page/css/style.css">
 </head>
@@ -32,9 +32,10 @@ LEGEND:
 X - Completed
 * - In progress
 # - On hold
+P - Prostponed
 ! - Discontinued
 / - Not started
-& - Testing
+& - Testing and debugging
 
 {X} GOALS for Milestone 1:
 [X] Add mesh support
@@ -47,21 +48,27 @@ X - Completed
 [X] Add texture support
 [X] Add mesh reader
 [X] Optimize performance
-[*] Add lighting support
+[X] Add lighting support
  - [X] Add directional lighting
  - [X] Add point lighting
- - [*] Add spot lighting
+ - [P] Add spot lighting
  - [X] Add lighting colors
  - [X] Add ambient lighting
 
-{/} Goals for Milestone 3:
-[/] Add shadow support
- - [/] Add framebuffer support
- - [/] Add shadow mapping
+{*} Goals for Milestone 3:
+[/] Add shading types
+[/] Add particle system
+[*] Conversion to ES6
+[*] Add quaternion
+[/] Finish lighting
+ - [/] Add spot lighting
+ - [/] Add shadow support
+    - [/] Add framebuffer support
+    - [/] Add shadow mapping
 [/] Add cubemap support
 [/] Add binary operation
 [!] Add material file reader
-[/] Add binary/json file formats
+[!] Add binary/json file formats
 </pre>
 </body>
 </html>
