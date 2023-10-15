@@ -45,7 +45,14 @@ async function preload(callback){
     callback()
 }
 
+function mathdebug(){
+    var myquat = new CATS.Quaternion(0,5,0,1);
+    console.log(myquat);
+    console.log(myquat.returnRotationMatrix())
+}
+
 function main(){
+    mathdebug()
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
     render = new CATS.Renderer($("emotionalDamage").id)

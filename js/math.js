@@ -1,5 +1,5 @@
 import { CORE } from "./core.js"
-class Mat4{
+export class Mat4{
     constructor(){
         this.data = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
         this.length = 16;
@@ -339,4 +339,74 @@ class Mat4{
         this.data[15] = this.data[15]
     }
 }
-export {Mat4}
+export class Quaternion{
+    /**
+     * Convert euler angles to quaternion.
+     * @param {Array<Number>} eulerAngles 
+     * @returns {Quaternion}
+     */
+    static fromEulerAngles(eulerAngles){
+
+    }
+    /**
+     * Create a new Quaternion.
+     * @param {*} x 
+     * @param {*} y 
+     * @param {*} z 
+     * @param {*} w 
+     */
+    constructor(x,y,z,w){
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+    }
+
+    /**
+     * Inverse of this quaternion.
+     * @returns {Quaternion}
+     */
+    inverse(implace=false){
+        var q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
+        q.x = -q.x;
+        q.y = -q.y;
+        q.z = -q.z;
+        return q;
+    }
+    returnRotationMatrix(){
+        //var q2 = this.inverse();
+        var m = new Mat4();
+        var q = this.normalize()
+        var a = q.w,b=q.x,c=q.y,d=q.z
+        m.data[0] = a*a+b*b-c*c-d*d
+        m.data[1] = 2*b*c-2*a*d
+        m.data[2] = 2*b*d+2*a*c
+        m.data[4] = 2*b*c+2*a*d
+        m.data[5] = a*a-b*b+c*c-d*d
+        m.data[6] = 2*c*d-2*a*b
+        m.data[8] = 2*b*d-2*a*c
+        m.data[9] = 2*c*d+2*a*b
+        m.data[10]= a*a-b*b-c*c+d*d
+        return m
+    }
+    normalize(implace=false){
+        var q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
+       
+        var length = Math.sqrt(q.w**2+q.x**2+q.y**2+q.z**2);
+        q.x = q.x/length;
+        q.y = q.y/length;
+        q.z = q.z/length;
+        q.w = q.w/length;
+        return q;
+    }
+    toEulerAngles(){
+
+    }
+    /**
+     * Multiply this quaternion with another quaternion
+     * @param {Quaternion} q 
+     */
+    multiply(q){
+
+    }
+}
