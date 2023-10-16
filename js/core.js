@@ -204,7 +204,9 @@ export const CORE = {
         AMBIENT_LIGHT:27,
         PHONG_LIGHTING:28,
         BASIC_LIGHTING:29,
-        SPOT_LIGHT:30
+        SPOT_LIGHT:30,
+        EULER_ANGLES:31,
+        QUATERNION:32
     },
     /**
      * Converts commonly used color formats to RGBA.

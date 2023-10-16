@@ -127,7 +127,7 @@ export class Mesh{
         this.transform.scale = vector;
         this.transform.transformStayedSame = false;
     }
-    rotate(vector){
+    rotate(vector,rotationType = CORE.enum.EULER_ANGLES){
         this.transform.rotation = CORE.math.vec3.add(vector,this.transform.rotation)
         this.transform.transformStayedSame = false;
     }

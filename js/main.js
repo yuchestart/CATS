@@ -1,8 +1,3 @@
-//MAIN FILE OF THE LIBRARY
-
-import { TextureCoordinatesDebug } from "./material.js";
-import { Mesh } from "./mesh.js";
-
 /**
  * C.A.T.S.
  * Che's Awesome Three-dimensional toolS
@@ -18,9 +13,6 @@ import { Mesh } from "./mesh.js";
  * 
  * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- */
-/**
- * CATS functions and variables
  */
 import * as buffers from "./buffers.js"
 import * as light from "./light.js"
@@ -40,7 +32,5 @@ for(var i=0; i<importlist.length; i++){
         exported[key] = importlist[i][key];
     }
 }
-//console.log(typeof shaders)
-
 Object.freeze(exported)
 export default exported
