@@ -365,6 +365,9 @@ export class Quaternion{
         this.y = y;
         this.z = z;
         this.w = w;
+        if(x+y+z+w == 0){
+            this.w = 1;
+        }
     }
 
     /**
