@@ -1,9 +1,8 @@
 import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
-import { Mat4 } from "./math.js"
-import { PositionBuffer,IndexBuffer } from "./buffers.js";
-import { Uniform4x4Matrix } from "./buffers.js";
+import { Mat4, Quaternion } from "./math.js"
+import { PositionBuffer, IndexBuffer, Uniform4x4Matrix } from "./buffers.js";
 import { RenderablePackage } from "./package.js";
 export class Mesh{
     /**
@@ -86,7 +85,10 @@ export class Mesh{
         this.tags = undefined;
         this.transform = {
             position:[0,0,0],
-            rotation:[0,0,0],
+            rotation:{
+                euler:[0,0,0],
+                quaternion:new Quaternion()
+            },
             scale:[1,1,1],
             transformStayedSame:false,
             transformMatrix:null,
@@ -128,8 +130,13 @@ export class Mesh{
         this.transform.transformStayedSame = false;
     }
     rotate(vector,rotationType = CORE.enum.EULER_ANGLES){
-        this.transform.rotation = CORE.math.vec3.add(vector,this.transform.rotation)
-        this.transform.transformStayedSame = false;
+        if(rotationType == CORE.enum.EULER_ANGLES){
+            this.transform.rotation.euler = CORE.math.vec3.add(vector,this.transform.rotation.euler)
+            this.transform.transformStayedSame = false;
+        }
+    }
+    setRotation(){
+
     }
     translate(vector){
         this.transform.position = CORE.math.vec3.add(vector,this.transform.position)
