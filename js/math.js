@@ -379,6 +379,22 @@ export class Quaternion{
         return q;
     }
     /**
+     * Multiply this quaternion by another quaternion
+     * @param {Quaternion} q
+     */
+    multiply(q){
+        var q1=this,q2 = q;
+        var x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        var y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        var z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        var w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+        return this;
+    }
+    /**
      * Converts quaternion into rotation matrix
      * @returns {Mat4}
      */
@@ -422,8 +438,13 @@ export class Quaternion{
         var a = 2*(q.w*q.y-q.x*q.z)
         var x = Math.atan2(2*(q.w*q.x+q.y*q.z),1-2*(q.x**2+q.y**2))
         var y = -Math.PI/2+2*Math.atan2(Math.sqrt(1+a),Math.sqrt(1-a))
-        console.log(a)
         var z = Math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y**2+q.z**2))
         return [x,y,z]
+    }
+    add(q){
+        this.x += q.x;
+        this.y += q.y;
+        this.z += q.z;
+        this.w += q.w;
     }
 }

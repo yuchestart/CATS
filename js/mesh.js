@@ -87,7 +87,7 @@ export class Mesh{
             position:[0,0,0],
             rotation:{
                 euler:[0,0,0],
-                quaternion:new Quaternion()
+                quaternion:Quaternion.fromEulerAngles([0,0,0])
             },
             scale:[1,1,1],
             transformStayedSame:false,
@@ -129,14 +129,29 @@ export class Mesh{
         this.transform.scale = vector;
         this.transform.transformStayedSame = false;
     }
-    rotate(vector,rotationType = CORE.enum.EULER_ANGLES){
-        if(rotationType == CORE.enum.EULER_ANGLES){
-            this.transform.rotation.euler = CORE.math.vec3.add(vector,this.transform.rotation.euler)
-            this.transform.transformStayedSame = false;
-        }
+    /**
+     * 
+     * @param {Array<Number>|Quaternion} rotation 
+     * @param {Number} rotationType 
+     */
+    rotate(rotation){
+        this.transform.rotation.euler = CORE.math.vec3.add(rotation,this.transform.rotation.euler);
+        this.transform.rotation.quaternion = Quaternion.fromEulerAngles(this.transform.rotation.euler);
+        this.transform.transformStayedSame = false;
     }
-    setRotation(){
-
+    /**
+     * 
+     * @param {Quaternion|Array<Number>} rotation 
+     * @param {Number} rotationType 
+     */
+    setRotation(rotation,rotationType = CORE.enum.EULER_ANGLES){
+        if(rotationType == CORE.enum.EULER_ANGLES){
+            this.transform.rotation.euler = rotation;
+            this.transform.rotation.quaternion = Quaternion.fromEulerAngles(this.transform.rotation.euler);
+        } else if(rotationType == CORE.enum.QUATERNION){
+            this.transform.rotation.quaternion = rotation;
+            this.transform.rotation.euler = rotation.toEulerAngles();
+        }
     }
     translate(vector){
         this.transform.position = CORE.math.vec3.add(vector,this.transform.position)
@@ -161,7 +176,7 @@ export class Mesh{
         if(!this.transform.transformStayedSame){
             var matrix = new Mat4();
             matrix.scale(this.transform.scale)
-            matrix.rotate(this.transform.rotation)
+            matrix.rotate(this.transform.rotation.euler)
             matrix.translate(this.transform.position)
             this.transform.transformMatrix = matrix;
             this.transform.transformStayedSame = true;

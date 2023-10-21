@@ -75,6 +75,7 @@ function main(){
     mymesh2 = new CATS.Plane(3,mymaterial)
     mylight = new CATS.DirectionalLight([10,0],0.8)
     mylight2 = new CATS.AmbientLight(20,"#FFFFFF")
+    var myquat = new CATS.Quaternion(0,0,0,1)
     mymesh.rotate([0,0,0])
     scene.addLight(mylight)
     scene.addLight(mylight2)
@@ -82,10 +83,11 @@ function main(){
     //var mymeshid2 = scene.addObject(mymesh2)
     //scene.objects[mymeshid2].translate([0,2,0])
     //scene.objects[mymeshid].translate([0,-2,0])
-    scene.objects[mymeshid].rotate([180,0,0])
+    scene.objects[mymeshid].setRotation(myquat,CATS.CORE.enum.QUATERNION)
+    console.log(scene.objects[mymeshid].transform.rotation.euler)
     scene.moveCamera([0,0,5])
     function cat(){
-       scene.objects[mymeshid].rotate([1,0,0])
+       scene.objects[mymeshid].rotate([0,0,3])
     scene.render()
     if(keybinds.KeyW){
         scene.moveCamera([0,0,-0.1])
