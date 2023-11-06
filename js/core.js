@@ -13,6 +13,9 @@ export const CORE = {
         toRadians:function(degrees){
             return degrees*(Math.PI/180)
         },
+        toDegrees:function(radians){
+            return (180*radians)/Math.PI
+        },
         /**
          * A small number for CATS to use
          */
@@ -206,7 +209,14 @@ export const CORE = {
         BASIC_LIGHTING:29,
         SPOT_LIGHT:30,
         EULER_ANGLES:31,
-        QUATERNION:32
+        QUATERNION:32,
+        TEXTURE_2D:33,
+        TEXTURE_CUBE_MAP_POSITIVE_X:34,
+        TEXTURE_CUBE_MAP_POSITIVE_Y:35,
+        TEXTURE_CUBE_MAP_POSITIVE_Z:36,
+        TEXTURE_CUBE_MAP_NEGATIVE_X:37,
+        TEXTURE_CUBE_MAP_NEGATIVE_Y:38,
+        TEXTURE_CUBE_MAP_NEGATIVE_Z:39,
     },
     /**
      * Converts commonly used color formats to RGBA.

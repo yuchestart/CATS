@@ -346,11 +346,15 @@ export class Quaternion{
      * @returns {Quaternion}
      */
     static fromEulerAngles(eulerAngles){
-        var yaw = eulerAngles[2], pitch = eulerAngles[1], roll = eulerAngles[0] 
-        var qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
-        var qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
-        var qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)
-        var qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+        var yaw = eulerAngles[1], pitch = eulerAngles[0], roll = eulerAngles[2] 
+        yaw = CORE.math.toRadians(yaw)
+        pitch = CORE.math.toRadians(pitch)
+        roll = CORE.math.toRadians(roll)
+        console.log(CORE.math.toDegrees(CORE.math.toRadians(45)))
+        let qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
+        let qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
+        let qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)
+        let qw = Math.cos(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
         return new Quaternion(qx,qy,qz,qw);
     }
     /**
@@ -442,6 +446,9 @@ export class Quaternion{
         var x = Math.atan2(2*(q.w*q.x+q.y*q.z),1-2*(q.x**2+q.y**2))
         var y = -Math.PI/2+2*Math.atan2(Math.sqrt(1+a),Math.sqrt(1-a))
         var z = Math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y**2+q.z**2))
+        x = CORE.math.toDegrees(x)
+        y = CORE.math.toDegrees(y)
+        z = CORE.math.toDegrees(z)
         return [x,y,z]
     }
     add(q){
@@ -450,4 +457,7 @@ export class Quaternion{
         this.z += q.z;
         this.w += q.w;
     }
+}
+export class Curve{
+    
 }

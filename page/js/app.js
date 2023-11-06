@@ -50,7 +50,7 @@ function mathdebug(){
     console.log(myquat);
     console.log(myquat.returnRotationMatrix())
     console.log(myquat.toEulerAngles())
-    var myquat2 = CATS.Quaternion.fromEulerAngles([0,5,3])
+    var myquat2 = CATS.Quaternion.fromEulerAngles([45,45,45])
     var myquat3 = new CATS.Quaternion( -0.596973, 0.0423342, -0.7991367, -0.0566707 )
     console.log(myquat2)
     console.log(myquat2.toEulerAngles())
@@ -75,7 +75,7 @@ function main(){
     mymesh2 = new CATS.Plane(3,mymaterial)
     mylight = new CATS.DirectionalLight([10,0],0.8)
     mylight2 = new CATS.AmbientLight(20,"#FFFFFF")
-    var myquat = new CATS.Quaternion(0,0,0,1)
+    var myquat = CATS.Quaternion.fromEulerAngles([45,45,45])
     mymesh.rotate([0,0,0])
     scene.addLight(mylight)
     scene.addLight(mylight2)
@@ -83,11 +83,12 @@ function main(){
     //var mymeshid2 = scene.addObject(mymesh2)
     //scene.objects[mymeshid2].translate([0,2,0])
     //scene.objects[mymeshid].translate([0,-2,0])
+    scene.objects[mymeshid].rotate([45,45,45])
     scene.objects[mymeshid].setRotation(myquat,CATS.CORE.enum.QUATERNION)
     console.log(scene.objects[mymeshid].transform.rotation.euler)
     scene.moveCamera([0,0,5])
     function cat(){
-       scene.objects[mymeshid].rotate([0,0,3])
+       //scene.objects[mymeshid].rotate([0,0,3])
     scene.render()
     if(keybinds.KeyW){
         scene.moveCamera([0,0,-0.1])

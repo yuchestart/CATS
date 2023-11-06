@@ -1,7 +1,7 @@
 import {CORE} from "./core.js"
 import { VertexShader,FragmentShader,ShaderProgram } from "./shaders.js";
 import { UniformVector4,UniformFloat } from "./buffers.js";
-import { TextureBuffer } from "./buffers.js";
+import { Texture2DBuffer } from "./buffers.js";
 class Material{
     /**
      * 
@@ -239,7 +239,7 @@ void main(void){
                 shaderProgram:shaderProgram,
                 parameters:[
                     {
-                        type:TextureBuffer,
+                        type:Texture2DBuffer,
                         value:material.texture,
                         reusable:1,
                         paramname:"textureBuffer"

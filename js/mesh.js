@@ -125,7 +125,19 @@ export class Mesh{
     removeTag(){
         this.tag = undefined;
     }
+    /**
+     * Scales this mesh by vector
+     * @param {Array<Number>} vector 
+     */
     scale(vector){
+        this.transform.scale = CORE.math.vec3.add(this.transform.scale,vector);
+        this.transform.transformStayedSame = false;
+    }
+    /**
+     * Sets the scale of this mesh
+     * @param {Array<Number>} vector 
+     */
+    setScale(vector){
         this.transform.scale = vector;
         this.transform.transformStayedSame = false;
     }
@@ -152,19 +164,39 @@ export class Mesh{
             this.transform.rotation.quaternion = rotation;
             this.transform.rotation.euler = rotation.toEulerAngles();
         }
+        this.transform.transformStayedSame = false;
     }
+    /**
+     * 
+     * @param {Array<Number>} vector 
+     */
     translate(vector){
         this.transform.position = CORE.math.vec3.add(vector,this.transform.position)
         this.transform.transformStayedSame = false;
     }
+    /**
+     * Sets the position of this mesh
+     * @param {Array<Number>} vector 
+     */
+    setPosition(vector){
+        this.transform.position = vector;
+        this.transform.transformStayedSame = false;
+    }
+    /**
+     * Sets the material of this mesh
+     * @param {Material} material 
+     */
     setMaterial(material){
         this.material = material;
     }
+    /**
+     * Reintializes buffers
+     */
     rebuildBuffers(){
         this.buffers.built = false
     }
     /**
-     * 
+     * Converts this mesh into a package to be rendered.
      * @param {Renderer} renderer 
      * @param {Mat4} viewMatrix 
      * @param {Mat4} projectionMatrix 

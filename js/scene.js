@@ -159,7 +159,7 @@ export class Scene{
         delete this.objects[id]
     }
     removeLight(id){
-        delete this.objects[id]
+        delete this.lights[id]
     }
     clear(){
         this.objects = [];
@@ -167,6 +167,20 @@ export class Scene{
     }
     setBackground(color){
         this.bgcolor = CORE.Color(color)
+    }
+    /**
+     * Gets all objects with this tag
+     * @param {String} tag
+     * @returns {Array<Number>} ID of the objects
+     */
+    getObjectsWithTag(tag){
+        var objectsWithTags = [];
+        for(var i=0; i<this.objects.length; i++){
+            if(tag in this.objects[i].tags){
+                objectsWithTags.push(i);
+            }
+        }
+        return objectsWithTags;
     }
     render(){
         this.renderer.clear(...this.bgcolor);

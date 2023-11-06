@@ -124,13 +124,13 @@ export class TextureCoordinateBuffer extends Buffer{
         })
     }
 }
-export class TextureBuffer{
+export class Texture2DBuffer{
     /**
      * Creates a texture buffer object. Used internally in CATS.
      * @param {Renderer} renderer 
      * @param {Texture} texture
      */
-    constructor(renderer,texture){
+    constructor(renderer,texture=null){
         this.renderer = renderer;
         const gl = this.renderer.gl;
         const textr = gl.createTexture();
@@ -160,6 +160,36 @@ export class Texture{
             return data;
         }
     }
+}
+export class Framebuffer{
+    /**
+     * Create a new Framebuffer object.
+     * @param {Renderer} renderer Renderer object
+     */
+    constructor(renderer){
+        const gl = renderer.gl;
+        this.renderer = renderer;
+        this.fb = gl.createFramebuffer();
+        if(this.fb===null)
+            throw new Error("Framebuffer initialization failed.")
+    }
+    /**
+     * 
+     */
+    attachObject(){
+        
+    }
+    bind(){
+        const gl = this.renderer.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER,this.fb);
+    }
+    /**
+     * WARNING: This method unbinds all framebuffers, even if this one isn't currently bound.
+     */
+    unbind(){
+        gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    }
+
 }
 //#endregion
 //Uniforms

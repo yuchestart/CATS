@@ -48,7 +48,6 @@ export class Renderer{
             this.autoAdjust = false;
         }
     }
-    
     updateAspectRatio(){
         if(this.autoAdjust){
             this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
