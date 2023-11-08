@@ -278,4 +278,11 @@ export class Mesh{
         })
         return renderpackage;
     }
+    /**
+     * If a point/mesh intersects this mesh
+     * @param {Mesh|Array<Number>}
+     */
+    intersects(b){
+        var ray = [0,]
+    }
 }

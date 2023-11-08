@@ -1,15 +1,18 @@
 import { Curve } from "./math";
 import { Mesh } from "./mesh";
+import { Cube } from "./primitives";
 
-export class ParticleEmitter{
+export class CPUParticleEmitter{
     /**
-     * 
+     * This object creates a new CPU based particle emitter
      * @param {Mesh} mesh The mesh that composes the particles.
+     * @param {Mesh} emissionMesh The shape that the particles are emitted in
      * @param {Number} frequency How frequently particles are emitted. UNIT: particles/second
      * @param {Number} lifetime How long each particle lasts. UNIT: seconds
      */
-    constructor(mesh,frequency,lifetime){
+    constructor(mesh,emissionMesh=new Cube(1),frequency,lifetime,){
         this.mesh = mesh;
+        this.emission = emissionMesh;
         this.frequency = frequency;
         this.maxParticles = frequency*lifetime;
         this.particles = [];
@@ -23,7 +26,7 @@ export class ParticleEmitter{
     updateParticles(){
         const deltaTime = prevTime
         for(var i=0; i<this.particles.length; i++){
-
+            
         }
     }
 }

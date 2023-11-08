@@ -160,6 +160,29 @@ export const CORE = {
                 var u = CORE.math.vec3.subtract(v2,v1)
                 var v = CORE.math.vec3.subtract(v3,v1)
                 return CORE.math.vec3.normalize(CORE.math.vec3.cross(u,v))
+            },
+            /**
+             * Check if a line segment intersects with a point
+             * @param {Number} v0 The first vertex of the triangle
+             * @param {Number} v1 The second vertex of the triangle
+             * @param {Number} v2 The third vertex of the triangle
+             * @param {Number} l0 The first point of the line segment
+             * @param {Number} l1 The second point of the line segment
+             */
+            intersectsWithLine:function(v0,v1,v2,l0,l1){
+                var e1 = CORE.math.vec3.subtract(v1,v0)
+                var e2 = CORE.math.vec3.subtract(v2,v0)
+                var n = CORE.math.vec3.cross(e1,e2);
+                var dir = CORE.math.vec3.subtract(l1,l0)
+                var det = -CORE.math.vec3.dot(dir,n);
+                var invdet = 1/det;
+                var AO = CORE.math.vec3.subtract(l0,v0);
+                var DAO = CORE.math.vec3.cross(AO,dir);
+                var u = CORE.math.vec3.dot(e2,DAO) * invdet;
+                var v = -CORE.math.vec3.dot(e1,DAO) * invdet;
+                var t = CORE.math.vec3.dot(AO,n) * invdet;
+                
+                return (t>=0 && u >= 0 ** v>= 0 && (u+v) <= 1 && det >= CORE.math.EPSILON)
             }
         },
         /**
