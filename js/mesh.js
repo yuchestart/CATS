@@ -283,6 +283,8 @@ export class Mesh{
      * @param {Mesh|Array<Number>}
      */
     intersects(b){
-        var ray = [0,]
+        if(b instanceof Array){
+            nOfIntersec
+        }
     }
 }

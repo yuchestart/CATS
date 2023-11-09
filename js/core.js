@@ -162,14 +162,14 @@ export const CORE = {
                 return CORE.math.vec3.normalize(CORE.math.vec3.cross(u,v))
             },
             /**
-             * Check if a line segment intersects with a point
+             * Check if a ray intersects with a point
              * @param {Number} v0 The first vertex of the triangle
              * @param {Number} v1 The second vertex of the triangle
              * @param {Number} v2 The third vertex of the triangle
-             * @param {Number} l0 The first point of the line segment
-             * @param {Number} l1 The second point of the line segment
+             * @param {Number} l0 The first point of the ray
+             * @param {Number} l1 The second point of the ray
              */
-            intersectsWithLine:function(v0,v1,v2,l0,l1){
+            intersectsWithRay:function(v0,v1,v2,l0,l1){
                 var e1 = CORE.math.vec3.subtract(v1,v0)
                 var e2 = CORE.math.vec3.subtract(v2,v0)
                 var n = CORE.math.vec3.cross(e1,e2);

@@ -459,5 +459,42 @@ export class Quaternion{
     }
 }
 export class Curve{
-    
+    /**
+     * A function that can be specified by the user.
+     * Defaults to f(x) = x
+     * @param {Array<CurvePoint>} curvepoints 
+     */
+    constructor(curvepoints){
+
+    }
+    f(x){
+
+    }
+}
+export class CurvePoint{
+    /**
+     * A point for a curve
+     * Defaults to a straight connection between two points.
+     * @param {Array<Number>|Number} x from 0-1
+     * @param {Array<Number>|Number} y from 0-1
+     */
+    constructor(x,y){
+        this.x = x;
+        this.y = y;
+    }
+}
+export class CubicBezierCurvePoint{
+    /**
+     * A cubic bezier curve point
+     * @param {Array<Number>|Number} x
+     * @param {Array<Number>|Number} y
+     * @param {Array<Number>|Array<Array<Number>>} p0
+     * @param {Array<Number>|Array<Array<Number>>} p1
+     */
+    constructor(x,y,p0,p1){
+        this.x = x;
+        this.y = y;
+        this.p0 = p0;
+        this.p1 = p1;
+    }
 }

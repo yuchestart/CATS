@@ -55,6 +55,7 @@ function mathdebug(){
     console.log(myquat2)
     console.log(myquat2.toEulerAngles())
     console.log(myquat3.toEulerAngles())
+    console.log(CATS.CORE.math.triangle.intersectsWithRay([0,0,0],[1,1,0],[2,0,0],[1,0.5,-1],[1,3,1]))
 }
 
 function main(){
