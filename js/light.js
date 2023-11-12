@@ -72,7 +72,7 @@ export class PointLight{
     constructor(position,intensity,range,color,specularColor){
         this.position = position;
         this.color = color?CORE.Color(color).slice(0,3):[1,1,1];
-        this.specularColor = color?CORE.Color(specularColor).slice(0,3):[1,1,1];
+        this.specularColor = specularColor?CORE.Color(specularColor).slice(0,3):[1,1,1];
         this.intensity = intensity?intensity:1;
         this.range = range?range:2;
     }

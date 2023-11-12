@@ -2,7 +2,7 @@ import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
 import { Mat4, Quaternion } from "./math.js"
-import { PositionBuffer, IndexBuffer, Uniform4x4Matrix } from "./buffers.js";
+import { PositionBuffer, IndexBuffer, Uniform4x4Matrix, TextureCoordinateBuffer } from "./buffers.js";
 import { RenderablePackage } from "./package.js";
 export class Mesh{
     /**
@@ -268,7 +268,7 @@ export class Mesh{
                 var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
                 this.buffers.texcoord = textureBuffer;
             }
-            shaderInput.push(textureBuffer)
+            //shaderInput.push(textureBuffer)
         }
         var renderType = builtMaterial.renderType?builtMaterial.renderType:CORE.enum.TRIANGLES
         //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)

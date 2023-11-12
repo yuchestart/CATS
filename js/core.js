@@ -240,6 +240,13 @@ export const CORE = {
         TEXTURE_CUBE_MAP_NEGATIVE_X:37,
         TEXTURE_CUBE_MAP_NEGATIVE_Y:38,
         TEXTURE_CUBE_MAP_NEGATIVE_Z:39,
+        TEXTURE_COORDINATE_BUFFER:40,
+        NORMALS_BUFFER:41,
+        POSITION_BUFFER:42,
+        WORLD_TRANSFORM_MATRIX:43,
+        WORLD_VIEW_MATRIX:44,
+        CAMERA_PROJECTION_MATRIX:45,
+        NORMALS_TRANSFORM_MATRIX:46
     },
     /**
      * Converts commonly used color formats to RGBA.
@@ -396,14 +403,6 @@ export const CORE = {
             specularColor += pointLightSpecularColors[i].rgb;
             specular+=specularIncrement;
         }
-        //Spot
-        
-        for(int i=0; i<MAXPLIGHTSOURCES; i++){
-            if(i>=nsLights){
-                break;
-            }
-            
-        }
         
         //Ambient
         for(int i=0; i<MAXDLIGHTSOURCES; i++){
@@ -456,10 +455,14 @@ export const CORE = {
                 default:
                     return CORE.shaderReference.BASIC_LIGHTING
             }
+        },
+        defaultAttributes:{
+
         }
     },
     /**
-     * 
+     * Load a mesh
+     * @deprecated This function has limited use, and is only to be used while developing Milestone 3
      * @param {String} URL The URL of the mesh
      * @param {Array<String|Number>} vertexAttribute A path to the vertex attribute
      * @param {Array<String|Number>} indexAttribute A path to the index attribute

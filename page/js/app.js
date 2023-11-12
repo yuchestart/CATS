@@ -11,7 +11,7 @@ function $(name,parent){
         class:document.getElementsByClassName(name)
     }
 }
-var render,scene,camera,mymesh,mymesh2,mymesh4,mymesh3,mymaterial,mymaterial2,packagedmesh,mylight,mylight2,mytexture;
+let render,scene,camera,mymesh,mymesh2,mymesh4,mymesh3,mymaterial,mymaterial2,packagedmesh,mylight,mylight2,mytexture,tick;
 var keybinds = {
     KeyW:false,
     KeyA:false,
@@ -22,7 +22,8 @@ var keybinds = {
     ArrowUp:false,
     ArrowDown:false,
     ArrowRight:false,
-    ArrowLeft:false
+    ArrowLeft:false,
+    Space:false
 }
 //Hopefully this code will be less than 100 lines with the library.
 //Code has been reset
@@ -32,13 +33,14 @@ function changeFOV(me){
 }
 
 async function preload(callback){
-    await CATS.CORE.loadMesh("./models/susan.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
+    await CATS.CORE.loadMesh("./models/bone.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
         mymesh=data;
         console.log(mymesh.texCoords);
         mymesh.rotate([90,0,0])
         mymesh.flipTCoordinate()
+        mymesh.scale([1,1,5])
         console.log(mymesh.texCoords)
-        var mymaterial = new CATS.TexturedMaterial($("amogus").id,3,CATS.CORE.enum.PHONG_LIGHTING)
+        var mymaterial = new CATS.Material()
         mymesh.setMaterial(mymaterial)
         console.log(data)
     })
@@ -71,24 +73,27 @@ function main(){
     }
     scene = new CATS.Scene(render)
     scene.setBackground("#000000")
-    mymaterial = new CATS.SingleColorMaterial("#ff0000",10)
-    mymesh = new CATS.Cube(3,mymaterial)
+    mymaterial = new CATS.Material("#ff0000",10)
+    
     mymesh2 = new CATS.Plane(3,mymaterial)
-    mylight = new CATS.DirectionalLight([10,0],0.8)
+    mylight = new CATS.PointLight([0,10,0],100,10,"#FFFFFF","#ffffff")
+    mylight = new CATS.DirectionalLight([180,0],"#FFFFFF")
     mylight2 = new CATS.AmbientLight(20,"#FFFFFF")
-    var myquat = CATS.Quaternion.fromEulerAngles([45,45,45])
+    console.log(mymesh)
     mymesh.rotate([0,0,0])
     scene.addLight(mylight)
     scene.addLight(mylight2)
+    
     var mymeshid = scene.addObject(mymesh)
     //var mymeshid2 = scene.addObject(mymesh2)
     //scene.objects[mymeshid2].translate([0,2,0])
     //scene.objects[mymeshid].translate([0,-2,0])
-    scene.objects[mymeshid].rotate([45,45,45])
-    scene.objects[mymeshid].setRotation(myquat,CATS.CORE.enum.QUATERNION)
     console.log(scene.objects[mymeshid].transform.rotation.euler)
     scene.moveCamera([0,0,5])
+    tick = 0
     function cat(){
+        //tick+=0.01
+        //scene.objects[mymeshid].setScale([Math.sin(tick),1,1])
        //scene.objects[mymeshid].rotate([0,0,3])
     scene.render()
     if(keybinds.KeyW){
@@ -116,7 +121,11 @@ function main(){
     } else if(keybinds.ArrowRight){
         scene.rotateCamera([0,2,0])
     }
+    if(keybinds.Space){
+        console.log(scene.camera.position)
+    }
     requestAnimationFrame(cat)
+
     }
     cat()
 }

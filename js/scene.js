@@ -246,7 +246,7 @@ export class Scene{
             "directionalLightColors":[lightColors.directional,UniformVector3],
             "pointLightColors":[lightColors.point,UniformVector4],
             "spotLightColors":[lightColors.spot,UniformVector4],
-            "pointLightSpecularColors":[specularLightColors.point,UniformVector4],
+            "pointLightSpecularColors":[specularLightColors.point,UniformVector3],
             "spotLightSpecularColors":[specularLightColors.spot,UniformVector3],
             "spotLightDirections":[spotvectors,UniformVector4]
         }

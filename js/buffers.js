@@ -20,13 +20,13 @@ export class Buffer{
         } else {
             this.type = params.type
         }
+        const usageTypeDict = {};
+        usageTypeDict[CORE.enum.ARRAY_BUFFER] = renderer.gl.ARRAY_BUFFER
+        usageTypeDict[CORE.enum.ELEMENT_ARRAY_BUFFER] = renderer.gl.ELEMENT_ARRAY_BUFFER
         this.renderer = renderer;
         this.data = data;
         this.attribute = params.attribute;
-        this.usageType = {
-21:this.renderer.gl.ARRAY_BUFFER,
-22:this.renderer.gl.ELEMENT_ARRAY_BUFFER
-        }[params.usageType]
+        this.usageType = usageTypeDict[params.usageType]
         const gl = this.renderer.gl;
         const newBuffer = gl.createBuffer();
         this.params = params;
