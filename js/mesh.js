@@ -2,6 +2,7 @@ import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
 import { Mat4, Quaternion } from "./math.js"
+import { Material } from "./material.js"
 import { PositionBuffer, IndexBuffer, Uniform4x4Matrix, TextureCoordinateBuffer } from "./buffers.js";
 import { RenderablePackage } from "./package.js";
 export class Mesh{
@@ -196,6 +197,23 @@ export class Mesh{
         this.buffers.built = false
     }
     /**
+     * Generate a transformation matrix based on the mesh's transform.
+     */
+    generateTransformMatrix(){
+        var matrix = new Mat4();
+        matrix.scale(this.transform.scale)
+        matrix.rotate(this.transform.rotation.euler)
+        matrix.translate(this.transform.position)
+        this.transform.transformMatrix = matrix;
+        this.transform.transformStayedSame = true;
+        var normalMatrix = new Mat4()
+        normalMatrix.set(matrix)
+        normalMatrix.invert()
+        normalMatrix.transpose()
+        this.transform.normalMatrix = normalMatrix;
+    }
+    
+    /**
      * Converts this mesh into a package to be rendered.
      * @param {Renderer} renderer 
      * @param {Mat4} viewMatrix 
@@ -205,42 +223,17 @@ export class Mesh{
      * @returns 
      */
     convertToPackage(renderer,viewMatrix,projectionMatrix,otherthings,scene){
-        if(!this.transform.transformStayedSame){
-            var matrix = new Mat4();
-            matrix.scale(this.transform.scale)
-            matrix.rotate(this.transform.rotation.euler)
-            matrix.translate(this.transform.position)
-            this.transform.transformMatrix = matrix;
-            this.transform.transformStayedSame = true;
-            var normalMatrix = new Mat4()
-            normalMatrix.set(matrix)
-            normalMatrix.invert()
-            normalMatrix.transpose()
-            this.transform.normalMatrix = normalMatrix;
-        }
         const rebuild = scene.built;
         if(rebuild){
             this.material.resetBuild();
         }
         var builtMaterial = this.material.build(renderer,this,scene);
-        var shaderProgram = builtMaterial.shaderProgram;
-        var parameters = builtMaterial.parameters;
-        var newParameters = [];
-        var newparameter;
-        for(var i=0; i<parameters.length; i++){
-            if(!parameters[i].reusable){
-                newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
-                newParameters.push(newparameter);
-            } else {
-                if(this.material[parameters[i].paramname]){
-                    newParameters.push(this.material[parameters[i].paramname]);
-                } else {
-                    newparameter = new parameters[i].type(renderer,parameters[i].value,parameters[i].attribute);
-                    newParameters.push(newparameter);
-                    this.material[parameters[i].paramname] = newparameter
-                }
-            }
+        var materialData = builtMaterial.constructShaderDataList();
+        var buffers = [];
+        for(var i=0; i<builtMaterial.dependencies.length; i++){
+            
         }
+        /*
         if(this.buffers.built){
             var positionBuffer = this.buffers.position;
             var indexBuffer = this.buffers.index;
@@ -275,7 +268,7 @@ export class Mesh{
         var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CORE.enum.ELEMENTS,renderType,{
             numElements:this.indices.length,
             offset:0
-        })
+        }*/
         return renderpackage;
     }
     /**

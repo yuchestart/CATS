@@ -15,6 +15,20 @@ export class Renderer{
     constructor(canvas,disableDepthTest,disableCullFace,disableAutoAdjustAspectRatio,disableAlphaBlend){
         //Initialization function
         this.canvas = canvas;
+        this.gl = null;
+        this.createContext();
+        this.aspect = canvas.clientWidth/canvas.clientHeight;
+        this.prevCanvasDimensions = {
+            width:canvas.clientWidth,
+            height:canvas.clientHeight
+        }
+        if(!disableAutoAdjustAspectRatio){
+            this.autoAdjust = true;
+        } else {
+            this.autoAdjust = false;
+        }
+    }
+    createContext(){
         this.gl = canvas.getContext("webgl2");
         if(this.gl===null){
             console.warn("WebGL2 Not supported, falling back to WebGL1.\nSome features may break.");
@@ -37,18 +51,15 @@ export class Renderer{
             this.gl.enable(this.gl.BLEND);
             this.gl.blendFunc(this.gl.SRC_ALPHA,this.gl.ONE_MINUS_SRC_ALPHA)
         }
-        this.aspect = canvas.clientWidth/canvas.clientHeight;
-        this.prevCanvasDimensions = {
-            width:canvas.clientWidth,
-            height:canvas.clientHeight
-        }
-        if(!disableAutoAdjustAspectRatio){
-            this.autoAdjust = true;
-        } else {
-            this.autoAdjust = false;
+    }
+    replaceContext(){
+        if(this.gl.isContextLost()){
+            this.createContext();
+            console.warn("WebGL Context has been lost.")
         }
     }
     updateAspectRatio(){
+        this.replaceContext()
         if(this.autoAdjust){
             this.aspect = this.canvas.clientWidth/this.canvas.clientHeight;
             this.prevCanvasDimensions = {
@@ -68,6 +79,7 @@ export class Renderer{
      * @param {Number} a 
      */
     clear(r,g,b,a){
+        this.replaceContext()
         //Clear rendering surface
         this.gl.clearColor(r,g,b,a);
         this.gl.clearDepth(1.0);
@@ -79,15 +91,15 @@ export class Renderer{
      * @param {RenderablePackage} package The package to draw.
      */
     drawPackage(renderPackage){
+        this.replaceContext()
         if(this.autoAdjust){
             this.updateAspectRatio()
         }
-        var renderTypes = {
-            0:this.gl.TRIANGLE_STRIP,
-            1:this.gl.TRIANGLES,
-            2:this.gl.POINTS,
-            3:this.gl.LINES
-        }
+        var renderTypes = {}
+        renderTypes[CORE.enum.TRIANGLE_STRIP] = this.gl.TRIANGLE_STRIP;
+        renderTypes[CORE.enum.TRIANGLES] = this.gl.TRIANGLE_STRIP;
+        renderTypes[CORE.enum.POINT_CLOUD] = this.gl.POINTS;
+        renderTypes[CORE.enum.LINES] = this.gl.LINES;
         var renderType;
         var program = renderPackage.shaderProgram.program;
         if(!renderPackage.renderType){
