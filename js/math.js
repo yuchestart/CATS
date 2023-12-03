@@ -10,23 +10,23 @@ export class Mat4{
      * @param {Mat4} b 
      */
     multiply(b){
-        var a = this;
+        let a = this;
         if(b instanceof Mat4){
-            var newMat4 = new Mat4();
+            let newMat4 = new Mat4();
             //There are 4 dot products when multiplying two Mat4
-            for(var i=0; i<4; i++){
+            for(let i=0; i<4; i++){
                 //Calculate each dot product
-                for(var j=0; j<4; j++){
+                for(let j=0; j<4; j++){
                     newMat4.data[i*4+j] = 0;
-                    for (var k=0; k<4; k++){
+                    for (let k=0; k<4; k++){
                         newMat4.data[i*4+j]+=a.data[i*4+k]*b.data[k*4+j]
                     }
                 }
             }
             this.set(newMat4);
         } else if( b instanceof Array){
-            var v = b;
-            var m = a.data;
+            let v = b;
+            let m = a.data;
             return [
                 v[0]*m[0]+v[1]*m[4]+v[2]*m[8]+v[3]*m[12],
                 v[0]*m[1]+v[1]*m[5]+v[2]*m[9]+v[3]*m[13],
@@ -132,21 +132,21 @@ export class Mat4{
         this.data[14] = d2
         this.data[15] = d3
         }else{
-            for(var i=0; i<16; i++){
+            for(let i=0; i<16; i++){
                 this.data[i] = a0.data[i]
             }
         }
     }
     /**
      * 
-     * @param {Number} fovy 
-     * @param {Number} aspect 
-     * @param {Number} near 
+     * @param {Number} fovy
+     * @param {Number} aspect
+     * @param {Number} near
      * @param {Number} far 
      * Got me lost too many braincells.
      */
     perspective(fovy,aspect,near,far){
-        var top,bottom,left,right;
+        let top,bottom,left,right;
         top = near*Math.tan(CORE.math.toRadians(fovy)/2)
         bottom = -top;
         right = top*aspect;
@@ -173,7 +173,7 @@ export class Mat4{
      * @param {Array} vector 
      */
     translate(vector){
-        var translationMatrix = new Mat4()
+        let translationMatrix = new Mat4()
         translationMatrix.data[12] = vector[0]
         translationMatrix.data[13] = vector[1]
         translationMatrix.data[14] = vector[2]
@@ -186,33 +186,33 @@ export class Mat4{
      */
     rotate(vector){
         //Please don't run slowly, even though I did 6 sin and cos.
-        var [x,y,z] = vector;
+        let [x,y,z] = vector;
         x=CORE.math.toRadians(x)
         y=CORE.math.toRadians(y)
         z=CORE.math.toRadians(z)
-        var zrm = new Mat4();
-        var cos,sin;
+        let zrm = new Mat4();
+        let cos,sin;
         cos=Math.cos(z);
         sin=Math.sin(z);
         zrm.data[0] = cos;
         zrm.data[1] = -sin;
         zrm.data[4] = sin;
         zrm.data[5] = cos;
-        var yrm = new Mat4();
+        let yrm = new Mat4();
         cos=Math.cos(y);
         sin=Math.sin(y);
         yrm.data[0] = cos;
         yrm.data[2] = sin;
         yrm.data[8] = -sin;
         yrm.data[10] = cos;
-        var xrm = new Mat4();
+        let xrm = new Mat4();
         cos=Math.cos(x);
         sin=Math.sin(x);
         xrm.data[5] = cos;
         xrm.data[6] = -sin;
         xrm.data[9] = sin;
         xrm.data[10] = cos;
-        var out = new Mat4();
+        let out = new Mat4();
         zrm.multiply(yrm);
         out.multiply(zrm);
         out.multiply(xrm);
@@ -223,7 +223,7 @@ export class Mat4{
      * @param {Array} vector 
      */
     scale(vector){
-        var s = new Mat4()
+        let s = new Mat4()
         s.data[0] = vector[0];
         s.data[5] = vector[1];
         s.data[10] = vector[2];
@@ -346,7 +346,7 @@ export class Quaternion{
      * @returns {Quaternion}
      */
     static fromEulerAngles(eulerAngles){
-        var yaw = eulerAngles[1], pitch = eulerAngles[0], roll = eulerAngles[2] 
+        let yaw = eulerAngles[1], pitch = eulerAngles[0], roll = eulerAngles[2] 
         yaw = CORE.math.toRadians(yaw)
         pitch = CORE.math.toRadians(pitch)
         roll = CORE.math.toRadians(roll)
@@ -379,7 +379,7 @@ export class Quaternion{
      * @returns {Quaternion}
      */
     inverse(implace=false){
-        var q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
+        let q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
         q.x = -q.x;
         q.y = -q.y;
         q.z = -q.z;
@@ -390,11 +390,11 @@ export class Quaternion{
      * @param {Quaternion} q
      */
     multiply(q){
-        var q1=this,q2 = q;
-        var x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
-        var y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
-        var z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
-        var w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
+        let q1=this,q2 = q;
+        let x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -406,10 +406,10 @@ export class Quaternion{
      * @returns {Mat4}
      */
     returnRotationMatrix(){
-        //var q2 = this.inverse();
-        var m = new Mat4();
-        var q = this.normalize()
-        var a = q.w,b=q.x,c=q.y,d=q.z
+        //let q2 = this.inverse();
+        let m = new Mat4();
+        let q = this.normalize()
+        let a = q.w,b=q.x,c=q.y,d=q.z
         m.data[0] = a*a+b*b-c*c-d*d
         m.data[1] = 2*b*c-2*a*d
         m.data[2] = 2*b*d+2*a*c
@@ -427,8 +427,8 @@ export class Quaternion{
      * @returns {Quaternion}
      */
     normalize(implace=false){
-        var q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
-        var length = Math.sqrt(q.w**2+q.x**2+q.y**2+q.z**2);
+        let q = implace?this:new Quaternion(this.x,this.y,this.z,this.w);
+        let length = Math.sqrt(q.w**2+q.x**2+q.y**2+q.z**2);
         q.x = q.x/length;
         q.y = q.y/length;
         q.z = q.z/length;
@@ -441,11 +441,11 @@ export class Quaternion{
      */
     toEulerAngles(){
         //Phi: X Theta: Y Psi: Z
-        var q = this.normalize()
-        var a = 2*(q.w*q.y-q.x*q.z)
-        var x = Math.atan2(2*(q.w*q.x+q.y*q.z),1-2*(q.x**2+q.y**2))
-        var y = -Math.PI/2+2*Math.atan2(Math.sqrt(1+a),Math.sqrt(1-a))
-        var z = Math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y**2+q.z**2))
+        let q = this.normalize()
+        let a = 2*(q.w*q.y-q.x*q.z)
+        let x = Math.atan2(2*(q.w*q.x+q.y*q.z),1-2*(q.x**2+q.y**2))
+        let y = -Math.PI/2+2*Math.atan2(Math.sqrt(1+a),Math.sqrt(1-a))
+        let z = Math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y**2+q.z**2))
         x = CORE.math.toDegrees(x)
         y = CORE.math.toDegrees(y)
         z = CORE.math.toDegrees(z)

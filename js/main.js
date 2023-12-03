@@ -25,9 +25,9 @@ import * as renderer from "./renderer.js"
 import * as scene from "./scene.js"
 import * as shaders from "./shaders.js"
 import * as core from "./core.js"
-var importlist = [buffers,light,material,math,mesh,packages,primitives,renderer,scene,shaders,core]
-var exported = {}
-for(var i=0; i<importlist.length; i++){
+let importlist = [buffers,light,material,math,mesh,packages,primitives,renderer,scene,shaders,core]
+let exported = {}
+for(let i=0; i<importlist.length; i++){
     for(const key in importlist[i]){
         exported[key] = importlist[i][key];
     }

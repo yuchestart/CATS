@@ -25,7 +25,7 @@ export const CORE = {
          * @param {Mat4} matrix 
          */
         printAsMatrix:function(matrix){
-            var m = matrix.data;
+            let m = matrix.data;
             console.log(m[0],m[4],m[8],m[12])
             console.log(m[1],m[5],m[9],m[13])
             console.log(m[2],m[6],m[10],m[14])
@@ -55,11 +55,11 @@ export const CORE = {
              * @returns 
              */
             normalize:function(vector){
-                var thing = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
-                if(!thing){
+                let len = Math.sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2])
+                if(!len){
                     return [0,0,0]
                 } else {
-                    return [vector[0]/thing,vector[1]/thing,vector[2]/thing]
+                    return [vector[0]/len,vector[1]/len, vector[2]/len]
                 }
             },
             /**
@@ -157,8 +157,8 @@ export const CORE = {
              * @returns 
              */
             getSurfaceNormal:function(v1,v2,v3){
-                var u = CORE.math.vec3.subtract(v2,v1)
-                var v = CORE.math.vec3.subtract(v3,v1)
+                let u = CORE.math.vec3.subtract(v2,v1)
+                let v = CORE.math.vec3.subtract(v3,v1)
                 return CORE.math.vec3.normalize(CORE.math.vec3.cross(u,v))
             },
             /**
@@ -170,17 +170,17 @@ export const CORE = {
              * @param {Number} l1 The second point of the ray
              */
             intersectsWithRay:function(v0,v1,v2,l0,l1){
-                var e1 = CORE.math.vec3.subtract(v1,v0)
-                var e2 = CORE.math.vec3.subtract(v2,v0)
-                var n = CORE.math.vec3.cross(e1,e2);
-                var dir = CORE.math.vec3.subtract(l1,l0)
-                var det = -CORE.math.vec3.dot(dir,n);
-                var invdet = 1/det;
-                var AO = CORE.math.vec3.subtract(l0,v0);
-                var DAO = CORE.math.vec3.cross(AO,dir);
-                var u = CORE.math.vec3.dot(e2,DAO) * invdet;
-                var v = -CORE.math.vec3.dot(e1,DAO) * invdet;
-                var t = CORE.math.vec3.dot(AO,n) * invdet;
+                let e1 = CORE.math.vec3.subtract(v1,v0)
+                let e2 = CORE.math.vec3.subtract(v2,v0)
+                let n = CORE.math.vec3.cross(e1,e2);
+                let dir = CORE.math.vec3.subtract(l1,l0)
+                let det = -CORE.math.vec3.dot(dir,n);
+                let invdet = 1/det;
+                let AO = CORE.math.vec3.subtract(l0,v0);
+                let DAO = CORE.math.vec3.cross(AO,dir);
+                let u = CORE.math.vec3.dot(e2,DAO) * invdet;
+                let v = -CORE.math.vec3.dot(e1,DAO) * invdet;
+                let t = CORE.math.vec3.dot(AO,n) * invdet;
                 
                 return (t>=0 && u >= 0 ** v>= 0 && (u+v) <= 1 && det >= CORE.math.EPSILON)
             }
@@ -288,22 +288,22 @@ export const CORE = {
             }
         } else if(typeof color == "string"){
             if(color.startsWith("#")){
-                var hex = color.slice(1);
-                var r = parseInt(hex.slice(0,2),16)*this.math.oneOver255
-                var g = parseInt(hex.slice(2,4),16)*this.math.oneOver255
-                var b = parseInt(hex.slice(4,6),16)*this.math.oneOver255
+                let hex = color.slice(1);
+                let r = parseInt(hex.slice(0,2),16)*this.math.oneOver255
+                let g = parseInt(hex.slice(2,4),16)*this.math.oneOver255
+                let b = parseInt(hex.slice(4,6),16)*this.math.oneOver255
                 return [r,g,b,1.0]
             } else if(color.startsWith("rgb")){
-                var rgba = color.slice(3);
-                var hasAlpha = rgba.startsWith("a");
-                var returningColor = [0,0,0,1];
+                let rgba = color.slice(3);
+                let hasAlpha = rgba.startsWith("a");
+                let returningColor = [0,0,0,1];
                 if(hasAlpha)
                     rgba = color.slice(1)
                 rgba = rgba.replaceAll(/"("|")"|";"/gi)
                 rgba = rgba.split(",")
-                for(var i=0; i<rgba.length; i++){
+                for(let i=0; i<rgba.length; i++){
                     if(i!=3){
-                        var currentDigit = parseInt(rgba[i]);
+                        let currentDigit = parseInt(rgba[i]);
                         returningColor[i] = currentDigit*this.math.oneOver255;
                     } else {
                         returningColor[i] = parseFloat(rgba[i])
@@ -311,23 +311,23 @@ export const CORE = {
                 }
                 return returningColor;
             } else if(color.startsWith("hsv")){
-                var hsv = color.slice(3);
+                let hsv = color.slice(3);
                 hsv = hsv.replaceAll(/"("|")"|";"/gi)
                 hsv = hsv.split(",")
-                for(var i=0; i<3; i++){
+                for(let i=0; i<3; i++){
                     hsv[i] = parseFloat(hsv[i])
                 }
                 if(hsv[0] > 360 || hsv[0] < 0 || hsv[1] > 100 || hsv[1] < 0 || hsv[2] > 100 || hsv[2] < 0){
                     throw new TypeError(`Oops! It looks like this color's values seems to be out of range.`)
                 }
                 hsv[0] = hsv[0]/360
-                var h = hsv[0],s = hsv[1],v = hsv[2]
-                var i = Math.floor(hsv[0]*6)
-                var f = h * 6 - i
-                var p = v * (1-s)
-                var q = v * (1-f*s)
-                var t = v * (1-(1-f)*s)
-                var r,g,b;
+                let h = hsv[0],s = hsv[1],v = hsv[2]
+                let i = Math.floor(hsv[0]*6)
+                let f = h * 6 - i
+                let p = v * (1-s)
+                let q = v * (1-f*s)
+                let t = v * (1-(1-f)*s)
+                let r,g,b;
                 switch(i%6){
                     case 0: r=v, g=t, b=p;break;
                     case 1: r=q, g=v, b=p;break;

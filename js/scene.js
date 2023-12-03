@@ -87,42 +87,44 @@ export class Scene{
      * @returns 
      */
     projectCamera(){
+        let viewMatrix;
         if(!this.camera.viewMatrixInitialized){
             //Ugh I hate math so much
-            var v = [0,0,-1], vector=[0,1,0];
+            let v = [0,0,-1], vector=[0,1,0];
+            let sin, a;
             //ROTATE Z
-            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[2])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[2]))
-            var a = v[0],b=v[1]
+            sin = Math.sin(CORE.math.toRadians(this.camera.direction[2])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[2]))
+            a = v[0],b=v[1]
             v[0] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
             a = vector[0],b=vector[1]
             vector[0] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             //ROTATE X
-            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[0])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[0]))
-            var a = v[2],b=v[1]
+            sin = Math.sin(CORE.math.toRadians(this.camera.direction[0])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[0]))
+            a = v[2],b=v[1]
             v[2] = a*cos - b*sin;
             v[1] = a*sin + b*cos;
-            var a = vector[2],b=vector[1]
+            a = vector[2],b=vector[1]
             vector[2] = a*cos - b*sin;
             vector[1] = a*sin + b*cos;
             //ROTATE Y
-            var sin = Math.sin(CORE.math.toRadians(this.camera.direction[1])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[1]))
-            var a = v[0],b=v[2]
+            sin = Math.sin(CORE.math.toRadians(this.camera.direction[1])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[1]))
+            a = v[0],b=v[2]
             v[0] = a*cos - b*sin;
             v[2] = a*sin + b*cos;
-            var a = vector[0],b=vector[2]
+            a = vector[0],b=vector[2]
             vector[0] = a*cos - b*sin;
             vector[2] = a*sin + b*cos;
-            var viewMatrix = new Mat4();
+            viewMatrix = new Mat4();
             viewMatrix.lookAt(this.camera.position,CORE.math.vec3.add(this.camera.position,v),vector);
             this.camera.lastViewMatrix = viewMatrix;
             this.camera.viewMatrixInitialized = true;
         } else {
-            var viewMatrix = this.camera.lastViewMatrix;
+            viewMatrix = this.camera.lastViewMatrix;
         }
         this.renderer.updateAspectRatio()
-        var projectionMatrix = new Mat4();
+        let projectionMatrix = new Mat4();
         projectionMatrix.perspective(
             this.camera.fovy,
             this.renderer.aspect,
@@ -174,8 +176,8 @@ export class Scene{
      * @returns {Array<Number>} ID of the objects
      */
     getObjectsWithTag(tag){
-        var objectsWithTags = [];
-        for(var i=0; i<this.objects.length; i++){
+        let objectsWithTags = [];
+        for(let i=0; i<this.objects.length; i++){
             if(tag in this.objects[i].tags){
                 objectsWithTags.push(i);
             }
@@ -190,30 +192,30 @@ export class Scene{
             this.renderer.prevCanvasDimensions.height = this.renderer.canvas.height;
             this.renderer.canvas.width = this.renderer.canvas.clientWidth;
         }
-        var matrices = this.projectCamera();
-        var divector = [];
-        var pivector = [];
-        var amvector = [];
-        var sivector = [];
-        var lightColors = {
+        let matrices = this.projectCamera();
+        let divector = [];
+        let pivector = [];
+        let amvector = [];
+        let sivector = [];
+        let lightColors = {
             directional:[],
             point:[],
             spot:[]
         };
-        var specularLightColors = {
+        let specularLightColors = {
             point:[],
             spot:[]
         }
-        var otherUniforms = [];
-        var lightCount = {
+        let otherUniforms = [];
+        let lightCount = {
             directional:0,
             point:0,
             spot:0,
             ambient:0
         };
-        var spotvectors = []
-        for(var i=0; i<this.lights.length; i++){
-            var processedLight = this.lights[i].convertToData()
+        let spotvectors = []
+        for(let i=0; i<this.lights.length; i++){
+            let processedLight = this.lights[i].convertToData()
             switch(processedLight.type){
                 case CORE.enum.DIRECTIONAL_LIGHT:
                     divector.push(...processedLight.divector)
@@ -238,7 +240,7 @@ export class Scene{
                     lightCount.spot++;
             }
         }
-        var vectors = {
+        let vectors = {
             "lightDirection":[divector,UniformVector4],
             "lightPosition":[pivector,UniformVector4],
             "ambientLights":[amvector,UniformVector4],
@@ -252,17 +254,17 @@ export class Scene{
         }
         for (const [key,value] of Object.entries(vectors)){
             if(value[0].length){
-                var uniform = new value[1](this.renderer,value[0],key)
+                let uniform = new value[1](this.renderer,value[0],key)
                 otherUniforms.push(uniform)
             }
         }
-        var lightCountVector = new UniformVector4(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot,lightCount.ambient],"lightCounts")
-        var viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
+        let lightCountVector = new UniformVector4(this.renderer,[lightCount.directional,lightCount.point,lightCount.spot,lightCount.ambient],"lightCounts")
+        let viewPosVector = new UniformVector3(this.renderer,this.camera.position,"viewPosition")
         otherUniforms.push(lightCountVector);
         otherUniforms.push(viewPosVector);
-        for(var i=0; i<this.objects.length; i++){
+        for(let i=0; i<this.objects.length; i++){
             try{
-            var renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
+            let renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
                 throw new Error(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)

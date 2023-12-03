@@ -4,7 +4,7 @@ export class RenderablePackage{
         this.shaderProgram = shaderProgram;
         this.bufferList = [];
         this.uniformList = [];
-        for(var i=0; i<shaderInputs.length; i++){
+        for(let i=0; i<shaderInputs.length; i++){
             if(shaderInputs[i].tag === CORE.enum.UNIFORM){
                 this.uniformList.push(shaderInputs[i])
             } else if (!shaderInputs[i].tag){

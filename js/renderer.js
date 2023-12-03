@@ -95,27 +95,27 @@ export class Renderer{
         if(this.autoAdjust){
             this.updateAspectRatio()
         }
-        var renderTypes = {}
+        let renderTypes = {}
         renderTypes[CORE.enum.TRIANGLE_STRIP] = this.gl.TRIANGLE_STRIP;
         renderTypes[CORE.enum.TRIANGLES] = this.gl.TRIANGLE_STRIP;
         renderTypes[CORE.enum.POINT_CLOUD] = this.gl.POINTS;
         renderTypes[CORE.enum.LINES] = this.gl.LINES;
-        var renderType;
-        var program = renderPackage.shaderProgram.program;
+        let renderType;
+        let program = renderPackage.shaderProgram.program;
         if(!renderPackage.renderType){
             renderType = renderTypes[1]
         } else {
             renderType = renderTypes[renderPackage.renderType]
         }
         //renderType = renderTypes[2]
-        var buffers = renderPackage.bufferList;
-        for(var i=0; i<buffers.length;i++){
+        let buffers = renderPackage.bufferList;
+        for(let i=0; i<buffers.length;i++){
             buffers[i].enableForProgram(program)
         }
         this.gl.useProgram(program);
         if(renderPackage.uniformList){
-            var uniforms = renderPackage.uniformList
-            for(var i=0; i<uniforms.length;i++){
+            let uniforms = renderPackage.uniformList
+            for(let i=0; i<uniforms.length;i++){
                 uniforms[i].enableForProgram(program)
             }
         }

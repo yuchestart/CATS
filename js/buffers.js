@@ -51,7 +51,7 @@ export class Buffer{
     }
     enableForProgram(program){
         if(this.type == CORE.enum.ATTRIBUTE){
-            var location = this.renderer.gl.getAttribLocation(program,this.attribute)
+            let location = this.renderer.gl.getAttribLocation(program,this.attribute)
             this.renderer.gl.bindBuffer(this.usageType,this.buffer)
             this.renderer.gl.vertexAttribPointer(location,
                 this.params.vertexAttribParams.numberOfComponents,
@@ -153,7 +153,7 @@ export class Texture{
      */
     constructor(data){
         if(data instanceof String){
-            var myimage = new Image();
+            let myimage = new Image();
             myimage.src=data;
             return myimage;
         } else if(da){

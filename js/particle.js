@@ -26,7 +26,7 @@ export class CPUParticleEmitter{
     }
     updateParticles(){
         const deltaTime = new Date().getTime()-prevTime
-        for(var i=0; i<this.particles.length; i++){
+        for(let i=0; i<this.particles.length; i++){
             this.particles[i].update(deltaTime,function(p){p.progression = 0})
         }
     }

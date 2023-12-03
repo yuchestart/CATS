@@ -69,24 +69,24 @@ export class Sphere extends Mesh{
      */
     constructor(radius,div,material){
         radius *= 0.5
-        var points = [],indices = [];
-        for(var j=0; j<=div; j++){
-            var anglej = j*Math.PI / div;
-            var sinj = Math.sin(anglej);
-            var cosj = Math.cos(anglej);
-            for(var i=0; i<=div; i++){
-                var anglei=i*2*Math.PI/div;
-                var sini = Math.sin(anglei);
-                var cosi = Math.cos(anglei);
+        let points = [],indices = [];
+        for(let j=0; j<=div; j++){
+            let anglej = j*Math.PI / div;
+            let sinj = Math.sin(anglej);
+            let cosj = Math.cos(anglej);
+            for(let i=0; i<=div; i++){
+                let anglei=i*2*Math.PI/div;
+                let sini = Math.sin(anglei);
+                let cosi = Math.cos(anglei);
                 points.push(radius*sini*sinj);
                 points.push(radius*cosj);
                 points.push(radius*cosi*sinj);
             }
         }
-        for(var j=0; j<div;j++){
-            for(var i=0; i<div; i++){
-                var point1 = j*(div+1)+i;
-                var point2 = point1 + (div+1);
+        for(let j=0; j<div;j++){
+            for(let i=0; i<div; i++){
+                let point1 = j*(div+1)+i;
+                let point2 = point1 + (div+1);
                 indices.push(point1);
                 indices.push(point2);
                 indices.push(point1+1);
@@ -106,13 +106,13 @@ export class Plane extends Mesh{
      */
     constructor(size,material){
         size*=0.5
-        var vertices = [
+        let vertices = [
             size,0,size,
             -size,0,size,
             -size,0,-size,
             size,0,-size           
         ];
-        var indices = [
+        let indices = [
             0,1,3,
             1,2,3,
         ]

@@ -16,9 +16,9 @@ export class DirectionalLight{
         this.intensity = intensity;
     }
     computeDirection(dir){
-        var v = [0,-1,0]
-        var sin = Math.sin(CORE.math.toRadians(dir[0])), cos = Math.cos(CORE.math.toRadians(dir[0]))
-        var a=v[1],b=v[2]
+        let v = [0,-1,0]
+        let sin = Math.sin(CORE.math.toRadians(dir[0])), cos = Math.cos(CORE.math.toRadians(dir[0]))
+        let a=v[1],b=v[2]
         v[1] = a*cos - b*sin;
         v[2] = a*sin + b*cos;
         sin = Math.sin(CORE.math.toRadians(dir[1])), cos = Math.cos(CORE.math.toRadians(dir[1]))

@@ -24,26 +24,26 @@ export class Mesh{
             this.vertices = vertices;
             this.indices = indices;
             if(this.indices[0] instanceof Array){
-                var newindices = []
-                for(var i=0; i<this.indices.length; i++){
+                let newindices = []
+                for(let i=0; i<this.indices.length; i++){
                     newindices.push(...this.indices[i]);
                 }
                 this.indices = newindices;
             }
             if(texCoords instanceof Array && texCoords[0] instanceof Array){
-                for(var i=0; i<texCoords.length; i++){
+                for(let i=0; i<texCoords.length; i++){
                     this.texCoords.push(texCoords[i][0],texCoords[i][1])
                 }
             } else if (texCoords instanceof Array){
                 this.texCoords = texCoords;
                 if(texSflipped||texTflipped){
                     if(texSflipped){
-                        for(var i=0; i<this.texCoords.length; i+=2){
+                        for(let i=0; i<this.texCoords.length; i+=2){
                             this.texCoords[i] = 1-this.texCoords[i]
                         }
                     }
                     if(texTflipped){
-                        for(var i=0; i<this.texCoords.length; i+=2){
+                        for(let i=0; i<this.texCoords.length; i+=2){
                             this.texCoords[i+1] = 1-this.texCoords[i]
                         }
                     }
@@ -54,9 +54,9 @@ export class Mesh{
             this.indices = [];
             this.normals = [];
             this.texCoords = [];
-            var vd = vertices;
+            let vd = vertices;
             if(texCoords instanceof Array && texCoords[0] instanceof Array){
-                for(var i=0; i<texCoords; i++){
+                for(let i=0; i<texCoords; i++){
                     this.texCoords.push(texCoords[i][0],texCoords[i][1])
                 }
             } else if (texCoords instanceof Array){
@@ -65,14 +65,14 @@ export class Mesh{
                 this.texCoords = []
             }
             if(indices.length >= 3){
-            for(var i=0; i<indices.length/3; i++){
-                var idx = [indices[i*3]*3,indices[i*3+1]*3,indices[i*3+2]*3]
-                var triangle = [
+            for(let i=0; i<indices.length/3; i++){
+                let idx = [indices[i*3]*3,indices[i*3+1]*3,indices[i*3+2]*3]
+                let triangle = [
                     [vd[idx[0]],vd[idx[0]+1],vd[idx[0]+2]],
                     [vd[idx[1]],vd[idx[1]+1],vd[idx[1]+2]],
                     [vd[idx[2]],vd[idx[2]+1],vd[idx[2]+2]]
                 ]
-                var normal = CORE.math.triangle.getSurfaceNormal(...triangle)
+                let normal = CORE.math.triangle.getSurfaceNormal(...triangle)
                 this.vertices.push(...[...triangle[0],...triangle[1],...triangle[2]])
                 this.normals.push(...[...normal,...normal,...normal])
                 this.indices.push(i*3,i*3+1,i*3+2)
@@ -108,7 +108,7 @@ export class Mesh{
      * Flips the S(U) texture coordinate of the mesh
      */
     flipSCoordinate(){
-        for(var i=0; i<this.texCoords.length; i+=2){
+        for(let i=0; i<this.texCoords.length; i+=2){
             this.texCoords[i] = 1-this.texCoords[i]
         }
     }
@@ -116,7 +116,7 @@ export class Mesh{
      * Flips the T(V) texture coordinate of the mesh
      */
     flipTCoordinate(){
-        for(var i=0; i<this.texCoords.length; i+=2){
+        for(let i=0; i<this.texCoords.length; i+=2){
             this.texCoords[i+1] = 1-this.texCoords[i+1]
         }
     }
@@ -200,19 +200,27 @@ export class Mesh{
      * Generate a transformation matrix based on the mesh's transform.
      */
     generateTransformMatrix(){
-        var matrix = new Mat4();
-        matrix.scale(this.transform.scale)
-        matrix.rotate(this.transform.rotation.euler)
-        matrix.translate(this.transform.position)
-        this.transform.transformMatrix = matrix;
-        this.transform.transformStayedSame = true;
-        var normalMatrix = new Mat4()
-        normalMatrix.set(matrix)
-        normalMatrix.invert()
-        normalMatrix.transpose()
-        this.transform.normalMatrix = normalMatrix;
+        if(!this.transformStayedSame){
+            let matrix = new Mat4();
+            matrix.scale(this.transform.scale)
+            matrix.rotate(this.transform.rotation.euler)
+            matrix.translate(this.transform.position)
+            this.transform.transformMatrix = matrix;
+            this.transform.transformStayedSame = true;
+            let normalMatrix = new Mat4()
+            normalMatrix.set(matrix)
+            normalMatrix.invert()
+            normalMatrix.transpose()
+            this.transform.normalMatrix = normalMatrix;
+        }
     }
-    
+    retrieveDependencies(){
+        this.generateTransformMatrix()
+        return {
+            TEXTURE_COORDINATE_BUFFER:this.texCoords,
+            WORLD_TRANSFORM_MATRIX:this.transform.transformMatrix
+        }
+    }
     /**
      * Converts this mesh into a package to be rendered.
      * @param {Renderer} renderer 
@@ -227,12 +235,13 @@ export class Mesh{
         if(rebuild){
             this.material.resetBuild();
         }
-        var builtMaterial = this.material.build(renderer,this,scene);
-        var materialData = builtMaterial.constructShaderDataList();
-        var buffers = [];
-        for(var i=0; i<builtMaterial.dependencies.length; i++){
-            
+        let builtMaterial = this.material.build(renderer,this,scene);
+        let materialData = builtMaterial.constructShaderDataList();
+        let buffers = [];
+        for(let i=0; i<builtMaterial.dependencies.length; i++){
+
         }
+        const renderpackage = new RenderablePackage(builtMaterial.shaderProgram,buffers,)
         /*
         if(this.buffers.built){
             var positionBuffer = this.buffers.position;
