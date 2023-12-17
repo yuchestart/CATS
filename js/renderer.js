@@ -7,29 +7,28 @@ export class Renderer{
      * This Renderer object will do all the rendering, but you don't need to tweak around with it as
      * it's handled internally.
      * @param {HTMLCanvasElement} canvas 
-     * @param {Boolean} disableDepthTest
-     * @param {Boolean} disableCullFace
-     * @param {Boolean} disableAutoAdjustAspectRatio
-     * @param {Boolean} disableAlphaBlend
+     * @param {Array<Number>} settings
      */
-    constructor(canvas,disableDepthTest,disableCullFace,disableAutoAdjustAspectRatio,disableAlphaBlend){
+    constructor(canvas,settings=[]){
         //Initialization function
         this.canvas = canvas;
         this.gl = null;
-        this.createContext();
         this.aspect = canvas.clientWidth/canvas.clientHeight;
         this.prevCanvasDimensions = {
             width:canvas.clientWidth,
             height:canvas.clientHeight
         }
-        if(!disableAutoAdjustAspectRatio){
-            this.autoAdjust = true;
-        } else {
-            this.autoAdjust = false;
+        this.config = {
+            depthTest:!(CORE.enum.DISABLE_DEPTH_TEST in settings),
+            cullFace:!(CORE.enum.DISABLE_CULL_FACE in settings),
+            autoAdjustAspectRatio:!(CORE.enum.DISABLE_AUTO_ADJUST_ASPECT_RATIO in settings),
+            alphaBlend:!(CORE.enum.DISABLE_ALPHA_BLEND in settings)
         }
+        this.createContext();
     }
     createContext(){
-        this.gl = canvas.getContext("webgl2");
+        console.log(this.config)
+        this.gl = this.canvas.getContext("webgl2");
         if(this.gl===null){
             console.warn("WebGL2 Not supported, falling back to WebGL1.\nSome features may break.");
             this.gl = canvas.getContext("webgl")
@@ -41,16 +40,17 @@ export class Renderer{
                 }
             }
         }
-        if(!disableDepthTest){
+        if(this.config.depthTest){
             this.gl.enable(this.gl.DEPTH_TEST);
-            this.gl.depthFunc(this.gl.LEQUAL); // Change this to gl.LESS when adding cubemaps
+            this.gl.depthFunc(this.gl.LEQUAL);
         }
-        if(!disableCullFace)
+        
+        if(this.config.cullFace)
             this.gl.enable(this.gl.CULL_FACE);
-        if(!disableAlphaBlend){
-            this.gl.enable(this.gl.BLEND);
-            this.gl.blendFunc(this.gl.SRC_ALPHA,this.gl.ONE_MINUS_SRC_ALPHA)
-        }
+        this.autoAdjust = !!this.config.autoAdjustAspectRatio;
+    }
+    setDepthFunction(){
+
     }
     replaceContext(){
         if(this.gl.isContextLost()){

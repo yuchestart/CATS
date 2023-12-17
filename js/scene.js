@@ -91,7 +91,7 @@ export class Scene{
         if(!this.camera.viewMatrixInitialized){
             //Ugh I hate math so much
             let v = [0,0,-1], vector=[0,1,0];
-            let sin, a;
+            let sin, cos, a, b;
             //ROTATE Z
             sin = Math.sin(CORE.math.toRadians(this.camera.direction[2])),cos=Math.cos(CORE.math.toRadians(this.camera.direction[2]))
             a = v[0],b=v[1]
@@ -184,6 +184,7 @@ export class Scene{
         }
         return objectsWithTags;
     }
+    
     render(){
         this.renderer.clear(...this.bgcolor);
         if(!(this.renderer.canvas.width==this.renderer.prevCanvasDimensions.width && 

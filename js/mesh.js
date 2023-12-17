@@ -214,11 +214,9 @@ export class Mesh{
             this.transform.normalMatrix = normalMatrix;
         }
     }
-    retrieveDependencies(){
-        this.generateTransformMatrix()
-        return {
-            TEXTURE_COORDINATE_BUFFER:this.texCoords,
-            WORLD_TRANSFORM_MATRIX:this.transform.transformMatrix
+    retrieveDependency(renderer,dependency,name){
+        switch(dependency){
+            case "POSITION_BUFFER":
         }
     }
     /**
@@ -238,10 +236,16 @@ export class Mesh{
         let builtMaterial = this.material.build(renderer,this,scene);
         let materialData = builtMaterial.constructShaderDataList();
         let buffers = [];
-        for(let i=0; i<builtMaterial.dependencies.length; i++){
-
+        for(const key in materialData){
+            buffers.push(key);
         }
-        const renderpackage = new RenderablePackage(builtMaterial.shaderProgram,buffers,)
+        for(let i=0; i<builtMaterial.dependencies.length; i++){
+            buffers.push(this.retrieveDependency(renderer,dependencies))
+        }
+        const renderpackage = new RenderablePackage(builtMaterial.shaderProgram,buffers,CORE.enum.ELEMENTS,builtMaterial.renderingType,{
+            numElements:this.indices.length,
+            offset:0
+        })
         /*
         if(this.buffers.built){
             var positionBuffer = this.buffers.position;

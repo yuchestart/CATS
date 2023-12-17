@@ -31,7 +31,7 @@ function changeFOV(me){
     scene.setFOV(parseInt(me.value))
     $("fovvalue").id.innerHTML = me.value
 }
-
+/** 
 async function preload(callback){
     await CATS.CORE.loadMesh("./models/bone.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
         mymesh=data;
@@ -59,9 +59,9 @@ function mathdebug(){
     console.log(myquat3.toEulerAngles())
     console.log(CATS.CORE.math.triangle.intersectsWithRay([0,0,0],[1,1,0],[2,0,0],[1,0.5,-1],[1,3,1]))
 }
-
+*/
 function main(){
-    mathdebug()
+    //mathdebug()
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
     render = new CATS.Renderer($("emotionalDamage").id)
@@ -73,9 +73,9 @@ function main(){
     }
     scene = new CATS.Scene(render)
     scene.setBackground("#000000")
-    mymaterial = new CATS.Material("#ff0000",10)
+    mymaterial = new CATS.Material()
     
-    mymesh2 = new CATS.Plane(3,mymaterial)
+    mymesh = new CATS.Cube(1,mymaterial)
     mylight = new CATS.PointLight([0,10,0],100,10,"#FFFFFF","#ffffff")
     mylight = new CATS.DirectionalLight([180,0],"#FFFFFF")
     mylight2 = new CATS.AmbientLight(20,"#FFFFFF")
@@ -124,11 +124,11 @@ function main(){
     if(keybinds.Space){
         console.log(scene.camera.position)
     }
-    requestAnimationFrame(cat)
+    //requestAnimationFrame(cat)
 
     }
     cat()
 }
 window.onload = function(){
-    preload(main);
+    main()
 };
