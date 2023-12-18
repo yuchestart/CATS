@@ -61,6 +61,7 @@ function mathdebug(){
 }
 */
 function main(){
+    console.log(CATS.MaterialConfig.defaultBufferAttributes)
     //mathdebug()
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.

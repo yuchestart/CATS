@@ -5,6 +5,7 @@ import { Mat4, Quaternion } from "./math.js"
 import { Material } from "./material.js"
 import { PositionBuffer, IndexBuffer, Uniform4x4Matrix, TextureCoordinateBuffer } from "./buffers.js";
 import { RenderablePackage } from "./package.js";
+//console.log(CORE)
 export class Mesh{
     /**
      * A 3D Object made of several triangles

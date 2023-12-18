@@ -1,6 +1,31 @@
+import * as core from "./core.js"
+import { VertexShader, FragmentShader, ShaderProgram } from "./shaders.js"
+
+/**
+ * This class contains the buffers that are provided by things like the mesh and the scene.
+ */
+export class MaterialConfig{
+    static defaultBufferAttributes = {};
+    
+    /**
+     * Create a new material config object
+     * @param {Array<Number>} uses What external(provided by the mesh and scene) buffers will this material use.
+     */
+    constructor(uses){
+        this.uses = uses;
+    }
+}
+{
+    //MaterialConfig.defaultBufferAttributes[CORE.enum.POSITION_BUFFER] = "vP"
+}
+export class Material{
+    constructor(buildFunction, config=new MaterialConfig()){
+
+    }
+}
 
 
-
+//console.log(core.CORE)
 
 // import { CORE } from "./core.js"
 // import { VertexShader,FragmentShader,ShaderProgram } from "./shaders.js";

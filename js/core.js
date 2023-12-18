@@ -1,5 +1,6 @@
 import { Mat4 } from "./math.js";
 import { Mesh } from "./mesh.js";
+
 export const CORE = {
     /**
      * Store of CATS math functions.
