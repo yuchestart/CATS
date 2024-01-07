@@ -1,6 +1,4 @@
 import { Mat4 } from "./math.js";
-import { Mesh } from "./mesh.js";
-
 export const CORE = {
     /**
      * Store of CATS math functions.
@@ -248,6 +246,10 @@ export const CORE = {
         WORLD_VIEW_MATRIX:44,
         CAMERA_PROJECTION_MATRIX:45,
         NORMALS_TRANSFORM_MATRIX:46,
+        LIGHT_POSITION_INTENSITY_DIRECTION_MATRIX:47,
+        LIGHT_COLOR_RANGE_MATRIX:48,
+        
+        /** 
         DIRECTIONAL_LIGHT_DIRECTIONS_UNIFORM:47,
         POINT_LIGHT_POSITIONS_AND_INTENSITIES_UNIFORM:48,
         LIGHT_COUNT_VECTOR:49,
@@ -258,7 +260,7 @@ export const CORE = {
         SPOT_LIGHT_POSITIONS_AND_INTENSITIES_UNIFORM:54,
         SPOT_LIGHT_SPECULAR_COLORS_UNIFROM:55,
         SPOT_LIGHT_DIRECTIONS_UNIFORM:56,
-        AMBIENT_LIGHT_COLORS_AND_INTENSITIES_UNIFORM:57,
+        AMBIENT_LIGHT_COLORS_AND_INTENSITIES_UNIFORM:57,*/
     },
     /**
      * Converts commonly used color formats to RGBA.
@@ -486,6 +488,7 @@ export const CORE = {
      * @param {Array<String|Number>} tree A path that is used by all paths, i.e. ["rootnode"] -> ["vertexAttrib"] is the same as ["rootnode","vertexAttrib"]
      * @param {String} texture
      */
+    /** 
     async loadMesh(URL,vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute,tree){
         const response = await fetch(URL).then(data=>data.json());
         var thejson = response;
@@ -493,7 +496,7 @@ export const CORE = {
         for(var i=0; i<tree.length; i++){
             thejson = thejson[tree[i]]
         }
-        console.log(vertexAttribute,indexAttribute,normalsAttribute,textureCoordinateAttribute)
+        
         var stuff = {
             "va":thejson,
             "ia":thejson,
@@ -527,6 +530,6 @@ export const CORE = {
         //console.log(stuff)
         var mymesh = new Mesh(stuff.va,stuff.ia,null,normalsAttribute?1:0,normalsAttribute?stuff.na:null,textureCoordinateAttribute?stuff.tc:null)
         return mymesh;
-    }
+    }*/
 }
 Object.freeze(CORE)

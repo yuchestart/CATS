@@ -350,7 +350,7 @@ export class Quaternion{
         yaw = CORE.math.toRadians(yaw)
         pitch = CORE.math.toRadians(pitch)
         roll = CORE.math.toRadians(roll)
-        console.log(CORE.math.toDegrees(CORE.math.toRadians(45)))
+        
         let qx = Math.sin(roll/2) * Math.cos(pitch/2) * Math.cos(yaw/2) - Math.cos(roll/2) * Math.sin(pitch/2) * Math.sin(yaw/2)
         let qy = Math.cos(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2) + Math.sin(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2)
         let qz = Math.cos(roll/2) * Math.cos(pitch/2) * Math.sin(yaw/2) - Math.sin(roll/2) * Math.sin(pitch/2) * Math.cos(yaw/2)

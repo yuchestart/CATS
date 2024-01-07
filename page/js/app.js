@@ -31,37 +31,8 @@ function changeFOV(me){
     scene.setFOV(parseInt(me.value))
     $("fovvalue").id.innerHTML = me.value
 }
-/** 
-async function preload(callback){
-    await CATS.CORE.loadMesh("./models/bone.json","vertices","faces","normals",["texturecoords",0],["meshes",0],$("amogus").id).then((data)=>{
-        mymesh=data;
-        console.log(mymesh.texCoords);
-        mymesh.rotate([90,0,0])
-        mymesh.flipTCoordinate()
-        mymesh.scale([1,1,5])
-        console.log(mymesh.texCoords)
-        var mymaterial = new CATS.Material()
-        mymesh.setMaterial(mymaterial)
-        console.log(data)
-    })
-    callback()
-}
 
-function mathdebug(){
-    var myquat = new CATS.Quaternion(0,1,0,1);
-    console.log(myquat);
-    console.log(myquat.returnRotationMatrix())
-    console.log(myquat.toEulerAngles())
-    var myquat2 = CATS.Quaternion.fromEulerAngles([45,45,45])
-    var myquat3 = new CATS.Quaternion( -0.596973, 0.0423342, -0.7991367, -0.0566707 )
-    console.log(myquat2)
-    console.log(myquat2.toEulerAngles())
-    console.log(myquat3.toEulerAngles())
-    console.log(CATS.CORE.math.triangle.intersectsWithRay([0,0,0],[1,1,0],[2,0,0],[1,0.5,-1],[1,3,1]))
-}
-*/
 function main(){
-    console.log(CATS.MaterialConfig.defaultBufferAttributes)
     //mathdebug()
     $("date").id.innerText = new Date()
     //Wow now that's a lot of code gone.
@@ -80,7 +51,7 @@ function main(){
     mylight = new CATS.PointLight([0,10,0],100,10,"#FFFFFF","#ffffff")
     mylight = new CATS.DirectionalLight([180,0],"#FFFFFF")
     mylight2 = new CATS.AmbientLight(20,"#FFFFFF")
-    console.log(mymesh)
+    mymesh.translate([0,0,-5])
     mymesh.rotate([0,0,0])
     scene.addLight(mylight)
     scene.addLight(mylight2)
@@ -89,8 +60,8 @@ function main(){
     //var mymeshid2 = scene.addObject(mymesh2)
     //scene.objects[mymeshid2].translate([0,2,0])
     //scene.objects[mymeshid].translate([0,-2,0])
-    console.log(scene.objects[mymeshid].transform.rotation.euler)
-    scene.moveCamera([0,0,5])
+    
+    scene.moveCamera([0,0,0])
     tick = 0
     function cat(){
         //tick+=0.01
@@ -123,7 +94,7 @@ function main(){
         scene.rotateCamera([0,2,0])
     }
     if(keybinds.Space){
-        console.log(scene.camera.position)
+        
     }
     //requestAnimationFrame(cat)
 
@@ -131,5 +102,7 @@ function main(){
     cat()
 }
 window.onload = function(){
+    
+    
     main()
 };

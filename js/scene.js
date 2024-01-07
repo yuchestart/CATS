@@ -3,7 +3,8 @@ import { CORE } from "./core.js";
 import { Mat4 } from "./math.js";
 import { Mesh } from "./mesh.js";
 import { SpotLight, AmbientLight, DirectionalLight, PointLight } from "./light.js";
-import { UniformVector3, UniformVector4 } from "./buffers.js";
+import { Uniform4x4Matrix, UniformVector3, UniformVector4 } from "./buffers.js";
+import { ShaderInput } from "./package.js";
 export class Scene{
     /**
      * Creates a space where 3D objects are placed. 
@@ -19,7 +20,7 @@ export class Scene{
             near:CORE.math.EPSILON,
             far:100,
             lastViewMatrix:new Mat4(),
-            viewMatrixInitialized:false
+            viewMatrixInitialized:false,
         };
         /**
          * @type {Array<Mesh>}
@@ -33,7 +34,11 @@ export class Scene{
         this.lighting = {
             maxDirectionalLightSourcesPerMesh:10,
             maxPointLightSourcesPerMesh:20,
-            defaultAmbientLight:new AmbientLight(0.1,"#FFFFFF")
+            defaultAmbientLight:new AmbientLight(0.1,"#FFFFFF"),
+            matrices:{
+                lightPositionIntensityDirectionMatrix:null,
+                lightColorRangeMatrix:null
+            }
         }
         this.built = false;
     }
@@ -185,6 +190,10 @@ export class Scene{
         return objectsWithTags;
     }
     
+    generateLightMatrices(){
+
+    }
+
     render(){
         this.renderer.clear(...this.bgcolor);
         if(!(this.renderer.canvas.width==this.renderer.prevCanvasDimensions.width && 
@@ -268,8 +277,32 @@ export class Scene{
             let renderablePackage = this.objects[i].convertToPackage(this.renderer,matrices.viewMatrix,matrices.projectionMatrix,otherUniforms,this);
             this.renderer.drawPackage(renderablePackage,renderablePackage.typeOfRender);
             }catch(e){
-                throw new Error(`An error occoured while trying to process object #${i} in scene.\n\n${e.stack}`)
+                throw new Error(`An error occurred while trying to process object #${i+1} in the scene.\n\n${e.stack}`)
             }
         }
+    }
+    
+    retrieveUses(uses){
+        const matracies = this.projectCamera();
+        const buffers = [];
+        let buffer;
+        for(const depends in uses){
+            switch(parseInt(depends)){
+                case CORE.enum.WORLD_VIEW_MATRIX:
+                    buffer = new ShaderInput(this.renderer,matracies.viewMatrix,Uniform4x4Matrix,CORE.enum.UNIFORM,uses[depends]);
+                    break;
+                case CORE.enum.CAMERA_PROJECTION_MATRIX:
+                    buffer = new ShaderInput(this.renderer,matracies.projectionMatrix,Uniform4x4Matrix,CORE.enum.UNIFORM,uses[depends]);
+                    break;
+                case CORE.enum.LIGHT_POSITION_INTENSITY_DIRECTION_MATRIX:
+
+                    break;
+                case CORE.enum.LIGHT_COLOR_RANGE_MATRIX:
+                    break;
+            }
+            buffers.push(buffer);
+            buffer = null;
+        }
+        return buffers;
     }
 }
