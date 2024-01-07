@@ -2,10 +2,9 @@ import { CORE } from "./core.js";
 import { Renderer } from "./renderer.js";
 import { Scene } from "./scene.js"
 import { Mat4, Quaternion } from "./math.js"
-import { Material } from "./material.js"
+//import { Material } from "./material.js"
 import { PositionBuffer, IndexBuffer, Uniform4x4Matrix, TextureCoordinateBuffer } from "./buffers.js";
-import { RenderablePackage } from "./package.js";
-//console.log(CORE)
+import { RenderablePackage, ShaderInput } from "./package.js";
 export class Mesh{
     /**
      * A 3D Object made of several triangles
@@ -20,7 +19,7 @@ export class Mesh{
      */
     constructor(vertices,indices,material,manuallySpecifyNormals,normals,texCoords,texSflipped=false,texTflipped=false){
         if(manuallySpecifyNormals){
-            console.log("Not interpolated")
+            
             this.normals = normals;
             this.vertices = vertices;
             this.indices = indices;
@@ -215,17 +214,37 @@ export class Mesh{
             this.transform.normalMatrix = normalMatrix;
         }
     }
-    retrieveDependency(renderer,dependency,name){
-        switch(dependency){
-            case "POSITION_BUFFER":
+    retrieveUses(renderer){
+        const buffers = []
+        const attr = this.material.config.uses;
+        for(const depends in attr){
+            switch(parseInt(depends)){
+                case CORE.enum.POSITION_BUFFER:{
+                    const buffer = new ShaderInput(renderer,this.vertices,PositionBuffer,CORE.enum.ATTRIBUTE,[attr[depends]]);
+                    buffers.push(buffer);
+                    break;
+                }
+                case CORE.enum.NORMALS_BUFFER:{
+                    const buffer = new ShaderInput(renderer,this.normals,PositionBuffer,CORE.enum.ATTRIBUTE,[attr[depends]]);
+                    buffers.push(buffer);
+                    break;
+                }
+                case CORE.enum.WORLD_TRANSFORM_MATRIX:{
+                    const buffer = new ShaderInput(renderer,this.transform.transformMatrix,Uniform4x4Matrix,CORE.enum.UNIFORM,[attr[depends]]);
+                    buffers.push(buffer);
+                    break;
+                }
+                
+            }
         }
+        return buffers;
     }
     /**
      * Converts this mesh into a package to be rendered.
      * @param {Renderer} renderer 
      * @param {Mat4} viewMatrix 
      * @param {Mat4} projectionMatrix 
-     * @param {Array} otherthings 
+     * @param {Array} otherthings I legit have no idea what this does lmao
      * @param {Scene} scene 
      * @returns 
      */
@@ -234,55 +253,21 @@ export class Mesh{
         if(rebuild){
             this.material.resetBuild();
         }
-        let builtMaterial = this.material.build(renderer,this,scene);
+        this.generateTransformMatrix();
+        let builtMaterial = this.material.build(renderer,scene,this);
         let materialData = builtMaterial.constructShaderDataList();
-        let buffers = [];
+        let buffers = [new ShaderInput(renderer,this.indices,IndexBuffer,CORE.enum.NON_ATTRIBUTE)];
         for(const key in materialData){
             buffers.push(key);
         }
-        for(let i=0; i<builtMaterial.dependencies.length; i++){
-            buffers.push(this.retrieveDependency(renderer,dependencies))
-        }
-        const renderpackage = new RenderablePackage(builtMaterial.shaderProgram,buffers,CORE.enum.ELEMENTS,builtMaterial.renderingType,{
+        
+        buffers = buffers.concat(this.retrieveUses(renderer))
+        buffers = buffers.concat(scene.retrieveUses(this.material.config.uses))
+        console.log(builtMaterial)
+        const renderpackage = new RenderablePackage(builtMaterial.shaderProgram,buffers,CORE.enum.ELEMENTS,CORE.enum,{
             numElements:this.indices.length,
             offset:0
         })
-        /*
-        if(this.buffers.built){
-            var positionBuffer = this.buffers.position;
-            var indexBuffer = this.buffers.index;
-            var normalBuffer = this.buffers.normal;
-        } else {
-            var positionBuffer = new PositionBuffer(renderer,this.vertices,"vP");
-            var indexBuffer = new IndexBuffer(renderer,this.indices);
-            var normalBuffer = new PositionBuffer(renderer,this.normals,"vN");
-            this.buffers.position = positionBuffer;
-            this.buffers.index = indexBuffer;
-            this.buffers.normal = normalBuffer;
-        }
-        
-        var transformUniform = new Uniform4x4Matrix(renderer,this.transform.transformMatrix,"wM");
-        var viewUniform = new Uniform4x4Matrix(renderer,viewMatrix,"vM");
-        var projectionUniform = new Uniform4x4Matrix(renderer,projectionMatrix,"pM");
-        var normalUniform = new Uniform4x4Matrix(renderer,this.transform.normalMatrix,"nM")
-        var shaderInput = [positionBuffer,normalBuffer,indexBuffer,transformUniform,viewUniform,projectionUniform,normalUniform];
-        shaderInput = shaderInput.concat(newParameters);
-        shaderInput = shaderInput.concat(otherthings);
-        if(this.texCoords?this.texCoords.length:0){
-            if(this.buffers.built){
-                var textureBuffer = this.buffers.texcoord;
-            } else {
-                var textureBuffer = new TextureCoordinateBuffer(renderer,this.texCoords,"vTC");
-                this.buffers.texcoord = textureBuffer;
-            }
-            //shaderInput.push(textureBuffer)
-        }
-        var renderType = builtMaterial.renderType?builtMaterial.renderType:CORE.enum.TRIANGLES
-        //constructor(shaderProgram,shaderInputs,drawingMethod,renderType,params)
-        var renderpackage = new RenderablePackage(shaderProgram,shaderInput,CORE.enum.ELEMENTS,renderType,{
-            numElements:this.indices.length,
-            offset:0
-        }*/
         return renderpackage;
     }
     /**

@@ -1,4 +1,4 @@
-import * as core from "./core.js"
+import { CORE } from "./core.js"
 import { VertexShader, FragmentShader, ShaderProgram } from "./shaders.js"
 
 /**
@@ -6,24 +6,102 @@ import { VertexShader, FragmentShader, ShaderProgram } from "./shaders.js"
  */
 export class MaterialConfig{
     static defaultBufferAttributes = {};
-    
+    static defaultUses = [CORE.enum.POSITION_BUFFER,CORE.enum.WORLD_TRANSFORM_MATRIX,CORE.enum.WORLD_VIEW_MATRIX,CORE.enum.CAMERA_PROJECTION_MATRIX];
+    static {
+        MaterialConfig.defaultBufferAttributes[CORE.enum.POSITION_BUFFER] = "vP";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.WORLD_TRANSFORM_MATRIX] = "wM";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.WORLD_VIEW_MATRIX] = "vM";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.CAMERA_PROJECTION_MATRIX] = "pM";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.TEXTURE_COORDINATE_BUFFER] = "tC";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.NORMALS_BUFFER] = "vN";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.NORMALS_TRANSFORM_MATRIX] = "nM";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.LIGHT_POSITION_INTENSITY_DIRECTION_MATRIX] = "lightPIDM";
+        MaterialConfig.defaultBufferAttributes[CORE.enum.LIGHT_COLOR_RANGE_MATRIX] = "lightCR";
+    }
     /**
      * Create a new material config object
-     * @param {Array<Number>} uses What external(provided by the mesh and scene) buffers will this material use.
+     * @param {Array<Number>|Array<Array<Number|String>>} uses What external(provided by the mesh and scene) buffers will this material use.
      */
-    constructor(uses){
-        this.uses = uses;
+    constructor(uses = MaterialConfig.defaultUses){
+        this.uses = {};
+        if(uses instanceof Array){
+            for(const i in uses){
+                this.uses[uses[i]] = MaterialConfig.defaultBufferAttributes[uses[i]];
+            }
+        } else {
+            throw new TypeError("Uses must be in the form of an array(e.g. [CATS.CORE.enum.POSITION_BUFFER,CATS.CORE.enum.WORLD_TRANSFORM_MATRIX,...])");
+        }
     }
 }
-{
-    //MaterialConfig.defaultBufferAttributes[CORE.enum.POSITION_BUFFER] = "vP"
+
+export class CompiledMaterial{
+    /**
+     * Create a new compiled material object.
+     * @param {ShaderProgram} shaderProgram 
+     * @param {Object} data 
+     */
+    constructor(shaderProgram,data = {}){
+        this.shaderProgram = shaderProgram;
+        this.data = data;
+    }
+    constructShaderDataList(){
+        let dataList = [];
+        for(key in this.data){
+            let data = new this.data[key].type(this.data[key].value);
+            dataList.push(data);
+        }
+        return dataList;
+    }
 }
+
+/**
+ * Re-Usable place to store shaders and other code.
+ */
 export class Material{
+    /**
+     * Create a new material object
+     * @param {Function} buildFunction Template: function(renderer,scene,mesh,material) and returns a CompiledMaterial object.
+     * @param {MaterialConfig} config How the material is configured, defaults to MaterialConfig.defaultConfig()
+     */
     constructor(buildFunction, config=new MaterialConfig()){
-
+        this.built = null;
+        this.buildFunction = !!buildFunction ? buildFunction : function(renderer,scene,mesh,material){
+            const vertexShaderSource =
+            `
+            attribute vec3 vP;
+            uniform mat4 wM;
+            uniform mat4 vM;
+            uniform mat4 pM;
+            void main(void){
+                gl_Position = vec4(0.0,0.0,0.0,0.0);
+                gl_PointSize = 3.0;
+            }
+            `;
+            const fragmentShaderSource = 
+            `
+            void main(void){
+                
+                gl_FragColor = vec4(1.0,0.0,1.0,1.0);
+            }
+            `
+            const vertexShader = new VertexShader(vertexShaderSource);
+            const fragmentShader = new FragmentShader(fragmentShaderSource);
+            const shaderProgram = new ShaderProgram(renderer,vertexShader,fragmentShader);
+            const compiled = new CompiledMaterial(shaderProgram)
+            return compiled;
+        }
+        this.config = config;
+    }
+    rebuild(){
+        this.built = null;
+    }
+    build(renderer,scene,mesh){
+        if(!this.built){
+            this.built = this.buildFunction(renderer,scene,mesh,this);
+        }
+        return this.built;
     }
 }
-
 
 //console.log(core.CORE)
 
